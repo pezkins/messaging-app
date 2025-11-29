@@ -49,7 +49,9 @@ This guide will walk you through setting up LinguaLink on an Ubuntu VM running o
    - Click **Next**
 
 6. **CPU tab:**
+   - Sockets: `1` (leave as default)
    - Cores: `2` (minimum, 4 recommended)
+   - Type: `Default (kvm64)` or `host` for better performance
    - Click **Next**
 
 7. **Memory tab:**
