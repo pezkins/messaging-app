@@ -1,0 +1,29 @@
+# AWS SAM deployment configuration
+# Run: sam deploy --config-env dev
+
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "lingualink"
+resolve_s3 = true
+s3_prefix = "lingualink"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+
+[dev.deploy.parameters]
+stack_name = "lingualink-dev"
+parameter_overrides = [
+    "JwtSecret=your-dev-jwt-secret-change-this",
+    "TranslationMode=api",
+    "DeepSeekApiKey=your-deepseek-api-key",
+]
+
+[prod.deploy.parameters]
+stack_name = "lingualink-prod"
+parameter_overrides = [
+    "JwtSecret=your-prod-jwt-secret-change-this",
+    "TranslationMode=ollama",
+    "OllamaUrl=http://your-ollama-server:11434",
+]
+
