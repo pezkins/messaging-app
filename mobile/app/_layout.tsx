@@ -1,34 +1,30 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import * as SplashScreen from 'expo-splash-screen';
 import { useAuthStore } from '../src/store/auth';
-import { colors } from '../src/constants/theme';
-
-SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const { initializeAuth, isLoading } = useAuthStore();
+  const [appReady, setAppReady] = useState(false);
 
   useEffect(() => {
-    initializeAuth();
-  }, [initializeAuth]);
+    const init = async () => {
+      try {
+        await initializeAuth();
+      } catch (e) {
+        console.log('Auth init error:', e);
+      } finally {
+        setAppReady(true);
+      }
+    };
+    init();
+  }, []);
 
-  const onLayoutRootView = useCallback(async () => {
-    if (!isLoading) {
-      await SplashScreen.hideAsync();
-    }
-  }, [isLoading]);
-
-  useEffect(() => {
-    onLayoutRootView();
-  }, [onLayoutRootView]);
-
-  if (isLoading) {
+  if (!appReady || isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary[500]} />
+        <ActivityIndicator size="large" color="#0091c3" />
         <StatusBar style="light" />
       </View>
     );
@@ -39,7 +35,7 @@ export default function RootLayout() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: colors.surface[950] },
+          contentStyle: { backgroundColor: '#0f172a' },
           animation: 'slide_from_right',
         }}
       />
@@ -53,7 +49,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.surface[950],
+    backgroundColor: '#0f172a',
   },
 });
-
