@@ -205,6 +205,8 @@ npm install
 
 ### Step 4.2: Start the Database
 
+We'll use Docker to run PostgreSQL and Redis. This step is where we **set the database username and password**.
+
 ```bash
 # Create docker-compose file for databases
 cat > docker-compose.yml << 'EOF'
@@ -215,9 +217,14 @@ services:
     container_name: lingualink-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password123
-      POSTGRES_DB: lingualink
+      # ======================================
+      # 🔐 POSTGRESQL CREDENTIALS - SET HERE!
+      # ======================================
+      # These values will be used in your .env file later
+      # You can change these if you want different credentials
+      POSTGRES_USER: postgres        # Database username
+      POSTGRES_PASSWORD: password123 # Database password (change for production!)
+      POSTGRES_DB: lingualink        # Database name
     ports:
       - "5432:5432"
     volumes:
@@ -229,6 +236,7 @@ services:
     restart: unless-stopped
     ports:
       - "6379:6379"
+    # Note: Redis has no password by default (fine for local/home use)
 
 volumes:
   postgres_data:
@@ -247,6 +255,45 @@ CONTAINER ID   IMAGE         STATUS         PORTS
 abc123         postgres:15   Up 10 seconds  0.0.0.0:5432->5432
 def456         redis:7       Up 10 seconds  0.0.0.0:6379->6379
 ```
+
+### 📝 Understanding the Database Credentials
+
+The credentials you just set in `docker-compose.yml` will be used in Step 4.3:
+
+| Set in docker-compose.yml | Used in .env DATABASE_URL |
+|---------------------------|---------------------------|
+| `POSTGRES_USER: postgres` | `postgresql://`**postgres**`:password123@...` |
+| `POSTGRES_PASSWORD: password123` | `postgresql://postgres:`**password123**`@...` |
+| `POSTGRES_DB: lingualink` | `postgresql://...@localhost:5432/`**lingualink** |
+
+**The full DATABASE_URL format:**
+```
+postgresql://USERNAME:PASSWORD@HOST:PORT/DATABASE
+            └───┬───┘ └───┬───┘ └─┬─┘└┬─┘ └──┬───┘
+                │         │       │   │      │
+           postgres  password123  │  5432  lingualink
+                               localhost
+                          (same VM = localhost)
+```
+
+### 🔒 Want Different Credentials? (Optional)
+
+If you want to use different credentials, change them in **BOTH** places:
+
+**1. In docker-compose.yml (before running `docker compose up`):**
+```yaml
+environment:
+  POSTGRES_USER: myuser           # Your custom username
+  POSTGRES_PASSWORD: MySecureP@ss # Your custom password
+  POSTGRES_DB: lingualink
+```
+
+**2. In .env (Step 4.3):**
+```bash
+DATABASE_URL="postgresql://myuser:MySecureP@ss@localhost:5432/lingualink"
+```
+
+**For this tutorial, we'll use the defaults:** `postgres` / `password123`
 
 ### Step 4.3: Create the Environment File
 
