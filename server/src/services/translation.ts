@@ -1,12 +1,10 @@
-import OpenAI from 'openai';
+import Anthropic from '@anthropic-ai/sdk';
 import { translationCache } from '../lib/redis';
 import { prisma } from '../lib/prisma';
 
-// DeepSeek API is compatible with OpenAI's SDK
-// Free tier: https://platform.deepseek.com/
-const deepseek = new OpenAI({
-  apiKey: process.env.DEEPSEEK_API_KEY,
-  baseURL: 'https://api.deepseek.com',
+// Claude API for translation
+const anthropic = new Anthropic({
+  apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
 const LANGUAGE_NAMES: Record<string, string> = {
@@ -76,30 +74,29 @@ class TranslationService {
       const sourceLangName = LANGUAGE_NAMES[sourceLanguage] || sourceLanguage;
       const targetLangName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
 
-      const response = await deepseek.chat.completions.create({
-        model: 'deepseek-chat',
+      const response = await anthropic.messages.create({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 1000,
         messages: [
           {
-            role: 'system',
-            content: `You are a professional translator. Translate the following text from ${sourceLangName} to ${targetLangName}. 
-            
+            role: 'user',
+            content: `Translate the following text from ${sourceLangName} to ${targetLangName}. 
+
 Rules:
 - Maintain the original tone and context (casual, formal, friendly, etc.)
 - Preserve any emojis, special characters, or formatting
 - Do not add explanations or notes
 - If the text contains slang or idioms, translate them to equivalent expressions in the target language
-- Return ONLY the translated text, nothing else`,
-          },
-          {
-            role: 'user',
-            content: text,
+- Return ONLY the translated text, nothing else
+
+Text to translate:
+${text}`,
           },
         ],
-        temperature: 0.3,
-        max_tokens: 1000,
       });
 
-      const translation = response.choices[0]?.message?.content?.trim() || text;
+      const content = response.content[0];
+      const translation = content.type === 'text' ? content.text.trim() : text;
 
       // Store translation in database and cache
       if (messageId) {
@@ -126,23 +123,21 @@ Rules:
    */
   async detectLanguage(text: string): Promise<string> {
     try {
-      const response = await deepseek.chat.completions.create({
-        model: 'deepseek-chat',
+      const response = await anthropic.messages.create({
+        model: 'claude-3-haiku-20240307',
+        max_tokens: 10,
         messages: [
           {
-            role: 'system',
-            content: `Detect the language of the following text and respond with ONLY the ISO 639-1 language code (e.g., 'en', 'es', 'fr', 'de', 'ja', 'zh', etc.). Do not include any other text or explanation.`,
-          },
-          {
             role: 'user',
-            content: text,
+            content: `Detect the language of the following text and respond with ONLY the ISO 639-1 language code (e.g., 'en', 'es', 'fr', 'de', 'ja', 'zh', etc.). Do not include any other text or explanation.
+
+Text: ${text}`,
           },
         ],
-        temperature: 0,
-        max_tokens: 10,
       });
 
-      const detected = response.choices[0]?.message?.content?.trim().toLowerCase() || 'en';
+      const content = response.content[0];
+      const detected = content.type === 'text' ? content.text.trim().toLowerCase() : 'en';
       
       // Validate it's a supported language code
       if (LANGUAGE_NAMES[detected]) {
@@ -182,4 +177,3 @@ Rules:
 }
 
 export const translationService = new TranslationService();
-
