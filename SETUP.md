@@ -406,12 +406,19 @@ nano .env
 ### Step 4.4: Set Up the Database Tables
 
 ```bash
-# Generate Prisma client
+# Generate Prisma client (creates the database code)
 npx prisma generate
 
-# Create database tables
-npx prisma migrate deploy
+# Create the database tables (first-time setup)
+npx prisma migrate dev --name init
 ```
+
+When you run `migrate dev`, it will:
+1. Create a new migration file
+2. Apply it to your database
+3. You'll see "Your database is now in sync with your schema"
+
+> **Note:** If asked "Enter a name for the new migration", just press Enter (we already named it "init").
 
 ### Step 4.5: Add Demo Users
 
