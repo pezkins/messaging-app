@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import type { 
   AuthResponse, 
   User, 
@@ -9,7 +10,7 @@ import type {
 import type { LanguageCode } from '../constants/languages';
 
 // Update this to your production server URL
-const API_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3001';
 
 class ApiClient {
   private accessToken: string | null = null;

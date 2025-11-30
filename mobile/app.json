@@ -17,35 +17,24 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.lingualink.app",
-      "buildNumber": "1"
+      "bundleIdentifier": "com.lingualink.app"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0f172a"
       },
-      "package": "com.lingualink.app",
-      "versionCode": 1
+      "package": "com.lingualink.app"
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/favicon.png"
+      "output": "static"
     },
     "plugins": [
       "expo-router"
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
     "extra": {
-      "eas": {
-        "projectId": "your-project-id"
-      },
-      "router": {
-        "origin": false
-      }
+      "apiUrl": "http://localhost:3001"
     }
   }
 }

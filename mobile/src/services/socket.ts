@@ -1,124 +1,82 @@
+import { io, Socket } from 'socket.io-client';
+import Constants from 'expo-constants';
 import type { Message } from '../types';
 
-const SOCKET_URL = process.env.EXPO_PUBLIC_WS_URL || 'ws://localhost:3001';
+const SOCKET_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3001';
 
 /**
- * WebSocket service that works with both:
- * - Socket.IO (original server)
- * - AWS API Gateway WebSocket (serverless)
+ * Socket.IO service for real-time messaging
  */
 class SocketService {
-  private socket: WebSocket | null = null;
-  private listeners: Map<string, Set<(...args: unknown[]) => void>> = new Map();
-  private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
+  private socket: Socket | null = null;
   private token: string | null = null;
 
   connect(token: string) {
-    if (this.socket?.readyState === WebSocket.OPEN) {
+    if (this.socket?.connected) {
       return;
     }
 
     this.token = token;
     
-    // Add token as query param for AWS API Gateway WebSocket
-    const url = `${SOCKET_URL}?token=${encodeURIComponent(token)}`;
-    this.socket = new WebSocket(url);
+    this.socket = io(SOCKET_URL, {
+      auth: { token },
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+    });
 
-    this.socket.onopen = () => {
-      console.log('🔌 WebSocket connected');
-      this.reconnectAttempts = 0;
-    };
+    this.socket.on('connect', () => {
+      console.log('🔌 Socket.IO connected');
+    });
 
-    this.socket.onclose = (event) => {
-      console.log('🔌 WebSocket disconnected:', event.code);
-      this.handleReconnect();
-    };
+    this.socket.on('disconnect', (reason: string) => {
+      console.log('🔌 Socket.IO disconnected:', reason);
+    });
 
-    this.socket.onerror = (error) => {
-      console.error('🔌 WebSocket error:', error);
-    };
-
-    this.socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        const action = data.action;
-        
-        // Notify listeners
-        const eventListeners = this.listeners.get(action);
-        if (eventListeners) {
-          eventListeners.forEach((listener) => listener(data));
-        }
-      } catch (error) {
-        console.error('Failed to parse message:', error);
-      }
-    };
-  }
-
-  private handleReconnect() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts || !this.token) {
-      return;
-    }
-
-    this.reconnectAttempts++;
-    const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
-    
-    console.log(`🔌 Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
-    
-    setTimeout(() => {
-      if (this.token) {
-        this.connect(this.token);
-      }
-    }, delay);
+    this.socket.on('connect_error', (error: Error) => {
+      console.error('🔌 Socket.IO connection error:', error.message);
+    });
   }
 
   disconnect() {
     if (this.socket) {
-      this.socket.close();
+      this.socket.disconnect();
       this.socket = null;
     }
     this.token = null;
   }
 
   on<T>(event: string, callback: (data: T) => void) {
-    if (!this.listeners.has(event)) {
-      this.listeners.set(event, new Set());
-    }
-    this.listeners.get(event)!.add(callback as (...args: unknown[]) => void);
+    this.socket?.on(event, callback);
 
     return () => {
-      this.listeners.get(event)?.delete(callback as (...args: unknown[]) => void);
+      this.socket?.off(event, callback);
     };
   }
 
   off(event: string) {
-    this.listeners.delete(event);
-  }
-
-  private send(action: string, data: unknown) {
-    if (this.socket?.readyState === WebSocket.OPEN) {
-      this.socket.send(JSON.stringify({ action, data }));
-    }
+    this.socket?.off(event);
   }
 
   sendMessage(data: { conversationId: string; content: string; type: 'TEXT' | 'VOICE' }) {
-    this.send('message', data);
+    this.socket?.emit('message:send', data);
   }
 
   sendTyping(conversationId: string, isTyping: boolean) {
-    this.send('message', { action: 'message:typing', conversationId, isTyping });
+    this.socket?.emit('message:typing', { conversationId, isTyping });
   }
 
   markAsRead(conversationId: string, messageId: string) {
-    this.send('message', { action: 'message:read', conversationId, messageId });
+    this.socket?.emit('message:read', { conversationId, messageId });
   }
 
-  joinConversation(_conversationId: string) {
-    // No-op for serverless - connections are managed per-user
+  joinConversation(conversationId: string) {
+    this.socket?.emit('conversation:join', conversationId);
   }
 
-  leaveConversation(_conversationId: string) {
-    // No-op for serverless
+  leaveConversation(conversationId: string) {
+    this.socket?.emit('conversation:leave', conversationId);
   }
 }
 
@@ -136,4 +94,3 @@ export interface TypingEvent {
   userId: string;
   isTyping: boolean;
 }
-
