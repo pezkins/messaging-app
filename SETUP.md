@@ -250,42 +250,111 @@ def456         redis:7       Up 10 seconds  0.0.0.0:6379->6379
 
 ### Step 4.3: Create the Environment File
 
+First, let me explain what each variable is and where the values come from:
+
+| Variable | What It Is | Where It Comes From | Do You Change It? |
+|----------|------------|---------------------|-------------------|
+| `DATABASE_URL` | PostgreSQL connection | We set user/pass in docker-compose (Step 4.2) | ❌ No - leave as is |
+| `REDIS_URL` | Redis connection | Redis has no password by default | ❌ No - leave as is |
+| `DEEPSEEK_API_KEY` | AI translation key | You got this in Part 3 | ✅ **YES - paste your key!** |
+| `JWT_SECRET` | Security key for logins | Any random string you make up | ⚠️ Optional (defaults work for testing) |
+| `JWT_REFRESH_SECRET` | Security key for sessions | Any random string you make up | ⚠️ Optional (defaults work for testing) |
+| `PORT` | Server port | Standard setting | ❌ No - leave as 3001 |
+
+**Why `localhost`?** Because PostgreSQL and Redis are running on the **same VM** as your server (in Docker containers). They talk to each other locally.
+
 ```bash
 # Go to server folder
 cd ~/messaging-app/server
 
 # Create .env file
 cat > .env << 'EOF'
-# Database
+# ===========================================
+# DATABASE (Don't change - matches docker-compose.yml)
+# ===========================================
+# Format: postgresql://USERNAME:PASSWORD@HOST:PORT/DATABASE
+# - Username: postgres (set in docker-compose)
+# - Password: password123 (set in docker-compose)
+# - Host: localhost (database is on same VM)
+# - Port: 5432 (PostgreSQL default)
+# - Database: lingualink (set in docker-compose)
 DATABASE_URL="postgresql://postgres:password123@localhost:5432/lingualink"
 
-# Redis
+# ===========================================
+# REDIS (Don't change - no password needed for local)
+# ===========================================
 REDIS_URL="redis://localhost:6379"
 
-# DeepSeek API - PASTE YOUR KEY BELOW!
-DEEPSEEK_API_KEY="sk-PASTE-YOUR-KEY-HERE"
+# ===========================================
+# DEEPSEEK API KEY - ⚠️ YOU MUST CHANGE THIS! ⚠️
+# ===========================================
+# Paste the API key you got from Part 3
+# It looks like: sk-abc123def456...
+DEEPSEEK_API_KEY="sk-PASTE-YOUR-REAL-KEY-HERE"
 
-# JWT Secrets (random strings for security)
+# ===========================================
+# JWT SECRETS (Can leave defaults for testing)
+# ===========================================
+# These are just random strings for security
+# For production, generate random ones with: openssl rand -base64 32
+# No special format - just make them long and random
 JWT_SECRET="lingualink-jwt-secret-change-this-in-production-abc123"
 JWT_REFRESH_SECRET="lingualink-refresh-secret-change-this-xyz789"
 
-# Server
+# ===========================================
+# SERVER SETTINGS (Don't change)
+# ===========================================
 PORT=3001
 CORS_ORIGIN="*"
 NODE_ENV="production"
 EOF
 ```
 
-### ⚠️ IMPORTANT: Add Your DeepSeek Key!
+### ⚠️ YOU ONLY NEED TO CHANGE ONE THING: Your DeepSeek API Key!
 
 ```bash
 # Edit the .env file
 nano .env
 ```
 
-1. Find the line: `DEEPSEEK_API_KEY="sk-PASTE-YOUR-KEY-HERE"`
-2. Replace `sk-PASTE-YOUR-KEY-HERE` with your real key from Part 3
-3. Press `Ctrl + X`, then `Y`, then `Enter` to save
+1. **Find this line:**
+   ```
+   DEEPSEEK_API_KEY="sk-PASTE-YOUR-REAL-KEY-HERE"
+   ```
+
+2. **Replace** `sk-PASTE-YOUR-REAL-KEY-HERE` **with your actual API key** from Part 3
+   
+   Example - change FROM:
+   ```
+   DEEPSEEK_API_KEY="sk-PASTE-YOUR-REAL-KEY-HERE"
+   ```
+   
+   TO (using your real key):
+   ```
+   DEEPSEEK_API_KEY="sk-a1b2c3d4e5f6g7h8i9j0..."
+   ```
+
+3. **Save the file:** Press `Ctrl + X`, then `Y`, then `Enter`
+
+### 💡 Quick Answers to Your Questions:
+
+**Q: Do I change `localhost` to my VM IP?**
+> ❌ No! Keep it as `localhost`. The database runs on the same VM as the server, so they communicate locally.
+
+**Q: Where do the PostgreSQL username/password come from?**
+> From the `docker-compose.yml` we created in Step 4.2. We set:
+> - Username: `postgres`
+> - Password: `password123`
+> - Database: `lingualink`
+
+**Q: Where does the Redis URL come from?**
+> Redis runs without a password by default on port 6379. Since it's on the same VM, we just use `localhost:6379`.
+
+**Q: Do JWT secrets need a specific format?**
+> No! They're just random strings. The longer and more random, the more secure. For testing, the defaults work fine. For production, generate random ones:
+> ```bash
+> openssl rand -base64 32
+> ```
 
 ### Step 4.4: Set Up the Database Tables
 
