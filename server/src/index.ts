@@ -22,7 +22,7 @@ const httpServer = createServer(app);
 // Socket.IO setup
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173', 'http://localhost:8081', 'http://localhost:19006', 'http://localhost:19000'],
+    origin: true, // Allow all origins in development
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -30,7 +30,7 @@ const io = new SocketIOServer(httpServer, {
 
 // Middleware
 app.use(cors({
-  origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173', 'http://localhost:8081', 'http://localhost:19006', 'http://localhost:19000'],
+  origin: true, // Allow all origins in development
   credentials: true,
 }));
 app.use(express.json());

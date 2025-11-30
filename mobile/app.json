@@ -34,7 +34,7 @@
       "expo-router"
     ],
     "extra": {
-      "apiUrl": "http://localhost:3001"
+      "apiUrl": "http://192.168.2.62:3001"
     }
   }
 }
