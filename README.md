@@ -4,10 +4,149 @@ A multilingual mobile messaging app that automatically translates messages into 
 
 > 📖 **New to coding?** Check out [SETUP.md](./SETUP.md) for a beginner-friendly step-by-step guide!
 
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                              LINGUALINK ARCHITECTURE                             │
+└─────────────────────────────────────────────────────────────────────────────────┘
+
+┌──────────────────┐         ┌──────────────────┐         ┌──────────────────┐
+│   📱 Mobile App  │         │   📱 Mobile App  │         │   🌐 Web App     │
+│   (iOS/Android)  │         │   (iOS/Android)  │         │   (Browser)      │
+│   User: Alice    │         │   User: Carlos   │         │   User: Yuki     │
+│   Lang: English  │         │   Lang: Spanish  │         │   Lang: Japanese │
+└────────┬─────────┘         └────────┬─────────┘         └────────┬─────────┘
+         │                            │                            │
+         │  REST API (HTTP)           │  REST API (HTTP)           │  REST API (HTTP)
+         │  + Socket.IO (WS)          │  + Socket.IO (WS)          │  + Socket.IO (WS)
+         │                            │                            │
+         └────────────────────────────┼────────────────────────────┘
+                                      │
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           🖥️  NODE.JS SERVER                                    │
+│                              (Express.js)                                        │
+│  ┌─────────────────────────────────────────────────────────────────────────┐    │
+│  │                         API ROUTES                                       │    │
+│  │  /api/auth/*        - Login, Register, Token Refresh                    │    │
+│  │  /api/users/*       - Profile, Language Settings, Search                │    │
+│  │  /api/conversations - List, Create Conversations                        │    │
+│  │  /api/messages/*    - Message History, Translation Preview              │    │
+│  └─────────────────────────────────────────────────────────────────────────┘    │
+│                                      │                                           │
+│  ┌─────────────────────────────────────────────────────────────────────────┐    │
+│  │                      SOCKET.IO HANDLERS                                  │    │
+│  │  message:send    → Receive message, detect language, translate, store   │    │
+│  │  message:receive ← Send translated message to recipient                 │    │
+│  │  message:typing  ↔ Typing indicators                                    │    │
+│  │  message:read    ↔ Read receipts                                        │    │
+│  └─────────────────────────────────────────────────────────────────────────┘    │
+│                                      │                                           │
+│  ┌───────────────────┐    ┌──────────┴──────────┐    ┌───────────────────┐      │
+│  │ 🔐 Auth Service   │    │ 🌐 Translation Svc  │    │ 💬 Message Service│      │
+│  │ - JWT tokens      │    │ - Language detect   │    │ - Store messages  │      │
+│  │ - Password hash   │    │ - Translate text    │    │ - Fetch history   │      │
+│  │ - Session mgmt    │    │ - Cache results     │    │ - Real-time sync  │      │
+│  └───────────────────┘    └──────────┬──────────┘    └───────────────────┘      │
+└──────────────────────────────────────┼──────────────────────────────────────────┘
+                                       │
+         ┌─────────────────────────────┼─────────────────────────────┐
+         │                             │                             │
+         ▼                             ▼                             ▼
+┌─────────────────┐         ┌─────────────────────┐         ┌─────────────────┐
+│  🐘 PostgreSQL  │         │    🤖 Claude API    │         │   🔴 Redis      │
+│                 │         │    (Anthropic)      │         │                 │
+│  - Users        │         │                     │         │  - Translation  │
+│  - Messages     │         │  - Detect language  │         │    cache        │
+│  - Conversations│         │  - Translate text   │         │  - User sessions│
+│  - Translations │         │  - Haiku model      │         │  - Socket IDs   │
+│                 │         │    (fast & cheap)   │         │                 │
+└─────────────────┘         └─────────────────────┘         └─────────────────┘
+```
+
+### Message Flow Example
+
+```
+Alice (English) sends "Hello, how are you?" to Carlos (Spanish):
+
+1. 📱 Alice's App
+   └─► Socket.IO: message:send { content: "Hello, how are you?", conversationId: "xxx" }
+
+2. 🖥️ Server receives message
+   ├─► Detect language → "en" (English)
+   ├─► Store original message in PostgreSQL
+   └─► For each recipient, translate to their language:
+
+3. 🤖 Claude API (for Carlos - Spanish)
+   ├─► Input: "Hello, how are you?" (en → es)
+   └─► Output: "¡Hola! ¿Cómo estás?"
+
+4. 🔴 Redis
+   └─► Cache translation for future requests
+
+5. 📱 Carlos's App
+   └─◄ Socket.IO: message:receive { 
+         originalContent: "Hello, how are you?",
+         translatedContent: "¡Hola! ¿Cómo estás?",
+         originalLanguage: "en",
+         targetLanguage: "es"
+       }
+
+6. 📱 Carlos sees: "¡Hola! ¿Cómo estás?" 
+   └─► (Can tap to view original English)
+```
+
+### Network Diagram (Development Setup)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                     YOUR WINDOWS MACHINE                         │
+│  ┌─────────────────────┐    ┌─────────────────────────────────┐ │
+│  │   🌐 Web Browser    │    │      📱 Expo Go App             │ │
+│  │   localhost:8081    │    │      (on your phone)            │ │
+│  │                     │    │                                 │ │
+│  │   React Native Web  │    │   Connects via WiFi to:         │ │
+│  │   (Expo Web)        │    │   http://192.168.2.62:3001      │ │
+│  └──────────┬──────────┘    └──────────┬──────────────────────┘ │
+│             │                          │                         │
+│             │ HTTP/WebSocket           │ HTTP/WebSocket          │
+│             └──────────────────────────┼─────────────────────────┤
+│                                        │                         │
+│  ┌─────────────────────────────────────┼───────────────────────┐ │
+│  │              WSL (Ubuntu)           │                       │ │
+│  │  ┌─────────────────────────────┐    │                       │ │
+│  │  │  📁 Source Code             │    │                       │ │
+│  │  │  /home/ayepez/github/       │    │                       │ │
+│  │  │  messaging-app/             │    │                       │ │
+│  │  └─────────────────────────────┘    │                       │ │
+│  └─────────────────────────────────────┼───────────────────────┘ │
+└────────────────────────────────────────┼─────────────────────────┘
+                                         │
+                        Network (LAN)    │  192.168.2.x
+                                         │
+┌────────────────────────────────────────┼─────────────────────────┐
+│              PROXMOX VM (Ubuntu)       │    IP: 192.168.2.62     │
+│  ┌─────────────────────────────────────┴───────────────────────┐ │
+│  │                    🖥️ Node.js Server                        │ │
+│  │                    Port 3001                                 │ │
+│  │                    (PM2 managed)                             │ │
+│  └──────────────────────────┬──────────────────────────────────┘ │
+│                             │                                    │
+│       ┌─────────────────────┼─────────────────────┐              │
+│       ▼                     ▼                     ▼              │
+│  ┌─────────┐         ┌─────────────┐       ┌───────────┐        │
+│  │🐘 Postgres│        │ 🔴 Redis    │       │ 🤖 Claude │        │
+│  │Port 5432 │        │ Port 6379   │       │   API     │        │
+│  │(Docker)  │        │ (Docker)    │       │ (Internet)│        │
+│  └─────────┘         └─────────────┘       └───────────┘        │
+└──────────────────────────────────────────────────────────────────┘
+```
+
 ## Features
 
 - **Real-time messaging** with WebSocket support
-- **Automatic translation** powered by DeepSeek AI (free/open-source)
+- **Automatic translation** powered by Claude AI (Anthropic)
 - **Translation preview** before sending (1-to-1 chats)
 - **Group chat support** with per-user translation
 - **Voice messages** (Phase 2)
@@ -31,16 +170,16 @@ A multilingual mobile messaging app that automatically translates messages into 
 - **DynamoDB** - Serverless database (pay-per-request)
 - **No Redis needed** - Translations cached in DynamoDB
 
-### AI Translation (Two Options)
-- **DeepSeek API** - Cloud API, ~$0.14/million tokens (FREE tier available)
-- **Ollama + DeepSeek** - Self-hosted, completely FREE after VM cost
+### AI Translation
+- **Claude API (Anthropic)** - Claude Haiku model, fast & affordable (~$0.25/million input tokens)
+- Alternative: **DeepSeek API** - ~$0.14/million tokens (FREE tier available)
 
 ### Mobile App (iOS & Android)
 - **React Native + Expo** - Cross-platform mobile framework
 - **Expo Router** - File-based navigation
-- **Native WebSocket** - Real-time communication
+- **Socket.IO Client** - Real-time communication
 - **Zustand** - State management
-- **Expo Secure Store** - Secure token storage
+- **AsyncStorage** - Token storage
 
 ## Project Structure
 
@@ -90,13 +229,13 @@ messaging-app/
 - Node.js >= 18
 - PostgreSQL database
 - Redis server
-- DeepSeek API key (FREE at https://platform.deepseek.com/)
+- Claude API key (https://console.anthropic.com/)
 
 **For Serverless (Recommended):**
 - Node.js >= 18
 - AWS Account (free tier eligible)
 - AWS CLI + SAM CLI installed
-- DeepSeek API key (FREE at https://platform.deepseek.com/)
+- Claude API key (https://console.anthropic.com/)
 
 ### Backend Setup
 
@@ -110,7 +249,7 @@ npm install
 cat > server/.env << EOF
 DATABASE_URL="postgresql://postgres:password@localhost:5432/lingualink"
 REDIS_URL="redis://localhost:6379"
-DEEPSEEK_API_KEY="your-deepseek-api-key"
+ANTHROPIC_API_KEY="your-anthropic-api-key"
 JWT_SECRET="your-super-secret-jwt-key"
 JWT_REFRESH_SECRET="your-refresh-secret-key"
 PORT=3001
@@ -234,7 +373,7 @@ See [Expo EAS Submit docs](https://docs.expo.dev/submit/introduction/) for detai
 
 | Service | Purpose | How to Get | Cost |
 |---------|---------|------------|------|
-| **DeepSeek API** | AI Translation | https://platform.deepseek.com/api_keys | **FREE** (with limits) |
+| **Claude API (Anthropic)** | AI Translation | https://console.anthropic.com/ | ~$0.25/M tokens |
 | **AWS Account** | Serverless hosting | https://aws.amazon.com/free | Free tier available |
 | **Apple Developer** | iOS App Store | https://developer.apple.com/programs/ | $99/year |
 | **Google Play Developer** | Android Play Store | https://play.google.com/console | $25 one-time |
@@ -263,14 +402,14 @@ DATABASE_URL="postgresql://postgres:your_password@localhost:5432/lingualink"
 REDIS_URL="redis://localhost:6379"
 
 # ============================================
-# AI TRANSLATION (Required - Choose one)
+# AI TRANSLATION (Required)
 # ============================================
-# DeepSeek API Key (FREE)
-# Get it at: https://platform.deepseek.com/api_keys
-# 1. Sign up at platform.deepseek.com
+# Claude API Key (Anthropic)
+# Get it at: https://console.anthropic.com/
+# 1. Sign up at console.anthropic.com
 # 2. Go to API Keys section
 # 3. Create new API key
-DEEPSEEK_API_KEY="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+ANTHROPIC_API_KEY="sk-ant-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 # ============================================
 # AUTHENTICATION (Required)
@@ -400,8 +539,8 @@ Update in `mobile/eas.json` for app store submission:
 # 1. Generate secure JWT secrets
 openssl rand -base64 32  # Run twice, use for JWT_SECRET and JWT_REFRESH_SECRET
 
-# 2. Get DeepSeek API key
-# Visit: https://platform.deepseek.com/api_keys
+# 2. Get Claude API key
+# Visit: https://console.anthropic.com/
 
 # 3. Create server/.env with all values above
 
@@ -425,7 +564,7 @@ npm start
 - **Never commit `.env` files** to git (already in `.gitignore`)
 - **Rotate JWT secrets** periodically in production
 - **Use AWS Secrets Manager** for serverless production deployments
-- **DeepSeek API key** has rate limits on free tier - monitor usage
+- **Claude API** - monitor usage at console.anthropic.com
 
 ## Roadmap
 
