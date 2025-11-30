@@ -406,6 +406,13 @@ nano .env
 ### Step 4.4: Set Up the Database Tables
 
 ```bash
+# Make sure you're in the SERVER directory!
+cd ~/messaging-app/server
+
+# Verify you're in the right place (should see prisma folder)
+ls prisma/
+# You should see: schema.prisma  seed.ts
+
 # Generate Prisma client (creates the database code)
 npx prisma generate
 
@@ -419,6 +426,8 @@ When you run `migrate dev`, it will:
 3. You'll see "Your database is now in sync with your schema"
 
 > **Note:** If asked "Enter a name for the new migration", just press Enter (we already named it "init").
+
+> ⚠️ **Getting errors?** Make sure you're in `/home/YOUR_USER/messaging-app/server` (or `/opt/messaging-app/server` if you cloned there)
 
 ### Step 4.5: Add Demo Users
 
