@@ -55,13 +55,19 @@ A multilingual mobile messaging app that automatically translates messages into 
          │                             │                             │
          ▼                             ▼                             ▼
 ┌─────────────────┐         ┌─────────────────────┐         ┌─────────────────┐
-│  🐘 PostgreSQL  │         │    🤖 Claude API    │         │   🔴 Redis      │
-│                 │         │    (Anthropic)      │         │                 │
+│  🐘 PostgreSQL  │         │   🤖 AI Provider    │         │   🔴 Redis      │
+│                 │         │   (configurable)    │         │                 │
 │  - Users        │         │                     │         │  - Translation  │
-│  - Messages     │         │  - Detect language  │         │    cache        │
-│  - Conversations│         │  - Translate text   │         │  - User sessions│
-│  - Translations │         │  - Haiku model      │         │  - Socket IDs   │
-│                 │         │    (fast & cheap)   │         │                 │
+│  - Messages     │         │  ┌───────────────┐  │         │    cache        │
+│  - Conversations│         │  │ OpenAI        │  │         │  - User sessions│
+│  - Translations │         │  │ (gpt-4o-mini) │  │         │  - Socket IDs   │
+│                 │         │  ├───────────────┤  │         │                 │
+│                 │         │  │ Claude        │  │         │                 │
+│                 │         │  │ (haiku)       │  │         │                 │
+│                 │         │  ├───────────────┤  │         │                 │
+│                 │         │  │ DeepSeek      │  │         │                 │
+│                 │         │  │ (chat)        │  │         │                 │
+│                 │         │  └───────────────┘  │         │                 │
 └─────────────────┘         └─────────────────────┘         └─────────────────┘
 ```
 
@@ -78,7 +84,7 @@ Alice (English) sends "Hello, how are you?" to Carlos (Spanish):
    ├─► Store original message in PostgreSQL
    └─► For each recipient, translate to their language:
 
-3. 🤖 Claude API (for Carlos - Spanish)
+3. 🤖 AI Provider (for Carlos - Spanish)
    ├─► Input: "Hello, how are you?" (en → es)
    └─► Output: "¡Hola! ¿Cómo estás?"
 
@@ -170,9 +176,12 @@ Alice (English) sends "Hello, how are you?" to Carlos (Spanish):
 - **DynamoDB** - Serverless database (pay-per-request)
 - **No Redis needed** - Translations cached in DynamoDB
 
-### AI Translation
-- **Claude API (Anthropic)** - Claude Haiku model, fast & affordable (~$0.25/million input tokens)
-- Alternative: **DeepSeek API** - ~$0.14/million tokens (FREE tier available)
+### AI Translation (Multi-Provider Support)
+- **OpenAI** - GPT-4o-mini model (default, fast & affordable)
+- **Claude (Anthropic)** - Claude Haiku model (~$0.25/million input tokens)
+- **DeepSeek** - DeepSeek Chat (~$0.14/million tokens, FREE tier available)
+
+Switch providers via `AI_PROVIDER` environment variable.
 
 ### Mobile App (iOS & Android)
 - **React Native + Expo** - Cross-platform mobile framework
@@ -229,13 +238,13 @@ messaging-app/
 - Node.js >= 18
 - PostgreSQL database
 - Redis server
-- Claude API key (https://console.anthropic.com/)
+- AI API key (OpenAI, Claude, or DeepSeek)
 
 **For Serverless (Recommended):**
 - Node.js >= 18
 - AWS Account (free tier eligible)
 - AWS CLI + SAM CLI installed
-- Claude API key (https://console.anthropic.com/)
+- AI API key (OpenAI, Claude, or DeepSeek)
 
 ### Backend Setup
 
@@ -249,7 +258,8 @@ npm install
 cat > server/.env << EOF
 DATABASE_URL="postgresql://postgres:password@localhost:5432/lingualink"
 REDIS_URL="redis://localhost:6379"
-ANTHROPIC_API_KEY="your-anthropic-api-key"
+AI_PROVIDER="openai"
+OPENAI_API_KEY="your-openai-api-key"
 JWT_SECRET="your-super-secret-jwt-key"
 JWT_REFRESH_SECRET="your-refresh-secret-key"
 PORT=3001
@@ -373,7 +383,9 @@ See [Expo EAS Submit docs](https://docs.expo.dev/submit/introduction/) for detai
 
 | Service | Purpose | How to Get | Cost |
 |---------|---------|------------|------|
-| **Claude API (Anthropic)** | AI Translation | https://console.anthropic.com/ | ~$0.25/M tokens |
+| **OpenAI API** | AI Translation (default) | https://platform.openai.com/api-keys | ~$0.15/M tokens |
+| **Claude API** | AI Translation (alt) | https://console.anthropic.com/ | ~$0.25/M tokens |
+| **DeepSeek API** | AI Translation (alt) | https://platform.deepseek.com/ | **FREE** tier |
 | **AWS Account** | Serverless hosting | https://aws.amazon.com/free | Free tier available |
 | **Apple Developer** | iOS App Store | https://developer.apple.com/programs/ | $99/year |
 | **Google Play Developer** | Android Play Store | https://play.google.com/console | $25 one-time |
@@ -402,14 +414,22 @@ DATABASE_URL="postgresql://postgres:your_password@localhost:5432/lingualink"
 REDIS_URL="redis://localhost:6379"
 
 # ============================================
-# AI TRANSLATION (Required)
+# AI TRANSLATION (Required - Choose one provider)
 # ============================================
-# Claude API Key (Anthropic)
+# Set which AI provider to use: "openai" | "anthropic" | "deepseek"
+AI_PROVIDER="openai"
+
+# OpenAI API Key (if AI_PROVIDER=openai)
+# Get it at: https://platform.openai.com/api-keys
+OPENAI_API_KEY="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# Anthropic/Claude API Key (if AI_PROVIDER=anthropic)
 # Get it at: https://console.anthropic.com/
-# 1. Sign up at console.anthropic.com
-# 2. Go to API Keys section
-# 3. Create new API key
 ANTHROPIC_API_KEY="sk-ant-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# DeepSeek API Key (if AI_PROVIDER=deepseek)
+# Get it at: https://platform.deepseek.com/api_keys (FREE tier!)
+DEEPSEEK_API_KEY="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 # ============================================
 # AUTHENTICATION (Required)
@@ -539,8 +559,10 @@ Update in `mobile/eas.json` for app store submission:
 # 1. Generate secure JWT secrets
 openssl rand -base64 32  # Run twice, use for JWT_SECRET and JWT_REFRESH_SECRET
 
-# 2. Get Claude API key
-# Visit: https://console.anthropic.com/
+# 2. Get an AI API key (choose one):
+# - OpenAI (default): https://platform.openai.com/api-keys
+# - Claude: https://console.anthropic.com/
+# - DeepSeek (FREE): https://platform.deepseek.com/
 
 # 3. Create server/.env with all values above
 
