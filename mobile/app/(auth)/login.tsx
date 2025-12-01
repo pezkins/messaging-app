@@ -29,13 +29,19 @@ export default function LoginScreen() {
   const [appleAvailable, setAppleAvailable] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<'google' | 'apple' | null>(null);
 
-  // Google Auth Hook
-  const { request: googleRequest, response: googleResponse, promptAsync: googlePromptAsync } = useGoogleAuth();
+  // Google Auth Hook - may be null if not configured
+  const googleAuth = useGoogleAuth();
+  const googleRequest = googleAuth?.request;
+  const googleResponse = googleAuth?.response;
+  const googlePromptAsync = googleAuth?.promptAsync;
 
   // Check Apple Sign-In availability
   useEffect(() => {
     isAppleSignInAvailable().then(setAppleAvailable);
   }, []);
+
+  // Check if OAuth is configured
+  const isGoogleConfigured = !!googleRequest;
 
   // Handle Google Sign-In response
   useEffect(() => {
@@ -60,6 +66,10 @@ export default function LoginScreen() {
   };
 
   const handleGoogleSignIn = async () => {
+    if (!googlePromptAsync) {
+      console.log('Google Sign-In not configured');
+      return;
+    }
     clearError();
     setOauthLoading('google');
     try {
@@ -124,10 +134,15 @@ export default function LoginScreen() {
 
           {/* Social Login Buttons */}
           <View style={styles.socialButtons}>
+            {/* Google Sign-In - Always visible */}
             <TouchableOpacity 
-              style={[styles.socialButton, styles.googleButton]}
+              style={[
+                styles.socialButton, 
+                styles.googleButton,
+                !isGoogleConfigured && styles.socialButtonDisabled
+              ]}
               onPress={handleGoogleSignIn}
-              disabled={!googleRequest || isAnyLoading}
+              disabled={!isGoogleConfigured || isAnyLoading}
             >
               {oauthLoading === 'google' ? (
                 <ActivityIndicator color={colors.surface[900]} size="small" />
@@ -139,11 +154,16 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
 
-            {appleAvailable && (
+            {/* Apple Sign-In - Only on iOS */}
+            {Platform.OS === 'ios' && (
               <TouchableOpacity 
-                style={[styles.socialButton, styles.appleButton]}
+                style={[
+                  styles.socialButton, 
+                  styles.appleButton,
+                  !appleAvailable && styles.socialButtonDisabled
+                ]}
                 onPress={handleAppleSignIn}
-                disabled={isAnyLoading}
+                disabled={!appleAvailable || isAnyLoading}
               >
                 {oauthLoading === 'apple' ? (
                   <ActivityIndicator color={colors.white} size="small" />
@@ -156,6 +176,13 @@ export default function LoginScreen() {
                   </>
                 )}
               </TouchableOpacity>
+            )}
+
+            {/* Note when OAuth not configured */}
+            {!isGoogleConfigured && (
+              <Text style={styles.oauthNote}>
+                ⚙️ OAuth not configured yet
+              </Text>
             )}
           </View>
 
@@ -321,6 +348,15 @@ const styles = StyleSheet.create({
   },
   appleButtonText: {
     color: colors.white,
+  },
+  socialButtonDisabled: {
+    opacity: 0.5,
+  },
+  oauthNote: {
+    textAlign: 'center',
+    color: colors.surface[500],
+    fontSize: fontSize.xs,
+    marginTop: spacing.xs,
   },
   divider: {
     flexDirection: 'row',
