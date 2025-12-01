@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -14,12 +14,72 @@ import { Link, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/store/auth';
 import { colors, spacing, borderRadius, fontSize } from '../../src/constants/theme';
+import { 
+  useGoogleAuth, 
+  getGoogleUserInfo, 
+  isAppleSignInAvailable, 
+  signInWithApple 
+} from '../../src/services/oauth';
 
 export default function LoginScreen() {
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const { login, oauthLogin, isLoading, error, clearError } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
+  const [oauthLoading, setOauthLoading] = useState<'google' | 'apple' | null>(null);
+
+  // Google Auth Hook
+  const { request: googleRequest, response: googleResponse, promptAsync: googlePromptAsync } = useGoogleAuth();
+
+  // Check Apple Sign-In availability
+  useEffect(() => {
+    isAppleSignInAvailable().then(setAppleAvailable);
+  }, []);
+
+  // Handle Google Sign-In response
+  useEffect(() => {
+    if (googleResponse?.type === 'success') {
+      const { authentication } = googleResponse;
+      if (authentication?.accessToken) {
+        handleGoogleSuccess(authentication.accessToken);
+      }
+    } else if (googleResponse?.type === 'error') {
+      setOauthLoading(null);
+    }
+  }, [googleResponse]);
+
+  const handleGoogleSuccess = async (accessToken: string) => {
+    try {
+      const userInfo = await getGoogleUserInfo(accessToken);
+      await oauthLogin(userInfo);
+      router.replace('/(app)/conversations');
+    } catch {
+      setOauthLoading(null);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    clearError();
+    setOauthLoading('google');
+    try {
+      await googlePromptAsync();
+    } catch {
+      setOauthLoading(null);
+    }
+  };
+
+  const handleAppleSignIn = async () => {
+    clearError();
+    setOauthLoading('apple');
+    try {
+      const userInfo = await signInWithApple();
+      await oauthLogin(userInfo);
+      router.replace('/(app)/conversations');
+    } catch {
+      setOauthLoading(null);
+    }
+  };
 
   const handleLogin = async () => {
     clearError();
@@ -30,6 +90,8 @@ export default function LoginScreen() {
       // Error handled by store
     }
   };
+
+  const isAnyLoading = isLoading || oauthLoading !== null;
 
   return (
     <KeyboardAvoidingView 
@@ -60,6 +122,51 @@ export default function LoginScreen() {
             </View>
           )}
 
+          {/* Social Login Buttons */}
+          <View style={styles.socialButtons}>
+            <TouchableOpacity 
+              style={[styles.socialButton, styles.googleButton]}
+              onPress={handleGoogleSignIn}
+              disabled={!googleRequest || isAnyLoading}
+            >
+              {oauthLoading === 'google' ? (
+                <ActivityIndicator color={colors.surface[900]} size="small" />
+              ) : (
+                <>
+                  <Ionicons name="logo-google" size={20} color={colors.surface[900]} />
+                  <Text style={styles.socialButtonText}>Continue with Google</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
+            {appleAvailable && (
+              <TouchableOpacity 
+                style={[styles.socialButton, styles.appleButton]}
+                onPress={handleAppleSignIn}
+                disabled={isAnyLoading}
+              >
+                {oauthLoading === 'apple' ? (
+                  <ActivityIndicator color={colors.white} size="small" />
+                ) : (
+                  <>
+                    <Ionicons name="logo-apple" size={20} color={colors.white} />
+                    <Text style={[styles.socialButtonText, styles.appleButtonText]}>
+                      Continue with Apple
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Email/Password Form */}
           <View style={styles.inputContainer}>
             <Ionicons name="mail-outline" size={20} color={colors.surface[400]} style={styles.inputIcon} />
             <TextInput
@@ -95,9 +202,9 @@ export default function LoginScreen() {
           </View>
 
           <TouchableOpacity 
-            style={[styles.button, isLoading && styles.buttonDisabled]} 
+            style={[styles.button, isAnyLoading && styles.buttonDisabled]} 
             onPress={handleLogin}
-            disabled={isLoading || !email || !password}
+            disabled={isAnyLoading || !email || !password}
           >
             {isLoading ? (
               <ActivityIndicator color={colors.white} />
@@ -187,6 +294,49 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     flex: 1,
   },
+  socialButtons: {
+    gap: spacing.sm,
+    marginBottom: spacing.md,
+  },
+  socialButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 52,
+    borderRadius: borderRadius.lg,
+    gap: spacing.sm,
+  },
+  googleButton: {
+    backgroundColor: colors.white,
+  },
+  appleButton: {
+    backgroundColor: colors.surface[800],
+    borderWidth: 1,
+    borderColor: colors.surface[700],
+  },
+  socialButtonText: {
+    fontSize: fontSize.md,
+    fontFamily: 'outfit-medium',
+    color: colors.surface[900],
+  },
+  appleButtonText: {
+    color: colors.white,
+  },
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: spacing.md,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: colors.surface[700],
+  },
+  dividerText: {
+    color: colors.surface[500],
+    paddingHorizontal: spacing.md,
+    fontSize: fontSize.sm,
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -245,4 +395,3 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
   },
 });
-

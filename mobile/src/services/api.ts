@@ -69,6 +69,20 @@ class ApiClient {
     });
   }
 
+  // OAuth login (Google/Apple)
+  async oauthLogin(data: {
+    provider: 'google' | 'apple';
+    providerId: string;
+    email: string;
+    name: string | null;
+    avatarUrl: string | null;
+  }): Promise<AuthResponse> {
+    return this.request<AuthResponse>('/api/auth/oauth', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   async refreshToken(refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> {
     return this.request('/api/auth/refresh', {
       method: 'POST',

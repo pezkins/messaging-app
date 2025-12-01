@@ -14,6 +14,11 @@ model User {
   passwordHash      String
   preferredLanguage String    @default("en")
   avatarUrl         String?
+  
+  // OAuth fields
+  oauthProvider     String?   // 'google' | 'apple'
+  oauthProviderId   String?   // ID from the OAuth provider
+  
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -22,6 +27,7 @@ model User {
   conversations     ConversationMember[]
   refreshTokens     RefreshToken[]
 
+  @@unique([oauthProvider, oauthProviderId])
   @@index([email])
   @@index([username])
 }

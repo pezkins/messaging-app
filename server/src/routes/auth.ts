@@ -21,6 +21,14 @@ const loginSchema = z.object({
   password: z.string().min(1, 'Password is required'),
 });
 
+const oauthSchema = z.object({
+  provider: z.enum(['google', 'apple']),
+  providerId: z.string().min(1, 'Provider ID is required'),
+  email: z.string().email('Invalid email'),
+  name: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+});
+
 // Helper to generate tokens
 function generateTokens(userId: string) {
   const accessToken = jwt.sign(
@@ -133,6 +141,103 @@ router.post('/login', async (req: Request, res: Response, next: NextFunction) =>
 
     if (!validPassword) {
       throw new AppError(401, 'Invalid credentials', 'INVALID_CREDENTIALS');
+    }
+
+    // Generate tokens
+    const { accessToken, refreshToken } = generateTokens(user.id);
+
+    // Store refresh token
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + 7);
+
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        expiresAt,
+      },
+    });
+
+    res.json({
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        preferredLanguage: user.preferredLanguage,
+        avatarUrl: user.avatarUrl,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+      accessToken,
+      refreshToken,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        message: 'Validation error',
+        code: 'VALIDATION_ERROR',
+        details: error.errors,
+      });
+    }
+    next(error);
+  }
+});
+
+// OAuth Login (Google/Apple)
+router.post('/oauth', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const data = oauthSchema.parse(req.body);
+
+    // Check if user exists with this OAuth provider
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { 
+            oauthProvider: data.provider, 
+            oauthProviderId: data.providerId 
+          },
+          { email: data.email },
+        ],
+      },
+    });
+
+    if (user) {
+      // Update OAuth info if user logged in with email before
+      if (!user.oauthProvider) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: {
+            oauthProvider: data.provider,
+            oauthProviderId: data.providerId,
+            avatarUrl: data.avatarUrl || user.avatarUrl,
+          },
+        });
+      }
+    } else {
+      // Create new user
+      // Generate username from email or name
+      const baseUsername = data.name?.replace(/\s+/g, '').toLowerCase() || 
+                          data.email.split('@')[0];
+      let username = baseUsername;
+      let suffix = 1;
+
+      // Ensure username is unique
+      while (await prisma.user.findUnique({ where: { username } })) {
+        username = `${baseUsername}${suffix}`;
+        suffix++;
+      }
+
+      user = await prisma.user.create({
+        data: {
+          email: data.email,
+          username,
+          passwordHash: '', // No password for OAuth users
+          preferredLanguage: 'en', // Default, user can change later
+          avatarUrl: data.avatarUrl,
+          oauthProvider: data.provider,
+          oauthProviderId: data.providerId,
+        },
+      });
     }
 
     // Generate tokens

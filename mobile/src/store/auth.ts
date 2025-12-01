@@ -13,6 +13,13 @@ interface AuthState {
 
   initializeAuth: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  oauthLogin: (data: {
+    provider: 'google' | 'apple';
+    providerId: string;
+    email: string;
+    name: string | null;
+    avatarUrl: string | null;
+  }) => Promise<void>;
   register: (data: {
     email: string;
     username: string;
@@ -112,6 +119,35 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Login failed',
+        isLoading: false,
+      });
+      throw error;
+    }
+  },
+
+  oauthLogin: async (data) => {
+    set({ isLoading: true, error: null });
+
+    try {
+      const response = await api.oauthLogin(data);
+      
+      await Promise.all([
+        storage.setAccessToken(response.accessToken),
+        storage.setRefreshToken(response.refreshToken),
+        storage.setUser(response.user),
+      ]);
+      
+      api.setAccessToken(response.accessToken);
+      socketService.connect(response.accessToken);
+      
+      set({
+        user: response.user,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'OAuth login failed',
         isLoading: false,
       });
       throw error;
