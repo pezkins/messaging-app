@@ -2,7 +2,7 @@ import { io, Socket } from 'socket.io-client';
 import Constants from 'expo-constants';
 import type { Message } from '../types';
 
-const SOCKET_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3001';
+const SOCKET_URL = Constants.expoConfig?.extra?.wsUrl || Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3001';
 
 /**
  * Socket.IO service for real-time messaging
