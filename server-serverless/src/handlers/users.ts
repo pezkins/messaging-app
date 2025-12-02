@@ -22,8 +22,12 @@ export const search: APIGatewayProxyHandler = async (event) => {
     if (!authHeader?.startsWith('Bearer ')) {
       return response(401, { message: 'Unauthorized' });
     }
-    const userId = verifyToken(authHeader.split(' ')[1]);
-    if (!userId) {
+    
+    let userId: string;
+    try {
+      const payload = verifyToken(authHeader.split(' ')[1]);
+      userId = payload.userId;
+    } catch {
       return response(401, { message: 'Invalid token' });
     }
 
@@ -73,8 +77,12 @@ export const updateLanguage: APIGatewayProxyHandler = async (event) => {
     if (!authHeader?.startsWith('Bearer ')) {
       return response(401, { message: 'Unauthorized' });
     }
-    const userId = verifyToken(authHeader.split(' ')[1]);
-    if (!userId) {
+    
+    let userId: string;
+    try {
+      const payload = verifyToken(authHeader.split(' ')[1]);
+      userId = payload.userId;
+    } catch {
       return response(401, { message: 'Invalid token' });
     }
 

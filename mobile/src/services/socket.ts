@@ -1,82 +1,139 @@
-import { io, Socket } from 'socket.io-client';
 import Constants from 'expo-constants';
 import type { Message } from '../types';
 
-const SOCKET_URL = Constants.expoConfig?.extra?.wsUrl || Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3001';
+const WS_URL = Constants.expoConfig?.extra?.wsUrl || 'wss://localhost:3001';
 
 /**
- * Socket.IO service for real-time messaging
+ * WebSocket service for real-time messaging (AWS API Gateway WebSocket)
  */
 class SocketService {
-  private socket: Socket | null = null;
+  private ws: WebSocket | null = null;
   private token: string | null = null;
+  private reconnectAttempts = 0;
+  private maxReconnectAttempts = 5;
+  private reconnectDelay = 1000;
+  private listeners: Map<string, Set<(data: any) => void>> = new Map();
 
   connect(token: string) {
-    if (this.socket?.connected) {
+    if (this.ws?.readyState === WebSocket.OPEN) {
       return;
     }
 
     this.token = token;
     
-    this.socket = io(SOCKET_URL, {
-      auth: { token },
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
+    // Connect to API Gateway WebSocket with token as query param
+    const wsUrl = `${WS_URL}?token=${token}`;
+    console.log('🔌 Connecting to WebSocket:', WS_URL);
+    
+    this.ws = new WebSocket(wsUrl);
 
-    this.socket.on('connect', () => {
-      console.log('🔌 Socket.IO connected');
-    });
+    this.ws.onopen = () => {
+      console.log('🔌 WebSocket connected');
+      this.reconnectAttempts = 0;
+    };
 
-    this.socket.on('disconnect', (reason: string) => {
-      console.log('🔌 Socket.IO disconnected:', reason);
-    });
+    this.ws.onclose = (event) => {
+      console.log('🔌 WebSocket disconnected:', event.code, event.reason);
+      this.handleReconnect();
+    };
 
-    this.socket.on('connect_error', (error: Error) => {
-      console.error('🔌 Socket.IO connection error:', error.message);
-    });
+    this.ws.onerror = (error) => {
+      console.error('🔌 WebSocket error:', error);
+    };
+
+    this.ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        const { action, ...payload } = data;
+        
+        // Notify listeners for this action
+        const actionListeners = this.listeners.get(action);
+        if (actionListeners) {
+          actionListeners.forEach(callback => callback(payload));
+        }
+        
+        // Also notify 'message' listeners for backward compatibility
+        if (action === 'message:receive') {
+          const messageListeners = this.listeners.get('message:receive');
+          if (messageListeners) {
+            messageListeners.forEach(callback => callback(payload));
+          }
+        }
+      } catch (error) {
+        console.error('🔌 Failed to parse WebSocket message:', error);
+      }
+    };
+  }
+
+  private handleReconnect() {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
+      console.log('🔌 Max reconnect attempts reached');
+      return;
+    }
+
+    if (this.token) {
+      this.reconnectAttempts++;
+      const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
+      console.log(`🔌 Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`);
+      
+      setTimeout(() => {
+        if (this.token) {
+          this.connect(this.token);
+        }
+      }, delay);
+    }
   }
 
   disconnect() {
-    if (this.socket) {
-      this.socket.disconnect();
-      this.socket = null;
+    if (this.ws) {
+      this.ws.close();
+      this.ws = null;
     }
     this.token = null;
+    this.reconnectAttempts = 0;
   }
 
   on<T>(event: string, callback: (data: T) => void) {
-    this.socket?.on(event, callback);
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, new Set());
+    }
+    this.listeners.get(event)!.add(callback);
 
     return () => {
-      this.socket?.off(event, callback);
+      this.listeners.get(event)?.delete(callback);
     };
   }
 
   off(event: string) {
-    this.socket?.off(event);
+    this.listeners.delete(event);
+  }
+
+  private send(action: string, data: any) {
+    if (this.ws?.readyState === WebSocket.OPEN) {
+      this.ws.send(JSON.stringify({ action, data }));
+    } else {
+      console.warn('🔌 WebSocket not connected, cannot send:', action);
+    }
   }
 
   sendMessage(data: { conversationId: string; content: string; type: 'TEXT' | 'VOICE' }) {
-    this.socket?.emit('message:send', data);
+    this.send('message:send', data);
   }
 
   sendTyping(conversationId: string, isTyping: boolean) {
-    this.socket?.emit('message:typing', { conversationId, isTyping });
+    this.send('message:typing', { conversationId, isTyping });
   }
 
   markAsRead(conversationId: string, messageId: string) {
-    this.socket?.emit('message:read', { conversationId, messageId });
+    this.send('message:read', { conversationId, messageId });
   }
 
   joinConversation(conversationId: string) {
-    this.socket?.emit('conversation:join', conversationId);
+    this.send('conversation:join', conversationId);
   }
 
   leaveConversation(conversationId: string) {
-    this.socket?.emit('conversation:leave', conversationId);
+    this.send('conversation:leave', conversationId);
   }
 }
 
