@@ -17,6 +17,14 @@ const loginSchema = z.object({
   password: z.string(),
 });
 
+const oauthSchema = z.object({
+  provider: z.enum(['google', 'apple']),
+  providerId: z.string().min(1),
+  email: z.string().email(),
+  name: z.string().nullable(),
+  avatarUrl: z.string().nullable(),
+});
+
 export const register: APIGatewayProxyHandler = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}');
@@ -130,6 +138,98 @@ export const login: APIGatewayProxyHandler = async (event) => {
       return response(400, { message: 'Validation error', details: error.errors });
     }
     console.error('Login error:', error);
+    return response(500, { message: 'Internal server error' });
+  }
+};
+
+export const oauth: APIGatewayProxyHandler = async (event) => {
+  try {
+    const body = JSON.parse(event.body || '{}');
+    const data = oauthSchema.parse(body);
+
+    // Check if user exists with this OAuth provider or email
+    const emailCheck = await dynamodb.send(new QueryCommand({
+      TableName: Tables.USERS,
+      IndexName: 'email-index',
+      KeyConditionExpression: 'email = :email',
+      ExpressionAttributeValues: { ':email': data.email },
+    }));
+
+    let user = emailCheck.Items?.[0];
+
+    if (user) {
+      // Update OAuth info if user logged in with email before
+      if (!user.oauthProvider) {
+        await dynamodb.send(new PutCommand({
+          TableName: Tables.USERS,
+          Item: {
+            ...user,
+            oauthProvider: data.provider,
+            oauthProviderId: data.providerId,
+            avatarUrl: data.avatarUrl || user.avatarUrl,
+            updatedAt: new Date().toISOString(),
+          },
+        }));
+      }
+    } else {
+      // Create new user
+      const baseUsername = data.name?.replace(/\s+/g, '').toLowerCase() || 
+                          data.email.split('@')[0];
+      let username = baseUsername;
+      let suffix = 1;
+
+      // Ensure username is unique
+      while (true) {
+        const usernameCheck = await dynamodb.send(new QueryCommand({
+          TableName: Tables.USERS,
+          IndexName: 'username-index',
+          KeyConditionExpression: 'username = :username',
+          ExpressionAttributeValues: { ':username': username },
+        }));
+        if (!usernameCheck.Items?.length) break;
+        username = `${baseUsername}${suffix}`;
+        suffix++;
+      }
+
+      const now = new Date().toISOString();
+      user = {
+        id: uuid(),
+        email: data.email,
+        username,
+        passwordHash: '', // No password for OAuth users
+        preferredLanguage: 'en',
+        avatarUrl: data.avatarUrl,
+        oauthProvider: data.provider,
+        oauthProviderId: data.providerId,
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      await dynamodb.send(new PutCommand({
+        TableName: Tables.USERS,
+        Item: user,
+      }));
+    }
+
+    const token = generateToken(user.id);
+
+    return response(200, {
+      user: {
+        id: user.id,
+        email: user.email,
+        username: user.username,
+        preferredLanguage: user.preferredLanguage,
+        avatarUrl: user.avatarUrl,
+        createdAt: user.createdAt,
+      },
+      accessToken: token,
+      refreshToken: token,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return response(400, { message: 'Validation error', details: error.errors });
+    }
+    console.error('OAuth error:', error);
     return response(500, { message: 'Internal server error' });
   }
 };

@@ -1,12 +1,14 @@
 /**
- * Translation service with two modes:
- * 1. DeepSeek API - Cheap cloud API ($0.14/million tokens)
- * 2. Ollama - Self-hosted, completely free after setup
+ * Multi-provider Translation Service
+ * Supports: OpenAI, Anthropic (Claude), DeepSeek
  */
 
-const TRANSLATION_MODE = process.env.TRANSLATION_MODE || 'api';
+const AI_PROVIDER = process.env.AI_PROVIDER || 'openai';
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const ANTHROPIC_API_KEY = process.env.ANTHROPIC_API_KEY;
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
-const OLLAMA_URL = process.env.OLLAMA_URL || 'http://localhost:11434';
+
+console.log(`🤖 Translation AI Provider: ${AI_PROVIDER.toUpperCase()}`);
 
 const LANGUAGE_NAMES: Record<string, string> = {
   en: 'English', es: 'Spanish', fr: 'French', de: 'German',
@@ -20,7 +22,62 @@ interface ChatMessage {
   content: string;
 }
 
-async function callDeepSeekAPI(messages: ChatMessage[]): Promise<string> {
+// ============== Provider API Calls ==============
+
+async function callOpenAI(messages: ChatMessage[], maxTokens = 1000): Promise<string> {
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${OPENAI_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o-mini',
+      messages,
+      temperature: 0.3,
+      max_tokens: maxTokens,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`OpenAI API error: ${response.status} - ${error}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0]?.message?.content?.trim() || '';
+}
+
+async function callAnthropic(messages: ChatMessage[], maxTokens = 1000): Promise<string> {
+  // Convert messages format for Anthropic
+  const systemMsg = messages.find(m => m.role === 'system');
+  const userMsgs = messages.filter(m => m.role !== 'system');
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': ANTHROPIC_API_KEY!,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-3-haiku-20240307',
+      max_tokens: maxTokens,
+      system: systemMsg?.content,
+      messages: userMsgs.map(m => ({ role: m.role, content: m.content })),
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Anthropic API error: ${response.status} - ${error}`);
+  }
+
+  const data = await response.json();
+  return data.content[0]?.text?.trim() || '';
+}
+
+async function callDeepSeek(messages: ChatMessage[], maxTokens = 1000): Promise<string> {
   const response = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     headers: {
@@ -31,54 +88,34 @@ async function callDeepSeekAPI(messages: ChatMessage[]): Promise<string> {
       model: 'deepseek-chat',
       messages,
       temperature: 0.3,
-      max_tokens: 1000,
+      max_tokens: maxTokens,
     }),
   });
 
   if (!response.ok) {
-    throw new Error(`DeepSeek API error: ${response.status}`);
+    const error = await response.text();
+    throw new Error(`DeepSeek API error: ${response.status} - ${error}`);
   }
 
   const data = await response.json();
   return data.choices[0]?.message?.content?.trim() || '';
 }
 
-async function callOllama(messages: ChatMessage[]): Promise<string> {
-  // Convert to Ollama format
-  const prompt = messages.map(m => {
-    if (m.role === 'system') return `System: ${m.content}`;
-    if (m.role === 'user') return `User: ${m.content}`;
-    return `Assistant: ${m.content}`;
-  }).join('\n\n');
+// ============== Main Chat Function ==============
 
-  const response = await fetch(`${OLLAMA_URL}/api/generate`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'deepseek-r1:8b',  // Or deepseek-coder, qwen2.5, etc.
-      prompt,
-      stream: false,
-      options: {
-        temperature: 0.3,
-        num_predict: 1000,
-      },
-    }),
-  });
-
-  if (!response.ok) {
-    throw new Error(`Ollama error: ${response.status}`);
+async function chat(messages: ChatMessage[], maxTokens = 1000): Promise<string> {
+  switch (AI_PROVIDER) {
+    case 'anthropic':
+      return callAnthropic(messages, maxTokens);
+    case 'deepseek':
+      return callDeepSeek(messages, maxTokens);
+    case 'openai':
+    default:
+      return callOpenAI(messages, maxTokens);
   }
-
-  const data = await response.json();
-  return data.response?.trim() || '';
 }
 
-async function chat(messages: ChatMessage[]): Promise<string> {
-  if (TRANSLATION_MODE === 'ollama') {
-    return callOllama(messages);
-  }
-  return callDeepSeekAPI(messages);
-}
+// ============== Translation Functions ==============
 
 export async function translate(
   text: string,
@@ -92,14 +129,19 @@ export async function translate(
   const sourceName = LANGUAGE_NAMES[sourceLanguage] || sourceLanguage;
   const targetName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
 
+  console.log(`🌐 Translating (${AI_PROVIDER}): ${sourceName} -> ${targetName}`);
+
   try {
     const result = await chat([
       {
         role: 'system',
         content: `You are a professional translator. Translate from ${sourceName} to ${targetName}.
+
 Rules:
-- Maintain the original tone and context
-- Preserve emojis and formatting
+- Maintain the original tone and context (casual, formal, friendly, etc.)
+- Preserve any emojis, special characters, or formatting
+- Do not add explanations or notes
+- If the text contains slang or idioms, translate them to equivalent expressions
 - Return ONLY the translated text, nothing else`,
       },
       {
@@ -120,18 +162,27 @@ export async function detectLanguage(text: string): Promise<string> {
     const result = await chat([
       {
         role: 'system',
-        content: 'Detect the language of the text and respond with ONLY the ISO 639-1 code (e.g., en, es, fr). Nothing else.',
+        content: 'Detect the language of the text and respond with ONLY the ISO 639-1 code (e.g., en, es, fr, de, ja, zh). Nothing else.',
       },
       {
         role: 'user',
         content: text,
       },
-    ]);
+    ], 10);
 
-    const code = result.toLowerCase().trim().slice(0, 2);
+    const code = result.toLowerCase().replace(/[^a-z]/g, '').slice(0, 2);
     return LANGUAGE_NAMES[code] ? code : 'en';
-  } catch {
+  } catch (error) {
+    console.error('Language detection error:', error);
     return 'en';
   }
 }
 
+export function getProviderInfo() {
+  return {
+    provider: AI_PROVIDER,
+    model: AI_PROVIDER === 'openai' ? 'gpt-4o-mini' 
+         : AI_PROVIDER === 'anthropic' ? 'claude-3-haiku'
+         : 'deepseek-chat',
+  };
+}

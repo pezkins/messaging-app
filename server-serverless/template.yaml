@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
-Description: LinguaLink Serverless Backend
+Description: LinguaLink Serverless Backend with Cognito Auth
 
 Globals:
   Function:
@@ -13,46 +13,126 @@ Globals:
         MESSAGES_TABLE: !Ref MessagesTable
         CONVERSATIONS_TABLE: !Ref ConversationsTable
         CONNECTIONS_TABLE: !Ref ConnectionsTable
-        JWT_SECRET: !Ref JwtSecret
-        TRANSLATION_MODE: !Ref TranslationMode
+        USER_POOL_ID: !Ref UserPool
+        USER_POOL_CLIENT_ID: !Ref UserPoolClient
+        AI_PROVIDER: !Ref AIProvider
+        OPENAI_API_KEY: !Ref OpenAIApiKey
+        ANTHROPIC_API_KEY: !Ref AnthropicApiKey
         DEEPSEEK_API_KEY: !Ref DeepSeekApiKey
-        OLLAMA_URL: !Ref OllamaUrl
 
 Parameters:
-  JwtSecret:
+  AIProvider:
+    Type: String
+    Default: openai
+    AllowedValues:
+      - openai
+      - anthropic
+      - deepseek
+    Description: AI provider for translation
+  OpenAIApiKey:
     Type: String
     NoEcho: true
-    Description: Secret key for JWT tokens
-  TranslationMode:
+    Default: ""
+    Description: OpenAI API key (required if AIProvider=openai)
+  AnthropicApiKey:
     Type: String
-    Default: api
-    AllowedValues:
-      - api      # Use DeepSeek API (cheapest for low volume)
-      - ollama   # Use self-hosted Ollama (cheapest for high volume)
-    Description: Translation backend mode
+    NoEcho: true
+    Default: ""
+    Description: Anthropic API key (required if AIProvider=anthropic)
   DeepSeekApiKey:
     Type: String
     NoEcho: true
     Default: ""
-    Description: DeepSeek API key (required if TranslationMode=api)
-  OllamaUrl:
+    Description: DeepSeek API key (required if AIProvider=deepseek)
+  GoogleClientId:
     Type: String
     Default: ""
-    Description: Ollama server URL (required if TranslationMode=ollama)
+    Description: Google OAuth Client ID for Cognito
 
 Resources:
+  # ============== Cognito User Pool ==============
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: lingualink-users
+      AutoVerifiedAttributes:
+        - email
+      UsernameAttributes:
+        - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: false
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+      Schema:
+        - Name: email
+          Required: true
+          Mutable: true
+        - Name: preferred_language
+          AttributeDataType: String
+          Mutable: true
+        - Name: username
+          AttributeDataType: String
+          Mutable: true
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: lingualink-app
+      UserPoolId: !Ref UserPool
+      GenerateSecret: false
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_SRP_AUTH
+      SupportedIdentityProviders:
+        - COGNITO
+        - Google
+      CallbackURLs:
+        - http://localhost:8081
+        - https://auth.expo.io/@pezkins/lingualink
+      LogoutURLs:
+        - http://localhost:8081
+      AllowedOAuthFlows:
+        - code
+        - implicit
+      AllowedOAuthScopes:
+        - email
+        - openid
+        - profile
+      AllowedOAuthFlowsUserPoolClient: true
+
+  # Google Identity Provider (conditional - only if GoogleClientId provided)
+  GoogleIdentityProvider:
+    Type: AWS::Cognito::UserPoolIdentityProvider
+    Condition: HasGoogleClientId
+    Properties:
+      UserPoolId: !Ref UserPool
+      ProviderName: Google
+      ProviderType: Google
+      ProviderDetails:
+        client_id: !Ref GoogleClientId
+        client_secret: "{{resolve:ssm:/lingualink/google-client-secret:1}}"
+        authorize_scopes: "email profile openid"
+      AttributeMapping:
+        email: email
+        name: name
+        picture: picture
+
   # ============== DynamoDB Tables ==============
   UsersTable:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: lingualink-users
-      BillingMode: PAY_PER_REQUEST  # Serverless, pay only for what you use
+      BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: id
           AttributeType: S
         - AttributeName: email
           AttributeType: S
-        - AttributeName: username
+        - AttributeName: cognitoSub
           AttributeType: S
       KeySchema:
         - AttributeName: id
@@ -64,9 +144,9 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
-        - IndexName: username-index
+        - IndexName: cognito-index
           KeySchema:
-            - AttributeName: username
+            - AttributeName: cognitoSub
               KeyType: HASH
           Projection:
             ProjectionType: ALL
@@ -81,6 +161,8 @@ Resources:
           AttributeType: S
         - AttributeName: visibleTo
           AttributeType: S
+        - AttributeName: sortKey
+          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
@@ -89,6 +171,8 @@ Resources:
           KeySchema:
             - AttributeName: visibleTo
               KeyType: HASH
+            - AttributeName: sortKey
+              KeyType: RANGE
           Projection:
             ProjectionType: ALL
 
@@ -107,9 +191,22 @@ Resources:
           KeyType: HASH
         - AttributeName: timestamp
           KeyType: RANGE
-      TimeToLiveSpecification:
-        AttributeName: ttl
-        Enabled: true  # Auto-delete old messages to save costs
+
+  TranslationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: lingualink-translations
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: messageId
+          AttributeType: S
+        - AttributeName: targetLanguage
+          AttributeType: S
+      KeySchema:
+        - AttributeName: messageId
+          KeyType: HASH
+        - AttributeName: targetLanguage
+          KeyType: RANGE
 
   ConnectionsTable:
     Type: AWS::DynamoDB::Table
@@ -135,7 +232,7 @@ Resources:
         AttributeName: ttl
         Enabled: true
 
-  # ============== REST API (HTTP API - cheaper than REST API) ==============
+  # ============== HTTP API ==============
   HttpApi:
     Type: AWS::Serverless::HttpApi
     Properties:
@@ -148,9 +245,23 @@ Resources:
           - POST
           - PATCH
           - DELETE
+          - OPTIONS
         AllowHeaders:
           - Content-Type
           - Authorization
+          - X-Amz-Date
+          - X-Api-Key
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            AuthorizationScopes:
+              - email
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              issuer: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}"
+              audience:
+                - !Ref UserPoolClient
 
   # ============== WebSocket API ==============
   WebSocketApi:
@@ -169,11 +280,11 @@ Resources:
 
   # ============== Lambda Functions ==============
   
-  # Auth Functions
+  # Auth - No authorizer needed for these
   RegisterFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/auth.register
+      Handler: dist/handlers/auth.register
       CodeUri: .
       Events:
         Api:
@@ -182,6 +293,8 @@ Resources:
             ApiId: !Ref HttpApi
             Path: /api/auth/register
             Method: POST
+            Auth:
+              Authorizer: NONE
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
@@ -189,7 +302,7 @@ Resources:
   LoginFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/auth.login
+      Handler: dist/handlers/auth.login
       CodeUri: .
       Events:
         Api:
@@ -198,6 +311,26 @@ Resources:
             ApiId: !Ref HttpApi
             Path: /api/auth/login
             Method: POST
+            Auth:
+              Authorizer: NONE
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
+  OAuthFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handlers/auth.oauth
+      CodeUri: .
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/auth/oauth
+            Method: POST
+            Auth:
+              Authorizer: NONE
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
@@ -205,7 +338,7 @@ Resources:
   GetMeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/auth.getMe
+      Handler: dist/handlers/auth.getMe
       CodeUri: .
       Events:
         Api:
@@ -218,11 +351,44 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
 
-  # Conversation Functions
+  # Users
+  SearchUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handlers/users.search
+      CodeUri: .
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/users/search
+            Method: GET
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
+  UpdateLanguageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/handlers/users.updateLanguage
+      CodeUri: .
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/users/me/language
+            Method: PATCH
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
+  # Conversations
   GetConversationsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/conversations.list
+      Handler: dist/handlers/conversations.list
       CodeUri: .
       Events:
         Api:
@@ -240,7 +406,7 @@ Resources:
   CreateConversationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/conversations.create
+      Handler: dist/handlers/conversations.create
       CodeUri: .
       Events:
         Api:
@@ -258,7 +424,7 @@ Resources:
   GetMessagesFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/messages.list
+      Handler: dist/handlers/messages.list
       CodeUri: .
       Events:
         Api:
@@ -277,7 +443,7 @@ Resources:
   WebSocketConnectFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/websocket.connect
+      Handler: dist/handlers/websocket.connect
       CodeUri: .
       Policies:
         - DynamoDBCrudPolicy:
@@ -288,7 +454,7 @@ Resources:
   WebSocketDisconnectFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/websocket.disconnect
+      Handler: dist/handlers/websocket.disconnect
       CodeUri: .
       Policies:
         - DynamoDBCrudPolicy:
@@ -297,9 +463,9 @@ Resources:
   WebSocketMessageFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/websocket.message
+      Handler: dist/handlers/websocket.message
       CodeUri: .
-      MemorySize: 512  # More memory for translation
+      MemorySize: 512
       Timeout: 60
       Policies:
         - DynamoDBCrudPolicy:
@@ -310,6 +476,8 @@ Resources:
             TableName: !Ref ConversationsTable
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TranslationsTable
         - Statement:
             - Effect: Allow
               Action:
@@ -385,6 +553,9 @@ Resources:
       FunctionName: !Ref WebSocketMessageFunction
       Principal: apigateway.amazonaws.com
 
+Conditions:
+  HasGoogleClientId: !Not [!Equals [!Ref GoogleClientId, ""]]
+
 Outputs:
   HttpApiUrl:
     Description: HTTP API URL
@@ -392,4 +563,12 @@ Outputs:
   WebSocketUrl:
     Description: WebSocket URL
     Value: !Sub "wss://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
-
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value: !Ref UserPoolClient
+  CognitoDomain:
+    Description: Cognito Hosted UI Domain (set up manually)
+    Value: !Sub "https://${AWS::StackName}.auth.${AWS::Region}.amazoncognito.com"
