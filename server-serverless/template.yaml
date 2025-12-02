@@ -282,6 +282,22 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
 
+  UpdateCountryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/users.updateCountry
+      CodeUri: .
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/users/me/country
+            Method: PATCH
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
   # Conversations
   GetConversationsFunction:
     Type: AWS::Serverless::Function

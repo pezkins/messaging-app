@@ -166,11 +166,12 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
       Key: { id: participantId },
     }));
     const targetLanguage = participantResult.Item?.preferredLanguage || 'en';
+    const targetCountry = participantResult.Item?.preferredCountry || 'US';
 
     // Translate if needed
     let translatedContent = content;
     if (originalLanguage !== targetLanguage) {
-      translatedContent = await translate(content, originalLanguage, targetLanguage);
+      translatedContent = await translate(content, originalLanguage, targetLanguage, targetCountry);
       
       // Cache translation
       message.translations[targetLanguage] = translatedContent;

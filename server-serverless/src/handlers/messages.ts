@@ -37,6 +37,7 @@ export const list: APIGatewayProxyHandler = async (event) => {
       Key: { id: userId },
     }));
     const targetLanguage = userResult.Item?.preferredLanguage || 'en';
+    const targetCountry = userResult.Item?.preferredCountry || 'US';
 
     // Get messages
     const limit = parseInt(event.queryStringParameters?.limit || '50');
@@ -69,7 +70,8 @@ export const list: APIGatewayProxyHandler = async (event) => {
             translatedContent = await translate(
               msg.originalContent,
               msg.originalLanguage,
-              targetLanguage
+              targetLanguage,
+              targetCountry
             );
           }
         }

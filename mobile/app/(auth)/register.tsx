@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useAuthStore } from '../../src/store/auth';
 import { colors, spacing, borderRadius, fontSize } from '../../src/constants/theme';
-import { SUPPORTED_LANGUAGES, LANGUAGE_FLAGS, type LanguageCode } from '../../src/constants/languages';
+import { LANGUAGES, COUNTRIES, type LanguageCode, type CountryCode } from '../../src/constants/languages';
 
 export default function RegisterScreen() {
   const { register, isLoading, error, clearError } = useAuthStore();
@@ -23,17 +23,20 @@ export default function RegisterScreen() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [preferredLanguage, setPreferredLanguage] = useState<LanguageCode>('en');
+  const [preferredCountry, setPreferredCountry] = useState<CountryCode>('US');
   const [showPassword, setShowPassword] = useState(false);
 
   const handleRegister = async () => {
     clearError();
     try {
-      await register({ email, username, password, preferredLanguage });
+      await register({ email, username, password, preferredLanguage, preferredCountry });
       router.replace('/(app)/conversations');
     } catch {
       // Error handled by store
     }
   };
+
+  const selectedCountry = COUNTRIES.find(c => c.code === preferredCountry);
 
   return (
     <KeyboardAvoidingView 
@@ -111,22 +114,47 @@ export default function RegisterScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Language Selection */}
           <View style={styles.languageSection}>
             <Text style={styles.languageLabel}>Preferred Language</Text>
             <Text style={styles.languageHint}>Messages will be translated to this language</Text>
             <View style={styles.pickerContainer}>
-              <Text style={styles.flagText}>{LANGUAGE_FLAGS[preferredLanguage]}</Text>
+              <Ionicons name="language-outline" size={20} color={colors.surface[400]} style={styles.pickerIcon} />
               <Picker
                 selectedValue={preferredLanguage}
                 onValueChange={(value) => setPreferredLanguage(value)}
                 style={styles.picker}
                 dropdownIconColor={colors.surface[400]}
               >
-                {Object.entries(SUPPORTED_LANGUAGES).map(([code, name]) => (
+                {LANGUAGES.map((lang) => (
                   <Picker.Item 
-                    key={code} 
-                    label={`${LANGUAGE_FLAGS[code as LanguageCode]} ${name}`} 
-                    value={code}
+                    key={lang.code} 
+                    label={`${lang.native} (${lang.name})`} 
+                    value={lang.code}
+                    color={Platform.OS === 'web' ? '#000000' : colors.white}
+                  />
+                ))}
+              </Picker>
+            </View>
+          </View>
+
+          {/* Country Selection */}
+          <View style={styles.languageSection}>
+            <Text style={styles.languageLabel}>Country / Region</Text>
+            <Text style={styles.languageHint}>For regional vocabulary and expressions</Text>
+            <View style={styles.pickerContainer}>
+              <Text style={styles.flagText}>{selectedCountry?.flag || '🌍'}</Text>
+              <Picker
+                selectedValue={preferredCountry}
+                onValueChange={(value) => setPreferredCountry(value)}
+                style={styles.picker}
+                dropdownIconColor={colors.surface[400]}
+              >
+                {COUNTRIES.map((country) => (
+                  <Picker.Item 
+                    key={country.code} 
+                    label={`${country.flag} ${country.name}`} 
+                    value={country.code}
                     color={Platform.OS === 'web' ? '#000000' : colors.white}
                   />
                 ))}
@@ -264,6 +292,9 @@ const styles = StyleSheet.create({
     borderColor: colors.surface[700],
     paddingLeft: spacing.md,
   },
+  pickerIcon: {
+    marginRight: spacing.xs,
+  },
   flagText: {
     fontSize: fontSize.xl,
   },
@@ -303,4 +334,3 @@ const styles = StyleSheet.create({
     fontFamily: 'outfit-medium',
   },
 });
-

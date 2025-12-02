@@ -7,7 +7,7 @@ import type {
   TranslationPreview,
   UserPublic,
 } from '../types';
-import type { LanguageCode } from '../constants/languages';
+import type { LanguageCode, CountryCode } from '../constants/languages';
 
 // Update this to your production server URL
 const API_URL = Constants.expoConfig?.extra?.apiUrl || 'http://localhost:3001';
@@ -55,6 +55,7 @@ class ApiClient {
     username: string;
     password: string;
     preferredLanguage: LanguageCode;
+    preferredCountry: CountryCode;
   }): Promise<AuthResponse> {
     return this.request<AuthResponse>('/api/auth/register', {
       method: 'POST',
@@ -113,6 +114,13 @@ class ApiClient {
     return this.request('/api/users/me/language', {
       method: 'PATCH',
       body: JSON.stringify({ preferredLanguage }),
+    });
+  }
+
+  async updateCountry(preferredCountry: CountryCode): Promise<{ user: User }> {
+    return this.request('/api/users/me/country', {
+      method: 'PATCH',
+      body: JSON.stringify({ preferredCountry }),
     });
   }
 

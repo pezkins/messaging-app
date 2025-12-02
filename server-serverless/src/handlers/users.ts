@@ -115,3 +115,49 @@ export const updateLanguage: APIGatewayProxyHandler = async (event) => {
   }
 };
 
+// Update user's preferred country
+export const updateCountry: APIGatewayProxyHandler = async (event) => {
+  try {
+    // Verify auth
+    const authHeader = event.headers.authorization || event.headers.Authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      return response(401, { message: 'Unauthorized' });
+    }
+    
+    let userId: string;
+    try {
+      const payload = verifyToken(authHeader.split(' ')[1]);
+      userId = payload.userId;
+    } catch {
+      return response(401, { message: 'Invalid token' });
+    }
+
+    const body = JSON.parse(event.body || '{}');
+    const { preferredCountry } = z.object({
+      preferredCountry: z.string().length(2),
+    }).parse(body);
+
+    // Update user's preferred country
+    await dynamodb.send(new UpdateCommand({
+      TableName: Tables.USERS,
+      Key: { id: userId },
+      UpdateExpression: 'SET preferredCountry = :country, updatedAt = :now',
+      ExpressionAttributeValues: {
+        ':country': preferredCountry,
+        ':now': new Date().toISOString(),
+      },
+    }));
+
+    return response(200, { 
+      message: 'Country updated successfully',
+      preferredCountry,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return response(400, { message: 'Validation error', details: error.errors });
+    }
+    console.error('Update country error:', error);
+    return response(500, { message: 'Internal server error' });
+  }
+};
+

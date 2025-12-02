@@ -3,7 +3,7 @@ import { api } from '../services/api';
 import { socketService } from '../services/socket';
 import { storage } from '../services/storage';
 import type { User } from '../types';
-import type { LanguageCode } from '../constants/languages';
+import type { LanguageCode, CountryCode } from '../constants/languages';
 
 interface AuthState {
   user: User | null;
@@ -25,9 +25,11 @@ interface AuthState {
     username: string;
     password: string;
     preferredLanguage: LanguageCode;
+    preferredCountry: CountryCode;
   }) => Promise<void>;
   logout: () => Promise<void>;
   updateLanguage: (language: LanguageCode) => Promise<void>;
+  updateCountry: (country: CountryCode) => Promise<void>;
   clearError: () => void;
 }
 
@@ -213,6 +215,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to update language',
+      });
+      throw error;
+    }
+  },
+
+  updateCountry: async (country) => {
+    try {
+      const { user } = await api.updateCountry(country);
+      await storage.setUser(user);
+      set({ user });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to update country',
       });
       throw error;
     }

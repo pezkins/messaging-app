@@ -9,7 +9,8 @@ const registerSchema = z.object({
   email: z.string().email(),
   username: z.string().min(3).max(30),
   password: z.string().min(6),
-  preferredLanguage: z.string().length(2).default('en'),
+  preferredLanguage: z.string().min(2).max(5).default('en'),
+  preferredCountry: z.string().length(2).default('US'),
 });
 
 const loginSchema = z.object({
@@ -56,6 +57,7 @@ export const register: APIGatewayProxyHandler = async (event) => {
       username: data.username,
       passwordHash,
       preferredLanguage: data.preferredLanguage,
+      preferredCountry: data.preferredCountry,
       createdAt: now,
       updatedAt: now,
     };
@@ -73,6 +75,7 @@ export const register: APIGatewayProxyHandler = async (event) => {
         email: user.email,
         username: user.username,
         preferredLanguage: user.preferredLanguage,
+        preferredCountry: user.preferredCountry,
         createdAt: user.createdAt,
       },
       accessToken: token,
@@ -119,6 +122,7 @@ export const login: APIGatewayProxyHandler = async (event) => {
         email: user.email,
         username: user.username,
         preferredLanguage: user.preferredLanguage,
+        preferredCountry: user.preferredCountry,
         createdAt: user.createdAt,
       },
       accessToken: token,
@@ -177,6 +181,7 @@ export const oauth: APIGatewayProxyHandler = async (event) => {
         username,
         passwordHash: '', // No password for OAuth users
         preferredLanguage: 'en',
+        preferredCountry: 'US',
         avatarUrl: data.avatarUrl,
         oauthProvider: data.provider,
         oauthProviderId: data.providerId,
@@ -198,6 +203,7 @@ export const oauth: APIGatewayProxyHandler = async (event) => {
         email: user.email,
         username: user.username,
         preferredLanguage: user.preferredLanguage,
+        preferredCountry: user.preferredCountry,
         avatarUrl: user.avatarUrl,
         createdAt: user.createdAt,
       },
@@ -235,6 +241,7 @@ export const getMe: APIGatewayProxyHandler = async (event) => {
         email: result.Item.email,
         username: result.Item.username,
         preferredLanguage: result.Item.preferredLanguage,
+        preferredCountry: result.Item.preferredCountry,
         createdAt: result.Item.createdAt,
       },
     });

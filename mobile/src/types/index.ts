@@ -1,10 +1,11 @@
-import type { LanguageCode } from '../constants/languages';
+import type { LanguageCode, CountryCode } from '../constants/languages';
 
 export interface User {
   id: string;
   email: string;
   username: string;
   preferredLanguage: LanguageCode;
+  preferredCountry?: CountryCode;
   avatarUrl?: string;
   createdAt: string;
   updatedAt: string;
