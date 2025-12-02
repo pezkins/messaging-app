@@ -19,8 +19,7 @@ export const list: APIGatewayProxyHandler = async (event) => {
     const convResult = await dynamodb.send(new QueryCommand({
       TableName: Tables.CONVERSATIONS,
       IndexName: 'user-conversations-index',
-      KeyConditionExpression: 'visibleTo = :userId',
-      FilterExpression: 'id = :convId',
+      KeyConditionExpression: 'visibleTo = :userId AND id = :convId',
       ExpressionAttributeValues: {
         ':userId': userId,
         ':convId': conversationId,

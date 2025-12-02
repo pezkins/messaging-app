@@ -76,17 +76,17 @@ Resources:
           AttributeType: S
         - AttributeName: visibleTo
           AttributeType: S
-        - AttributeName: sortKey
-          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
+        - AttributeName: visibleTo
+          KeyType: RANGE
       GlobalSecondaryIndexes:
         - IndexName: user-conversations-index
           KeySchema:
             - AttributeName: visibleTo
               KeyType: HASH
-            - AttributeName: sortKey
+            - AttributeName: id
               KeyType: RANGE
           Projection:
             ProjectionType: ALL

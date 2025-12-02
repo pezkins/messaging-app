@@ -141,8 +141,7 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
   const convResult = await dynamodb.send(new QueryCommand({
     TableName: Tables.CONVERSATIONS,
     IndexName: 'user-conversations-index',
-    KeyConditionExpression: 'visibleTo = :userId',
-    FilterExpression: 'id = :convId',
+    KeyConditionExpression: 'visibleTo = :userId AND id = :convId',
     ExpressionAttributeValues: {
       ':userId': senderId,
       ':convId': conversationId,
@@ -225,8 +224,7 @@ async function handleTyping(event: any, userId: string, data: any) {
   const convResult = await dynamodb.send(new QueryCommand({
     TableName: Tables.CONVERSATIONS,
     IndexName: 'user-conversations-index',
-    KeyConditionExpression: 'visibleTo = :userId',
-    FilterExpression: 'id = :convId',
+    KeyConditionExpression: 'visibleTo = :userId AND id = :convId',
     ExpressionAttributeValues: {
       ':userId': userId,
       ':convId': conversationId,
