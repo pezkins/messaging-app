@@ -17,7 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useChatStore } from '../../src/store/chat';
 import { useAuthStore } from '../../src/store/auth';
 import { colors, spacing, borderRadius, fontSize } from '../../src/constants/theme';
-import { SUPPORTED_LANGUAGES, type LanguageCode } from '../../src/constants/languages';
+import { getLanguageByCode } from '../../src/constants/languages';
 import type { Message } from '../../src/types';
 
 export default function ChatScreen() {
@@ -285,8 +285,8 @@ function MessageBubble({ message, isOwn, showTimestamp }: {
               isOwn && styles.ownTranslationText
             ]}>
               {showOriginal 
-                ? `Original (${SUPPORTED_LANGUAGES[message.originalLanguage as LanguageCode]})` 
-                : `Translated from ${SUPPORTED_LANGUAGES[message.originalLanguage as LanguageCode]}`}
+                ? `Original (${getLanguageByCode(message.originalLanguage)?.name || message.originalLanguage})` 
+                : `Translated from ${getLanguageByCode(message.originalLanguage)?.name || message.originalLanguage}`}
             </Text>
           </TouchableOpacity>
         )}

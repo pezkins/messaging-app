@@ -6,6 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,27 +14,38 @@ import { Picker } from '@react-native-picker/picker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/auth';
 import { colors, spacing, borderRadius, fontSize } from '../../src/constants/theme';
-import { SUPPORTED_LANGUAGES, LANGUAGE_FLAGS, type LanguageCode } from '../../src/constants/languages';
+import { LANGUAGES, COUNTRIES, type LanguageCode, type CountryCode } from '../../src/constants/languages';
 
 export default function SettingsScreen() {
-  const { user, updateLanguage, logout } = useAuthStore();
+  const { user, updateLanguage, updateCountry, logout } = useAuthStore();
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>(
     (user?.preferredLanguage as LanguageCode) || 'en'
+  );
+  const [selectedCountry, setSelectedCountry] = useState<CountryCode>(
+    (user?.preferredCountry as CountryCode) || 'US'
   );
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
-    if (selectedLanguage === user?.preferredLanguage) {
+    const languageChanged = selectedLanguage !== user?.preferredLanguage;
+    const countryChanged = selectedCountry !== user?.preferredCountry;
+
+    if (!languageChanged && !countryChanged) {
       router.back();
       return;
     }
 
     setIsSaving(true);
     try {
-      await updateLanguage(selectedLanguage);
+      if (languageChanged) {
+        await updateLanguage(selectedLanguage);
+      }
+      if (countryChanged) {
+        await updateCountry(selectedCountry);
+      }
       router.back();
     } catch (error) {
-      console.error('Failed to update language:', error);
+      console.error('Failed to update settings:', error);
     } finally {
       setIsSaving(false);
     }
@@ -43,6 +55,8 @@ export default function SettingsScreen() {
     await logout();
     router.replace('/(auth)/login');
   };
+
+  const currentCountry = COUNTRIES.find(c => c.code === selectedCountry);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -89,19 +103,45 @@ export default function SettingsScreen() {
             All incoming messages will be automatically translated to this language.
           </Text>
           <View style={styles.pickerCard}>
-            <Text style={styles.flagText}>{LANGUAGE_FLAGS[selectedLanguage]}</Text>
+            <Ionicons name="language-outline" size={20} color={colors.surface[400]} style={styles.pickerIcon} />
             <Picker
               selectedValue={selectedLanguage}
               onValueChange={(value) => setSelectedLanguage(value)}
               style={styles.picker}
               dropdownIconColor={colors.surface[400]}
             >
-              {Object.entries(SUPPORTED_LANGUAGES).map(([code, name]) => (
+              {LANGUAGES.map((lang) => (
                 <Picker.Item 
-                  key={code} 
-                  label={`${LANGUAGE_FLAGS[code as LanguageCode]} ${name}`} 
-                  value={code}
-                  color={colors.white}
+                  key={lang.code} 
+                  label={`${lang.native} (${lang.name})`} 
+                  value={lang.code}
+                  color={Platform.OS === 'web' ? '#000000' : colors.white}
+                />
+              ))}
+            </Picker>
+          </View>
+        </View>
+
+        {/* Country section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Country / Region</Text>
+          <Text style={styles.sectionHint}>
+            Translations will use vocabulary and expressions from this country.
+          </Text>
+          <View style={styles.pickerCard}>
+            <Text style={styles.flagText}>{currentCountry?.flag || '🌍'}</Text>
+            <Picker
+              selectedValue={selectedCountry}
+              onValueChange={(value) => setSelectedCountry(value)}
+              style={styles.picker}
+              dropdownIconColor={colors.surface[400]}
+            >
+              {COUNTRIES.map((country) => (
+                <Picker.Item 
+                  key={country.code} 
+                  label={`${country.flag} ${country.name}`} 
+                  value={country.code}
+                  color={Platform.OS === 'web' ? '#000000' : colors.white}
                 />
               ))}
             </Picker>
@@ -118,7 +158,7 @@ export default function SettingsScreen() {
             </View>
             <View style={styles.aboutItem}>
               <Ionicons name="language-outline" size={20} color={colors.primary[400]} />
-              <Text style={styles.aboutText}>Powered by DeepSeek AI Translation</Text>
+              <Text style={styles.aboutText}>Powered by OpenAI Translation</Text>
             </View>
           </View>
         </View>
@@ -225,6 +265,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.surface[800],
   },
+  pickerIcon: {
+    marginRight: spacing.xs,
+  },
   flagText: {
     fontSize: fontSize.xxl,
   },
@@ -267,4 +310,3 @@ const styles = StyleSheet.create({
     fontFamily: 'outfit-medium',
   },
 });
-

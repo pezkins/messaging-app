@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { api } from '../../src/services/api';
 import { useChatStore } from '../../src/store/chat';
 import { colors, spacing, borderRadius, fontSize } from '../../src/constants/theme';
-import { SUPPORTED_LANGUAGES, LANGUAGE_FLAGS, type LanguageCode } from '../../src/constants/languages';
+import { getLanguageByCode, getCountryByCode } from '../../src/constants/languages';
 import type { UserPublic } from '../../src/types';
 
 export default function NewChatScreen() {
@@ -72,8 +72,7 @@ export default function NewChatScreen() {
       <View style={styles.userInfo}>
         <Text style={styles.userName}>{item.username}</Text>
         <Text style={styles.userLanguage}>
-          {LANGUAGE_FLAGS[item.preferredLanguage as LanguageCode]}{' '}
-          {SUPPORTED_LANGUAGES[item.preferredLanguage as LanguageCode]}
+          {getLanguageByCode(item.preferredLanguage)?.native || item.preferredLanguage}
         </Text>
       </View>
       

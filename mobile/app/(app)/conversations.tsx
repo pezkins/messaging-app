@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useChatStore } from '../../src/store/chat';
 import { useAuthStore } from '../../src/store/auth';
 import { colors, spacing, borderRadius, fontSize } from '../../src/constants/theme';
-import { SUPPORTED_LANGUAGES, LANGUAGE_FLAGS, type LanguageCode } from '../../src/constants/languages';
+import { LANGUAGES, COUNTRIES, getLanguageByCode, getCountryByCode } from '../../src/constants/languages';
 import type { Conversation } from '../../src/types';
 
 export default function ConversationsScreen() {
@@ -125,8 +125,8 @@ export default function ConversationsScreen() {
           <View style={styles.userInfo}>
             <Text style={styles.userName}>{user?.username}</Text>
             <Text style={styles.userLanguage}>
-              {LANGUAGE_FLAGS[user?.preferredLanguage as LanguageCode]}{' '}
-              {SUPPORTED_LANGUAGES[user?.preferredLanguage as LanguageCode]}
+              {getCountryByCode(user?.preferredCountry || 'US')?.flag}{' '}
+              {getLanguageByCode(user?.preferredLanguage || 'en')?.native}
             </Text>
           </View>
         </View>
