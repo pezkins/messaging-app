@@ -82,7 +82,7 @@ Resources:
         - AttributeName: visibleTo
           KeyType: RANGE
       GlobalSecondaryIndexes:
-        - IndexName: user-conversations-index
+        - IndexName: visibleTo-id-index
           KeySchema:
             - AttributeName: visibleTo
               KeyType: HASH

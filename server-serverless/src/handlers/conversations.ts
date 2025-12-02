@@ -20,7 +20,7 @@ export const list: APIGatewayProxyHandler = async (event) => {
     // Query conversations where user is a participant
     const result = await dynamodb.send(new QueryCommand({
       TableName: Tables.CONVERSATIONS,
-      IndexName: 'user-conversations-index',
+      IndexName: 'visibleTo-id-index',
       KeyConditionExpression: 'visibleTo = :userId',
       ExpressionAttributeValues: { ':userId': userId },
     }));
@@ -82,7 +82,7 @@ export const create: APIGatewayProxyHandler = async (event) => {
     if (data.type === 'direct' && allParticipantIds.length === 2) {
       const existing = await dynamodb.send(new QueryCommand({
         TableName: Tables.CONVERSATIONS,
-        IndexName: 'user-conversations-index',
+        IndexName: 'visibleTo-id-index',
         KeyConditionExpression: 'visibleTo = :userId',
         ExpressionAttributeValues: { ':userId': userId },
       }));
