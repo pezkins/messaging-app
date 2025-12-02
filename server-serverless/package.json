@@ -2,9 +2,8 @@
   "name": "@lingualink/server-serverless",
   "version": "1.0.0",
   "description": "Serverless backend for LinguaLink (AWS Lambda)",
-  "type": "module",
   "scripts": {
-    "build": "esbuild src/handlers/*.ts --bundle --platform=node --target=node18 --outdir=dist --format=esm --external:@aws-sdk/*",
+    "build": "esbuild src/handlers/*.ts --bundle --platform=node --target=node18 --outdir=dist --format=cjs --external:@aws-sdk/*",
     "deploy": "sam deploy --guided",
     "deploy:prod": "sam deploy --config-env prod",
     "local": "sam local start-api",
