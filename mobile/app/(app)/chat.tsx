@@ -105,9 +105,9 @@ export default function ChatScreen() {
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const isOwn = item.senderId === user?.id;
-    const showTimestamp = 
-      index === 0 || 
-      new Date(item.createdAt).getTime() - new Date(messages[index - 1].createdAt).getTime() > 5 * 60 * 1000;
+    const itemTime = item.createdAt ? new Date(item.createdAt).getTime() : 0;
+    const prevTime = messages[index - 1]?.createdAt ? new Date(messages[index - 1].createdAt).getTime() : 0;
+    const showTimestamp = index === 0 || (itemTime - prevTime > 5 * 60 * 1000);
 
     return (
       <MessageBubble 
@@ -251,17 +251,19 @@ function MessageBubble({ message, isOwn, showTimestamp }: {
 
   const wasTranslated = message.translatedContent && message.originalContent !== message.translatedContent;
 
+  const messageDate = message.createdAt ? new Date(message.createdAt) : new Date();
+  
   return (
     <View style={styles.messageWrapper}>
-      {showTimestamp && (
+      {showTimestamp && message.createdAt && (
         <Text style={styles.timestamp}>
-          {format(new Date(message.createdAt), 'MMM d, h:mm a')}
+          {format(messageDate, 'MMM d, h:mm a')}
         </Text>
       )}
       
       <View style={[styles.messageBubble, isOwn ? styles.ownMessage : styles.otherMessage]}>
         {!isOwn && (
-          <Text style={styles.senderName}>{message.sender.username}</Text>
+          <Text style={styles.senderName}>{message.sender?.username || 'Unknown'}</Text>
         )}
         
         <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
@@ -290,7 +292,7 @@ function MessageBubble({ message, isOwn, showTimestamp }: {
         )}
         
         <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
-          {format(new Date(message.createdAt), 'h:mm a')}
+          {format(messageDate, 'h:mm a')}
         </Text>
       </View>
     </View>

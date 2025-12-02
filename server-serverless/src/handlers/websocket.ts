@@ -129,6 +129,7 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
     originalLanguage,
     status: 'sent',
     timestamp,
+    createdAt: timestamp, // Frontend expects createdAt
     translations: {}, // Cache translations here
   };
 

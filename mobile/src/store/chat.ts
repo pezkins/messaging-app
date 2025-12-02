@@ -168,21 +168,34 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const unsubMessage = socketService.on<MessageReceiveEvent>('message:receive', (data) => {
       const { message } = data;
       
+      // Normalize message - backend might send timestamp instead of createdAt
+      const normalizedMessage = {
+        ...message,
+        createdAt: message.createdAt || (message as any).timestamp || new Date().toISOString(),
+      };
+      
       set((state) => {
-        const newMessages = state.activeConversation?.id === message.conversationId
-          ? [...state.messages, message]
+        const newMessages = state.activeConversation?.id === normalizedMessage.conversationId
+          ? [...state.messages, normalizedMessage]
           : state.messages;
 
         const newConversations = state.conversations.map((c) => {
-          if (c.id === message.conversationId) {
-            return { ...c, lastMessage: message, updatedAt: message.createdAt };
+          if (c.id === normalizedMessage.conversationId) {
+            return { 
+              ...c, 
+              lastMessage: normalizedMessage, 
+              updatedAt: normalizedMessage.createdAt || c.updatedAt 
+            };
           }
           return c;
         });
 
-        newConversations.sort((a, b) => 
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-        );
+        // Safe sort with fallback dates
+        newConversations.sort((a, b) => {
+          const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+          const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+          return dateB - dateA;
+        });
 
         return {
           messages: newMessages,
