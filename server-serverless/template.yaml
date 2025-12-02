@@ -336,6 +336,8 @@ Resources:
             TableName: !Ref MessagesTable
         - DynamoDBCrudPolicy:
             TableName: !Ref ConversationsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
 
   # WebSocket Handlers
   WebSocketConnectFunction:
