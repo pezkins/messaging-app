@@ -71,7 +71,7 @@ export default function ConversationsScreen() {
           <Text style={styles.conversationName} numberOfLines={1}>
             {getConversationName(item)}
           </Text>
-          {item.lastMessage && (
+          {item.lastMessage?.createdAt && (
             <Text style={styles.conversationTime}>
               {formatDistanceToNow(new Date(item.lastMessage.createdAt), { addSuffix: false })}
             </Text>
