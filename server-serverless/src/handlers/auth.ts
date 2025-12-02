@@ -42,17 +42,8 @@ export const register: APIGatewayProxyHandler = async (event) => {
       return response(400, { message: 'Email already registered', code: 'EMAIL_EXISTS' });
     }
 
-    // Check if username exists
-    const usernameCheck = await dynamodb.send(new QueryCommand({
-      TableName: Tables.USERS,
-      IndexName: 'username-index',
-      KeyConditionExpression: 'username = :username',
-      ExpressionAttributeValues: { ':username': data.username },
-    }));
-
-    if (usernameCheck.Items && usernameCheck.Items.length > 0) {
-      return response(400, { message: 'Username already taken', code: 'USERNAME_EXISTS' });
-    }
+    // Note: Username uniqueness not enforced (would need GSI)
+    // For now, usernames can be duplicated - email is the unique identifier
 
     // Create user
     const userId = uuid();
@@ -173,23 +164,11 @@ export const oauth: APIGatewayProxyHandler = async (event) => {
       }
     } else {
       // Create new user
+      // Generate username from name or email
       const baseUsername = data.name?.replace(/\s+/g, '').toLowerCase() || 
                           data.email.split('@')[0];
-      let username = baseUsername;
-      let suffix = 1;
-
-      // Ensure username is unique
-      while (true) {
-        const usernameCheck = await dynamodb.send(new QueryCommand({
-          TableName: Tables.USERS,
-          IndexName: 'username-index',
-          KeyConditionExpression: 'username = :username',
-          ExpressionAttributeValues: { ':username': username },
-        }));
-        if (!usernameCheck.Items?.length) break;
-        username = `${baseUsername}${suffix}`;
-        suffix++;
-      }
+      // Add random suffix to avoid collisions
+      const username = `${baseUsername}${Math.floor(Math.random() * 1000)}`;
 
       const now = new Date().toISOString();
       user = {

@@ -55,8 +55,6 @@ Resources:
           AttributeType: S
         - AttributeName: email
           AttributeType: S
-        - AttributeName: cognitoSub
-          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
@@ -64,12 +62,6 @@ Resources:
         - IndexName: email-index
           KeySchema:
             - AttributeName: email
-              KeyType: HASH
-          Projection:
-            ProjectionType: ALL
-        - IndexName: cognito-index
-          KeySchema:
-            - AttributeName: cognitoSub
               KeyType: HASH
           Projection:
             ProjectionType: ALL
