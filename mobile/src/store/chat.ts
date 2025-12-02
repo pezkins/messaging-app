@@ -175,7 +175,10 @@ export const useChatStore = create<ChatState>((set, get) => ({
       };
       
       set((state) => {
-        const newMessages = state.activeConversation?.id === normalizedMessage.conversationId
+        // Check if message already exists (avoid duplicates)
+        const messageExists = state.messages.some(m => m.id === normalizedMessage.id);
+        
+        const newMessages = state.activeConversation?.id === normalizedMessage.conversationId && !messageExists
           ? [...state.messages, normalizedMessage]
           : state.messages;
 
