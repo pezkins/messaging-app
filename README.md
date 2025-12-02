@@ -1,6 +1,6 @@
-# LinguaLink 🌐💬
+# Intok 💬🌍
 
-A multilingual mobile messaging app that automatically translates messages into your preferred language for seamless cross-language communication.
+A multilingual mobile messaging app that automatically translates messages into your preferred language. Talk to anyone, anywhere!
 
 > 📖 **New to coding?** Check out [SETUP.md](./SETUP.md) for a beginner-friendly step-by-step guide!
 
@@ -8,7 +8,7 @@ A multilingual mobile messaging app that automatically translates messages into 
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────┐
-│                              LINGUALINK ARCHITECTURE                             │
+│                                INTOK ARCHITECTURE                                │
 └─────────────────────────────────────────────────────────────────────────────────┘
 
 ┌──────────────────┐         ┌──────────────────┐         ┌──────────────────┐

@@ -95,7 +95,7 @@ export default function ConversationsScreen() {
         <View style={styles.headerTop}>
           <View style={styles.logoRow}>
             <Ionicons name="chatbubbles" size={28} color={colors.primary[500]} />
-            <Text style={styles.headerTitle}>LinguaLink</Text>
+            <Text style={styles.headerTitle}>Intok</Text>
           </View>
           
           <View style={styles.headerActions}>

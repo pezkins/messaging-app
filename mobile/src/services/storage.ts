@@ -2,9 +2,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { User } from '../types';
 
 const KEYS = {
-  ACCESS_TOKEN: 'lingualink_access_token',
-  REFRESH_TOKEN: 'lingualink_refresh_token',
-  USER: 'lingualink_user',
+  ACCESS_TOKEN: 'intok_access_token',
+  REFRESH_TOKEN: 'intok_refresh_token',
+  USER: 'intok_user',
 };
 
 export const storage = {

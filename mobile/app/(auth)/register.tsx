@@ -52,8 +52,8 @@ export default function RegisterScreen() {
           <View style={styles.logoIcon}>
             <Ionicons name="chatbubbles" size={40} color={colors.white} />
           </View>
-          <Text style={styles.logoText}>LinguaLink</Text>
-          <Text style={styles.tagline}>Break language barriers</Text>
+          <Text style={styles.logoText}>Intok</Text>
+          <Text style={styles.tagline}>Talk to anyone, anywhere</Text>
         </View>
 
         {/* Form */}
