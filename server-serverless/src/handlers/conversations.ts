@@ -20,7 +20,7 @@ export const list: APIGatewayProxyHandler = async (event) => {
     // Query conversations where user is a participant
     const result = await dynamodb.send(new QueryCommand({
       TableName: Tables.CONVERSATIONS,
-      IndexName: 'visibleTo-id-index',
+      IndexName: 'user-conversations-index',
       KeyConditionExpression: 'visibleTo = :userId',
       ExpressionAttributeValues: { ':userId': userId },
     }));
@@ -43,7 +43,7 @@ export const list: APIGatewayProxyHandler = async (event) => {
         );
 
         return {
-          id: conv.id,
+          id: conv.conversationId || conv.id, // Use conversationId if available
           type: conv.type,
           name: conv.name,
           participants: participants.filter(Boolean),
@@ -82,7 +82,7 @@ export const create: APIGatewayProxyHandler = async (event) => {
     if (data.type === 'direct' && allParticipantIds.length === 2) {
       const existing = await dynamodb.send(new QueryCommand({
         TableName: Tables.CONVERSATIONS,
-        IndexName: 'visibleTo-id-index',
+        IndexName: 'user-conversations-index',
         KeyConditionExpression: 'visibleTo = :userId',
         ExpressionAttributeValues: { ':userId': userId },
       }));
@@ -95,7 +95,12 @@ export const create: APIGatewayProxyHandler = async (event) => {
       );
 
       if (found) {
-        return response(200, { conversation: found });
+        return response(200, { 
+          conversation: {
+            ...found,
+            id: found.conversationId || found.id,
+          }
+        });
       }
     }
 
@@ -103,13 +108,15 @@ export const create: APIGatewayProxyHandler = async (event) => {
     const conversationId = uuid();
     const now = new Date().toISOString();
 
-    // Store one record per participant (for querying)
+    // Store one record per participant (for querying via GSI)
     for (const participantId of allParticipantIds) {
       await dynamodb.send(new PutCommand({
         TableName: Tables.CONVERSATIONS,
         Item: {
-          id: conversationId,
+          id: `${conversationId}#${participantId}`, // Unique primary key
           visibleTo: participantId,
+          sortKey: now, // For GSI range key
+          conversationId: conversationId, // Store original ID
           type: data.type,
           name: data.name,
           participantIds: allParticipantIds,

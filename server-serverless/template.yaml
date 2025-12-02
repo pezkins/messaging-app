@@ -69,24 +69,24 @@ Resources:
   ConversationsTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: lingualink-conversations-v2
+      TableName: lingualink-conversations
       BillingMode: PAY_PER_REQUEST
       AttributeDefinitions:
         - AttributeName: id
           AttributeType: S
         - AttributeName: visibleTo
           AttributeType: S
+        - AttributeName: sortKey
+          AttributeType: S
       KeySchema:
         - AttributeName: id
           KeyType: HASH
-        - AttributeName: visibleTo
-          KeyType: RANGE
       GlobalSecondaryIndexes:
-        - IndexName: visibleTo-id-index
+        - IndexName: user-conversations-index
           KeySchema:
             - AttributeName: visibleTo
               KeyType: HASH
-            - AttributeName: id
+            - AttributeName: sortKey
               KeyType: RANGE
           Projection:
             ProjectionType: ALL
