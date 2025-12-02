@@ -188,7 +188,7 @@ Resources:
   RegisterFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handlers/auth.register
+      Handler: dist/auth.register
       CodeUri: .
       Events:
         Api:
@@ -204,7 +204,7 @@ Resources:
   LoginFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handlers/auth.login
+      Handler: dist/auth.login
       CodeUri: .
       Events:
         Api:
@@ -220,7 +220,7 @@ Resources:
   OAuthFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handlers/auth.oauth
+      Handler: dist/auth.oauth
       CodeUri: .
       Events:
         Api:
@@ -236,7 +236,7 @@ Resources:
   GetMeFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handlers/auth.getMe
+      Handler: dist/auth.getMe
       CodeUri: .
       Events:
         Api:
@@ -253,7 +253,7 @@ Resources:
   SearchUsersFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handlers/users.search
+      Handler: dist/users.search
       CodeUri: .
       Events:
         Api:
@@ -269,7 +269,7 @@ Resources:
   UpdateLanguageFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handlers/users.updateLanguage
+      Handler: dist/users.updateLanguage
       CodeUri: .
       Events:
         Api:
@@ -286,7 +286,7 @@ Resources:
   GetConversationsFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handlers/conversations.list
+      Handler: dist/conversations.list
       CodeUri: .
       Events:
         Api:
@@ -304,7 +304,7 @@ Resources:
   CreateConversationFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handlers/conversations.create
+      Handler: dist/conversations.create
       CodeUri: .
       Events:
         Api:
@@ -322,7 +322,7 @@ Resources:
   GetMessagesFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handlers/messages.list
+      Handler: dist/messages.list
       CodeUri: .
       Events:
         Api:
@@ -341,7 +341,7 @@ Resources:
   WebSocketConnectFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handlers/websocket.connect
+      Handler: dist/websocket.connect
       CodeUri: .
       Policies:
         - DynamoDBCrudPolicy:
@@ -352,7 +352,7 @@ Resources:
   WebSocketDisconnectFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handlers/websocket.disconnect
+      Handler: dist/websocket.disconnect
       CodeUri: .
       Policies:
         - DynamoDBCrudPolicy:
@@ -361,7 +361,7 @@ Resources:
   WebSocketMessageFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: dist/handlers/websocket.message
+      Handler: dist/websocket.message
       CodeUri: .
       MemorySize: 512
       Timeout: 60

@@ -127,7 +127,7 @@ export default function RegisterScreen() {
                     key={code} 
                     label={`${LANGUAGE_FLAGS[code as LanguageCode]} ${name}`} 
                     value={code}
-                    color={colors.white}
+                    color={Platform.OS === 'web' ? '#000000' : colors.white}
                   />
                 ))}
               </Picker>
