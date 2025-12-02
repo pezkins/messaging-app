@@ -13,8 +13,6 @@ Globals:
         MESSAGES_TABLE: !Ref MessagesTable
         CONVERSATIONS_TABLE: !Ref ConversationsTable
         CONNECTIONS_TABLE: !Ref ConnectionsTable
-        USER_POOL_ID: !Ref UserPool
-        USER_POOL_CLIENT_ID: !Ref UserPoolClient
         AI_PROVIDER: !Ref AIProvider
         OPENAI_API_KEY: !Ref OpenAIApiKey
         ANTHROPIC_API_KEY: !Ref AnthropicApiKey
@@ -44,82 +42,7 @@ Parameters:
     NoEcho: true
     Default: ""
     Description: DeepSeek API key (required if AIProvider=deepseek)
-  GoogleClientId:
-    Type: String
-    Default: ""
-    Description: Google OAuth Client ID for Cognito
-
 Resources:
-  # ============== Cognito User Pool ==============
-  UserPool:
-    Type: AWS::Cognito::UserPool
-    Properties:
-      UserPoolName: lingualink-users
-      AutoVerifiedAttributes:
-        - email
-      UsernameAttributes:
-        - email
-      Policies:
-        PasswordPolicy:
-          MinimumLength: 8
-          RequireUppercase: false
-          RequireLowercase: false
-          RequireNumbers: false
-          RequireSymbols: false
-      Schema:
-        - Name: email
-          Required: true
-          Mutable: true
-        - Name: preferred_language
-          AttributeDataType: String
-          Mutable: true
-        - Name: username
-          AttributeDataType: String
-          Mutable: true
-
-  UserPoolClient:
-    Type: AWS::Cognito::UserPoolClient
-    Properties:
-      ClientName: lingualink-app
-      UserPoolId: !Ref UserPool
-      GenerateSecret: false
-      ExplicitAuthFlows:
-        - ALLOW_USER_PASSWORD_AUTH
-        - ALLOW_REFRESH_TOKEN_AUTH
-        - ALLOW_USER_SRP_AUTH
-      SupportedIdentityProviders:
-        - COGNITO
-        - Google
-      CallbackURLs:
-        - http://localhost:8081
-        - https://auth.expo.io/@pezkins/lingualink
-      LogoutURLs:
-        - http://localhost:8081
-      AllowedOAuthFlows:
-        - code
-        - implicit
-      AllowedOAuthScopes:
-        - email
-        - openid
-        - profile
-      AllowedOAuthFlowsUserPoolClient: true
-
-  # Google Identity Provider (conditional - only if GoogleClientId provided)
-  GoogleIdentityProvider:
-    Type: AWS::Cognito::UserPoolIdentityProvider
-    Condition: HasGoogleClientId
-    Properties:
-      UserPoolId: !Ref UserPool
-      ProviderName: Google
-      ProviderType: Google
-      ProviderDetails:
-        client_id: !Ref GoogleClientId
-        client_secret: "{{resolve:ssm:/lingualink/google-client-secret:1}}"
-        authorize_scopes: "email profile openid"
-      AttributeMapping:
-        email: email
-        name: name
-        picture: picture
 
   # ============== DynamoDB Tables ==============
   UsersTable:
@@ -251,17 +174,6 @@ Resources:
           - Authorization
           - X-Amz-Date
           - X-Api-Key
-      Auth:
-        DefaultAuthorizer: CognitoAuthorizer
-        Authorizers:
-          CognitoAuthorizer:
-            AuthorizationScopes:
-              - email
-            IdentitySource: $request.header.Authorization
-            JwtConfiguration:
-              issuer: !Sub "https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}"
-              audience:
-                - !Ref UserPoolClient
 
   # ============== WebSocket API ==============
   WebSocketApi:
@@ -293,8 +205,6 @@ Resources:
             ApiId: !Ref HttpApi
             Path: /api/auth/register
             Method: POST
-            Auth:
-              Authorizer: NONE
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
@@ -311,8 +221,6 @@ Resources:
             ApiId: !Ref HttpApi
             Path: /api/auth/login
             Method: POST
-            Auth:
-              Authorizer: NONE
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
@@ -329,8 +237,6 @@ Resources:
             ApiId: !Ref HttpApi
             Path: /api/auth/oauth
             Method: POST
-            Auth:
-              Authorizer: NONE
       Policies:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
@@ -553,9 +459,6 @@ Resources:
       FunctionName: !Ref WebSocketMessageFunction
       Principal: apigateway.amazonaws.com
 
-Conditions:
-  HasGoogleClientId: !Not [!Equals [!Ref GoogleClientId, ""]]
-
 Outputs:
   HttpApiUrl:
     Description: HTTP API URL
@@ -563,12 +466,3 @@ Outputs:
   WebSocketUrl:
     Description: WebSocket URL
     Value: !Sub "wss://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
-  UserPoolId:
-    Description: Cognito User Pool ID
-    Value: !Ref UserPool
-  UserPoolClientId:
-    Description: Cognito User Pool Client ID
-    Value: !Ref UserPoolClient
-  CognitoDomain:
-    Description: Cognito Hosted UI Domain (set up manually)
-    Value: !Sub "https://${AWS::StackName}.auth.${AWS::Region}.amazoncognito.com"
