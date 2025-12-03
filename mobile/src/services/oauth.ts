@@ -32,6 +32,8 @@ export function useGoogleAuth() {
     webClientId: GOOGLE_CLIENT_ID_WEB,
     iosClientId: GOOGLE_CLIENT_ID_IOS,
     androidClientId: GOOGLE_CLIENT_ID_ANDROID,
+    // Use Expo's auth proxy for redirect (works with tunnel mode)
+    redirectUri: 'https://auth.expo.io/@pezkins/intok',
   });
 
   return { request, response, promptAsync };
