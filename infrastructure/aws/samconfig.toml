@@ -27,3 +27,5 @@ parameter_overrides = [
     "OllamaUrl=http://your-ollama-server:11434",
 ]
 
+
+

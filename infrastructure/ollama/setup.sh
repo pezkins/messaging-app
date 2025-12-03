@@ -46,3 +46,5 @@ echo "Set these environment variables in your serverless deployment:"
 echo "  TRANSLATION_MODE=ollama"
 echo "  OLLAMA_URL=http://YOUR_SERVER_IP:11434"
 
+
+

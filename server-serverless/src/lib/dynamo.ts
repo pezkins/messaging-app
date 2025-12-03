@@ -13,3 +13,5 @@ export const Tables = {
 
 export { GetCommand, PutCommand, QueryCommand, DeleteCommand, UpdateCommand };
 
+
+

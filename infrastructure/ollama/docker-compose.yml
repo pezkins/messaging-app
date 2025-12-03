@@ -39,3 +39,5 @@ volumes:
 # After starting, run:
 # docker exec -it lingualink-ollama ollama pull deepseek-r1:8b
 
+
+
