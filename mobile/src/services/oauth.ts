@@ -1,30 +1,25 @@
-import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
-import * as WebBrowser from 'expo-web-browser';
-import { makeRedirectUri } from 'expo-auth-session';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
-
-// IMPORTANT: Complete auth session for web
-WebBrowser.maybeCompleteAuthSession();
+import {
+  GoogleSignin,
+  statusCodes,
+} from '@react-native-google-signin/google-signin';
 
 // Get config from app.json extra
 const config = Constants.expoConfig?.extra || {};
 
 // Google OAuth Client IDs
 const GOOGLE_WEB_CLIENT_ID = config.googleClientIdWeb || '';
-const GOOGLE_IOS_CLIENT_ID = config.googleClientIdIos || '';
-const GOOGLE_ANDROID_CLIENT_ID = config.googleClientIdAndroid || '';
 
-// Generate redirect URI for the app
-// For standalone builds: intok://redirect
-// For Expo Go: uses Expo auth proxy automatically
-const redirectUri = makeRedirectUri({
-  scheme: 'intok',
-  path: 'redirect',
+// Configure Google Sign-In once when the module loads
+GoogleSignin.configure({
+  webClientId: GOOGLE_WEB_CLIENT_ID, // Required for getting idToken
+  offlineAccess: true,
+  scopes: ['profile', 'email'],
 });
 
-console.log('🔑 Redirect URI being used:', redirectUri);
+console.log('🔑 Google Sign-In configured with Web Client ID');
 
 export interface OAuthUser {
   provider: 'google' | 'apple';
@@ -35,43 +30,55 @@ export interface OAuthUser {
 }
 
 /**
- * Google Sign-In Hook
+ * Google Sign-In using native SDK
  */
-export function useGoogleAuth() {
-  const [request, response, promptAsync] = Google.useAuthRequest(
-    {
-      clientId: GOOGLE_WEB_CLIENT_ID,
-      iosClientId: GOOGLE_IOS_CLIENT_ID,
-      androidClientId: GOOGLE_ANDROID_CLIENT_ID,
-      scopes: ['openid', 'profile', 'email'],
-      redirectUri, // Use the proxy redirect URI
+export async function signInWithGoogle(): Promise<OAuthUser> {
+  try {
+    // Check if Google Play Services are available
+    await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+    
+    // Perform sign in
+    const response = await GoogleSignin.signIn();
+    
+    if (response.type === 'cancelled') {
+      throw new Error('Google Sign-In was cancelled');
     }
-  );
+    
+    if (response.type !== 'success' || !response.data.user) {
+      throw new Error('Google Sign-In failed');
+    }
 
-  return { request, response, promptAsync };
+    const { user } = response.data;
+    
+    return {
+      provider: 'google',
+      providerId: user.id,
+      email: user.email,
+      name: user.name || null,
+      avatarUrl: user.photo || null,
+    };
+  } catch (error: any) {
+    if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+      throw new Error('Sign in cancelled');
+    } else if (error.code === statusCodes.IN_PROGRESS) {
+      throw new Error('Sign in already in progress');
+    } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+      throw new Error('Google Play Services not available');
+    }
+    console.error('Google Sign-In error:', error);
+    throw error;
+  }
 }
 
 /**
- * Get Google user info from access token
+ * Sign out from Google
  */
-export async function getGoogleUserInfo(accessToken: string): Promise<OAuthUser> {
-  const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  });
-
-  if (!response.ok) {
-    throw new Error('Failed to get Google user info');
+export async function signOutFromGoogle(): Promise<void> {
+  try {
+    await GoogleSignin.signOut();
+  } catch (error) {
+    console.error('Google Sign-Out error:', error);
   }
-
-  const data = await response.json();
-
-  return {
-    provider: 'google',
-    providerId: data.sub,
-    email: data.email,
-    name: data.name || null,
-    avatarUrl: data.picture || null,
-  };
 }
 
 /**

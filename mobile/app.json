@@ -40,7 +40,8 @@
       "output": "static"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "@react-native-google-signin/google-signin"
     ],
     "sdkVersion": "52.0.0",
     "extra": {

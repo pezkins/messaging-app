@@ -15,8 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuthStore } from '../../src/store/auth';
 import { colors, spacing, borderRadius, fontSize } from '../../src/constants/theme';
 import { 
-  useGoogleAuth, 
-  getGoogleUserInfo, 
+  signInWithGoogle, 
   isAppleSignInAvailable, 
   signInWithApple 
 } from '../../src/services/oauth';
@@ -29,52 +28,23 @@ export default function LoginScreen() {
   const [appleAvailable, setAppleAvailable] = useState(false);
   const [oauthLoading, setOauthLoading] = useState<'google' | 'apple' | null>(null);
 
-  // Google Auth Hook - may be null if not configured
-  const googleAuth = useGoogleAuth();
-  const googleRequest = googleAuth?.request;
-  const googleResponse = googleAuth?.response;
-  const googlePromptAsync = googleAuth?.promptAsync;
-
   // Check Apple Sign-In availability
   useEffect(() => {
     isAppleSignInAvailable().then(setAppleAvailable);
   }, []);
 
-  // Check if OAuth is configured
-  const isGoogleConfigured = !!googleRequest;
-
-  // Handle Google Sign-In response
-  useEffect(() => {
-    if (googleResponse?.type === 'success') {
-      const { authentication } = googleResponse;
-      if (authentication?.accessToken) {
-        handleGoogleSuccess(authentication.accessToken);
-      }
-    } else if (googleResponse?.type === 'error') {
-      setOauthLoading(null);
-    }
-  }, [googleResponse]);
-
-  const handleGoogleSuccess = async (accessToken: string) => {
-    try {
-      const userInfo = await getGoogleUserInfo(accessToken);
-      await oauthLogin(userInfo);
-      router.replace('/(app)/conversations');
-    } catch {
-      setOauthLoading(null);
-    }
-  };
+  // Google Sign-In is always available on Android
+  const isGoogleConfigured = Platform.OS === 'android' || Platform.OS === 'ios';
 
   const handleGoogleSignIn = async () => {
-    if (!googlePromptAsync) {
-      console.log('Google Sign-In not configured');
-      return;
-    }
     clearError();
     setOauthLoading('google');
     try {
-      await googlePromptAsync();
-    } catch {
+      const userInfo = await signInWithGoogle();
+      await oauthLogin(userInfo);
+      router.replace('/(app)/conversations');
+    } catch (err) {
+      console.error('Google Sign-In error:', err);
       setOauthLoading(null);
     }
   };
