@@ -1,19 +1,28 @@
 import * as Google from 'expo-auth-session/providers/google';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
+import { makeRedirectUri } from 'expo-auth-session';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
-// IMPORTANT: This must be called to complete the auth session on web
+// IMPORTANT: Complete auth session for web
 WebBrowser.maybeCompleteAuthSession();
 
 // Get config from app.json extra
 const config = Constants.expoConfig?.extra || {};
 
-// Google OAuth Client IDs from app.json
+// Google OAuth Client IDs
 const GOOGLE_WEB_CLIENT_ID = config.googleClientIdWeb || '';
 const GOOGLE_IOS_CLIENT_ID = config.googleClientIdIos || '';
 const GOOGLE_ANDROID_CLIENT_ID = config.googleClientIdAndroid || '';
+
+// Generate redirect URI WITH PROXY for Expo Go
+// This generates: https://auth.expo.io/@pezkins/intok
+const redirectUri = makeRedirectUri({
+  useProxy: true,
+});
+
+console.log('🔑 Redirect URI being used:', redirectUri);
 
 export interface OAuthUser {
   provider: 'google' | 'apple';
@@ -25,22 +34,17 @@ export interface OAuthUser {
 
 /**
  * Google Sign-In Hook
- * 
- * For Expo Go: Uses https://auth.expo.io/@pezkins/intok as redirect
- * For Standalone: Uses native Google Sign-In
- * 
- * Google Cloud Console must have:
- * - Web Client ID with redirect URI: https://auth.expo.io/@pezkins/intok
  */
 export function useGoogleAuth() {
-  // Don't specify redirectUri - let expo-auth-session handle it automatically
-  // It will use the auth proxy for Expo Go
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: GOOGLE_WEB_CLIENT_ID,
-    iosClientId: GOOGLE_IOS_CLIENT_ID,
-    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
-    scopes: ['openid', 'profile', 'email'],
-  });
+  const [request, response, promptAsync] = Google.useAuthRequest(
+    {
+      clientId: GOOGLE_WEB_CLIENT_ID,
+      iosClientId: GOOGLE_IOS_CLIENT_ID,
+      androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+      scopes: ['openid', 'profile', 'email'],
+      redirectUri, // Use the proxy redirect URI
+    }
+  );
 
   return { request, response, promptAsync };
 }
