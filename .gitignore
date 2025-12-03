@@ -2,6 +2,11 @@
 node_modules/
 .pnp
 .pnp.js
+package-lock.json
+
+# Docker (local development only)
+docker-compose.yml
+docker-compose.*.yml
 
 # Build outputs
 dist/
@@ -39,6 +44,9 @@ coverage/
 
 # Generated files
 prisma/migrations/*.sql.backup
+
+# Prisma migrations (not used - using DynamoDB now)
+server/prisma/migrations/
 
 # OS
 Thumbs.db
