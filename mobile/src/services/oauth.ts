@@ -4,16 +4,16 @@ import * as WebBrowser from 'expo-web-browser';
 import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
-// Complete auth session for web
+// IMPORTANT: This must be called to complete the auth session on web
 WebBrowser.maybeCompleteAuthSession();
 
 // Get config from app.json extra
 const config = Constants.expoConfig?.extra || {};
 
-// Google OAuth configuration
-const GOOGLE_CLIENT_ID_WEB = config.googleClientIdWeb || '';
-const GOOGLE_CLIENT_ID_IOS = config.googleClientIdIos || '';
-const GOOGLE_CLIENT_ID_ANDROID = config.googleClientIdAndroid || '';
+// Google OAuth Client IDs from app.json
+const GOOGLE_WEB_CLIENT_ID = config.googleClientIdWeb || '';
+const GOOGLE_IOS_CLIENT_ID = config.googleClientIdIos || '';
+const GOOGLE_ANDROID_CLIENT_ID = config.googleClientIdAndroid || '';
 
 export interface OAuthUser {
   provider: 'google' | 'apple';
@@ -25,15 +25,21 @@ export interface OAuthUser {
 
 /**
  * Google Sign-In Hook
- * Returns the request, response, and promptAsync function
+ * 
+ * For Expo Go: Uses https://auth.expo.io/@pezkins/intok as redirect
+ * For Standalone: Uses native Google Sign-In
+ * 
+ * Google Cloud Console must have:
+ * - Web Client ID with redirect URI: https://auth.expo.io/@pezkins/intok
  */
 export function useGoogleAuth() {
+  // Don't specify redirectUri - let expo-auth-session handle it automatically
+  // It will use the auth proxy for Expo Go
   const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: GOOGLE_CLIENT_ID_WEB,
-    iosClientId: GOOGLE_CLIENT_ID_IOS,
-    androidClientId: GOOGLE_CLIENT_ID_ANDROID,
-    // Use Expo's auth proxy for redirect (works with tunnel mode)
-    redirectUri: 'https://auth.expo.io/@pezkins/intok',
+    webClientId: GOOGLE_WEB_CLIENT_ID,
+    iosClientId: GOOGLE_IOS_CLIENT_ID,
+    androidClientId: GOOGLE_ANDROID_CLIENT_ID,
+    scopes: ['openid', 'profile', 'email'],
   });
 
   return { request, response, promptAsync };
@@ -67,7 +73,6 @@ export async function getGoogleUserInfo(accessToken: string): Promise<OAuthUser>
  */
 export async function isAppleSignInAvailable(): Promise<boolean> {
   if (Platform.OS !== 'ios') {
-    // Apple Sign-In on Android/Web requires additional setup
     return false;
   }
   return await AppleAuthentication.isAvailableAsync();
@@ -88,8 +93,6 @@ export async function signInWithApple(): Promise<OAuthUser> {
     throw new Error('Apple Sign-In failed: No user ID');
   }
 
-  // Note: Apple only provides email and name on first sign-in
-  // After that, you need to store and retrieve from your backend
   return {
     provider: 'apple',
     providerId: credential.user,
@@ -97,12 +100,8 @@ export async function signInWithApple(): Promise<OAuthUser> {
     name: credential.fullName 
       ? `${credential.fullName.givenName || ''} ${credential.fullName.familyName || ''}`.trim() || null
       : null,
-    avatarUrl: null, // Apple doesn't provide avatar
+    avatarUrl: null,
   };
 }
 
-/**
- * OAuth provider types
- */
 export type OAuthProvider = 'google' | 'apple';
-
