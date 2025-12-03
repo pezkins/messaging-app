@@ -42,6 +42,7 @@
     "plugins": [
       "expo-router"
     ],
+    "sdkVersion": "52.0.0",
     "extra": {
       "apiUrl": "https://aji93f9i0k.execute-api.us-east-1.amazonaws.com/prod",
       "wsUrl": "wss://ksupcb7ucf.execute-api.us-east-1.amazonaws.com/prod",
