@@ -2,7 +2,9 @@
 node_modules/
 .pnp
 .pnp.js
-package-lock.json
+
+# Expo
+.expo/
 
 # Docker (local development only)
 docker-compose.yml
