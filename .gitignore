@@ -53,3 +53,6 @@ server/prisma/migrations/
 # OS
 Thumbs.db
 
+
+# Source images (already copied to mobile/assets)
+images/
