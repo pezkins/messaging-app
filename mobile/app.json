@@ -47,11 +47,8 @@
       "wsUrl": "wss://ksupcb7ucf.execute-api.us-east-1.amazonaws.com/prod",
       "googleClientIdWeb": "75949298562-t5r741c9ud61cnbsrhc95eghutjo5h4m.apps.googleusercontent.com",
       "googleClientIdIos": "75949298562-g1bf5a941mad8hmha4css3ci7fef5q5o.apps.googleusercontent.com",
-      "googleClientIdAndroid": "75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2.apps.googleusercontent.com",
-      "eas": {
-        "projectId": "your-project-id-here"
-      }
+      "googleClientIdAndroid": "75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2.apps.googleusercontent.com"
     },
-    "owner": "your-expo-username"
+    "owner": "pezkins"
   }
 }
