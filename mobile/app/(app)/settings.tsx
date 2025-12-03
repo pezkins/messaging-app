@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: colors.white,
     fontSize: fontSize.xl,
-    fontFamily: 'outfit-semibold',
+    fontWeight: '600',
   },
   saveButton: {
     padding: spacing.sm,
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: colors.primary[400],
     fontSize: fontSize.md,
-    fontFamily: 'outfit-medium',
+    fontWeight: '500',
   },
   content: {
     padding: spacing.md,
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     color: colors.surface[400],
     fontSize: fontSize.sm,
-    fontFamily: 'outfit-medium',
+    fontWeight: '500',
     marginBottom: spacing.sm,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   profileAvatarText: {
     color: colors.white,
     fontSize: fontSize.xxl,
-    fontFamily: 'outfit-bold',
+    fontWeight: '700',
   },
   profileInfo: {
     marginLeft: spacing.md,
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
   profileName: {
     color: colors.white,
     fontSize: fontSize.lg,
-    fontFamily: 'outfit-semibold',
+    fontWeight: '600',
   },
   profileEmail: {
     color: colors.surface[400],
@@ -307,6 +307,6 @@ const styles = StyleSheet.create({
   logoutText: {
     color: colors.error,
     fontSize: fontSize.md,
-    fontFamily: 'outfit-medium',
+    fontWeight: '500',
   },
 });

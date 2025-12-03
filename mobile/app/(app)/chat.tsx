@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   avatarText: {
     color: colors.white,
     fontSize: fontSize.lg,
-    fontFamily: 'outfit-semibold',
+    fontWeight: '600',
   },
   headerInfo: {
     flex: 1,
@@ -340,7 +340,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: colors.white,
     fontSize: fontSize.lg,
-    fontFamily: 'outfit-semibold',
+    fontWeight: '600',
   },
   headerSubtitle: {
     color: colors.surface[400],
@@ -370,7 +370,7 @@ const styles = StyleSheet.create({
   emptyText: {
     color: colors.surface[400],
     fontSize: fontSize.lg,
-    fontFamily: 'outfit-medium',
+    fontWeight: '500',
     marginTop: spacing.md,
   },
   emptySubtext: {
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
   senderName: {
     color: colors.primary[400],
     fontSize: fontSize.xs,
-    fontFamily: 'outfit-medium',
+    fontWeight: '500',
     marginBottom: spacing.xs,
   },
   messageText: {

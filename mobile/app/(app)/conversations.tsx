@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: fontSize.xxl,
-    fontFamily: 'outfit-bold',
+    fontWeight: '700',
     color: colors.white,
   },
   headerActions: {
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   userAvatarText: {
     color: colors.white,
     fontSize: fontSize.lg,
-    fontFamily: 'outfit-semibold',
+    fontWeight: '600',
   },
   userInfo: {
     marginLeft: spacing.sm,
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
   userName: {
     color: colors.white,
     fontSize: fontSize.md,
-    fontFamily: 'outfit-medium',
+    fontWeight: '500',
   },
   userLanguage: {
     color: colors.surface[400],
@@ -342,7 +342,7 @@ const styles = StyleSheet.create({
   avatarText: {
     color: colors.white,
     fontSize: fontSize.xl,
-    fontFamily: 'outfit-semibold',
+    fontWeight: '600',
   },
   conversationContent: {
     flex: 1,
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   conversationName: {
     color: colors.white,
     fontSize: fontSize.md,
-    fontFamily: 'outfit-medium',
+    fontWeight: '500',
     flex: 1,
   },
   conversationTime: {
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   emptyTitle: {
     color: colors.surface[300],
     fontSize: fontSize.xl,
-    fontFamily: 'outfit-semibold',
+    fontWeight: '600',
     marginTop: spacing.lg,
   },
   emptyText: {
@@ -402,7 +402,7 @@ const styles = StyleSheet.create({
   emptyButtonText: {
     color: colors.white,
     fontSize: fontSize.md,
-    fontFamily: 'outfit-semibold',
+    fontWeight: '600',
   },
 });
 

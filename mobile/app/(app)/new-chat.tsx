@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     color: colors.white,
     fontSize: fontSize.xl,
-    fontFamily: 'outfit-semibold',
+    fontWeight: '600',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   userAvatarText: {
     color: colors.white,
     fontSize: fontSize.lg,
-    fontFamily: 'outfit-semibold',
+    fontWeight: '600',
   },
   userInfo: {
     flex: 1,
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   userName: {
     color: colors.white,
     fontSize: fontSize.md,
-    fontFamily: 'outfit-medium',
+    fontWeight: '500',
   },
   userLanguage: {
     color: colors.surface[400],

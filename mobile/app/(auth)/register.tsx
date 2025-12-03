@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   },
   logoText: {
     fontSize: fontSize.xxxl,
-    fontFamily: 'outfit-bold',
+    fontWeight: '700',
     color: colors.white,
   },
   tagline: {
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: fontSize.xxl,
-    fontFamily: 'outfit-semibold',
+    fontWeight: '600',
     color: colors.white,
     marginBottom: spacing.lg,
   },
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   },
   languageLabel: {
     fontSize: fontSize.sm,
-    fontFamily: 'outfit-medium',
+    fontWeight: '500',
     color: colors.surface[300],
     marginBottom: spacing.xs,
   },
@@ -317,7 +317,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: colors.white,
     fontSize: fontSize.lg,
-    fontFamily: 'outfit-semibold',
+    fontWeight: '600',
   },
   footer: {
     flexDirection: 'row',
@@ -331,6 +331,6 @@ const styles = StyleSheet.create({
   linkText: {
     color: colors.primary[400],
     fontSize: fontSize.md,
-    fontFamily: 'outfit-medium',
+    fontWeight: '500',
   },
 });
