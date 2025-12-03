@@ -16,10 +16,12 @@ const GOOGLE_WEB_CLIENT_ID = config.googleClientIdWeb || '';
 const GOOGLE_IOS_CLIENT_ID = config.googleClientIdIos || '';
 const GOOGLE_ANDROID_CLIENT_ID = config.googleClientIdAndroid || '';
 
-// Generate redirect URI WITH PROXY for Expo Go
-// This generates: https://auth.expo.io/@pezkins/intok
+// Generate redirect URI for the app
+// For standalone builds: intok://redirect
+// For Expo Go: uses Expo auth proxy automatically
 const redirectUri = makeRedirectUri({
-  useProxy: true,
+  scheme: 'intok',
+  path: 'redirect',
 });
 
 console.log('🔑 Redirect URI being used:', redirectUri);
