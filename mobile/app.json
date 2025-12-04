@@ -17,7 +17,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.intok.app",
+      "bundleIdentifier": "com.pezkins.intok",
       "infoPlist": {
         "NSMicrophoneUsageDescription": "Intok needs microphone access for voice messages"
       }
