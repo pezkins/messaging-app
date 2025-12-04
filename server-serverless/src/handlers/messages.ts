@@ -75,14 +75,18 @@ export const list: APIGatewayProxyHandler = async (event) => {
               targetCountry
             );
 
-            // Save translation to database for future use (fire and forget)
-            dynamodb.send(new UpdateCommand({
-              TableName: Tables.MESSAGES,
-              Key: { conversationId: msg.conversationId, timestamp: msg.timestamp },
-              UpdateExpression: 'SET translations.#lang = :translation',
-              ExpressionAttributeNames: { '#lang': targetLanguage },
-              ExpressionAttributeValues: { ':translation': translatedContent },
-            })).catch(err => console.error('Failed to cache translation:', err));
+            // Save translation to database for future use
+            try {
+              await dynamodb.send(new UpdateCommand({
+                TableName: Tables.MESSAGES,
+                Key: { conversationId: msg.conversationId, timestamp: msg.timestamp },
+                UpdateExpression: 'SET #t = if_not_exists(#t, :empty), #t.#lang = :translation',
+                ExpressionAttributeNames: { '#t': 'translations', '#lang': targetLanguage },
+                ExpressionAttributeValues: { ':empty': {}, ':translation': translatedContent },
+              }));
+            } catch (err) {
+              console.error('Failed to cache translation:', err);
+            }
           }
         }
 

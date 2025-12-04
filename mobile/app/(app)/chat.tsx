@@ -9,6 +9,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ActivityIndicator,
+  Modal,
+  ScrollView,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +20,7 @@ import { useChatStore } from '../../src/store/chat';
 import { useAuthStore } from '../../src/store/auth';
 import { colors, spacing, borderRadius, fontSize } from '../../src/constants/theme';
 import { getLanguageByCode } from '../../src/constants/languages';
+import { EMOJIS, searchEmojis, FREQUENT_EMOJIS, type EmojiData } from '../../src/constants/emojis';
 import type { Message } from '../../src/types';
 
 export default function ChatScreen() {
@@ -32,6 +35,7 @@ export default function ChatScreen() {
     hasMoreMessages,
     loadMoreMessages,
     clearActiveConversation,
+    sendReaction,
   } = useChatStore();
 
   const [inputValue, setInputValue] = useState('');
@@ -103,11 +107,9 @@ export default function ChatScreen() {
     .map((id) => activeConversation.participants.find((p) => p.id === id)?.username)
     .filter(Boolean);
 
-  const handleReaction = useCallback((messageId: string, emoji: string) => {
-    // TODO: Send reaction to backend via WebSocket
-    console.log('React to message:', messageId, emoji);
-    // For now, this is a UI-only feature. Backend integration can be added later.
-  }, []);
+  const handleReaction = useCallback((messageId: string, messageTimestamp: string, emoji: string) => {
+    sendReaction(messageId, messageTimestamp, emoji);
+  }, [sendReaction]);
 
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const isOwn = item.senderId === user?.id;
@@ -244,15 +246,125 @@ export default function ChatScreen() {
   );
 }
 
-// Quick emoji reactions
-const REACTION_EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '😡'];
+// Quick emoji reactions - common reactions (shown in first row)
+const QUICK_REACTIONS = ['❤️', '👍', '👎', '😂', '😮', '😢', '😡', '🔥', '🎉', '🤔', '👀', '💯'];
+
+// Emoji Picker Component
+function EmojiPicker({ 
+  visible, 
+  onClose, 
+  onSelect,
+  position 
+}: { 
+  visible: boolean; 
+  onClose: () => void; 
+  onSelect: (emoji: string) => void;
+  position: 'left' | 'right';
+}) {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filteredEmojis, setFilteredEmojis] = useState<EmojiData[]>([]);
+
+  useEffect(() => {
+    if (searchQuery) {
+      setFilteredEmojis(searchEmojis(searchQuery));
+    } else {
+      setFilteredEmojis([]);
+    }
+  }, [searchQuery]);
+
+  const emojisToShow = searchQuery ? filteredEmojis : [];
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
+      <TouchableOpacity 
+        style={styles.emojiModalOverlay} 
+        activeOpacity={1} 
+        onPress={onClose}
+      >
+        <TouchableOpacity 
+          activeOpacity={1} 
+          style={[
+            styles.emojiPickerContainer,
+            position === 'right' ? styles.emojiPickerRight : styles.emojiPickerLeft
+          ]}
+        >
+          {/* Quick Reactions Row */}
+          <View style={styles.quickReactionsRow}>
+            {QUICK_REACTIONS.map((emoji) => (
+              <TouchableOpacity
+                key={emoji}
+                style={styles.quickReactionButton}
+                onPress={() => onSelect(emoji)}
+              >
+                <Text style={styles.quickReactionEmoji}>{emoji}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Search Input */}
+          <View style={styles.emojiSearchContainer}>
+            <Ionicons name="search" size={16} color={colors.surface[400]} />
+            <TextInput
+              style={styles.emojiSearchInput}
+              placeholder="Search emojis..."
+              placeholderTextColor={colors.surface[500]}
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              autoCapitalize="none"
+            />
+            {searchQuery ? (
+              <TouchableOpacity onPress={() => setSearchQuery('')}>
+                <Ionicons name="close-circle" size={18} color={colors.surface[400]} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
+
+          {/* Search Results */}
+          {searchQuery && (
+            <ScrollView 
+              style={styles.emojiSearchResults}
+              contentContainerStyle={styles.emojiGrid}
+              keyboardShouldPersistTaps="handled"
+            >
+              {emojisToShow.length > 0 ? (
+                emojisToShow.slice(0, 50).map((emojiData, index) => (
+                  <TouchableOpacity
+                    key={`${emojiData.emoji}-${index}`}
+                    style={styles.emojiGridItem}
+                    onPress={() => onSelect(emojiData.emoji)}
+                  >
+                    <Text style={styles.emojiGridEmoji}>{emojiData.emoji}</Text>
+                  </TouchableOpacity>
+                ))
+              ) : (
+                <Text style={styles.noEmojisText}>No emojis found</Text>
+              )}
+            </ScrollView>
+          )}
+
+          {/* Hint text when not searching */}
+          {!searchQuery && (
+            <Text style={styles.emojiHint}>
+              Search for any emoji by name
+            </Text>
+          )}
+        </TouchableOpacity>
+      </TouchableOpacity>
+    </Modal>
+  );
+}
 
 // Message Bubble Component
 function MessageBubble({ message, isOwn, showTimestamp, onReact }: { 
   message: Message; 
   isOwn: boolean;
   showTimestamp: boolean;
-  onReact?: (messageId: string, emoji: string) => void;
+  onReact?: (messageId: string, messageTimestamp: string, emoji: string) => void;
 }) {
   const [showOriginal, setShowOriginal] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
@@ -264,6 +376,7 @@ function MessageBubble({ message, isOwn, showTimestamp, onReact }: {
   const wasTranslated = message.translatedContent && message.originalContent !== message.translatedContent;
 
   const messageDate = message.createdAt ? new Date(message.createdAt) : new Date();
+  const messageTimestamp = message.createdAt || new Date().toISOString();
 
   // Get reactions from message (if any)
   const reactions = (message as any).reactions || {};
@@ -275,7 +388,7 @@ function MessageBubble({ message, isOwn, showTimestamp, onReact }: {
 
   const handleReaction = (emoji: string) => {
     setShowReactionPicker(false);
-    onReact?.(message.id, emoji);
+    onReact?.(message.id, messageTimestamp, emoji);
   };
   
   return (
@@ -286,29 +399,13 @@ function MessageBubble({ message, isOwn, showTimestamp, onReact }: {
         </Text>
       )}
 
-      {/* Reaction Picker */}
-      {showReactionPicker && (
-        <View style={[
-          styles.reactionPicker,
-          isOwn ? styles.reactionPickerOwn : styles.reactionPickerOther
-        ]}>
-          {REACTION_EMOJIS.map((emoji) => (
-            <TouchableOpacity
-              key={emoji}
-              style={styles.reactionOption}
-              onPress={() => handleReaction(emoji)}
-            >
-              <Text style={styles.reactionEmoji}>{emoji}</Text>
-            </TouchableOpacity>
-          ))}
-          <TouchableOpacity
-            style={styles.reactionClose}
-            onPress={() => setShowReactionPicker(false)}
-          >
-            <Ionicons name="close" size={16} color={colors.surface[400]} />
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* Emoji Picker Modal */}
+      <EmojiPicker
+        visible={showReactionPicker}
+        onClose={() => setShowReactionPicker(false)}
+        onSelect={handleReaction}
+        position={isOwn ? 'right' : 'left'}
+      />
       
       <TouchableOpacity 
         activeOpacity={0.8}
@@ -612,6 +709,86 @@ const styles = StyleSheet.create({
   reactionClose: {
     padding: spacing.xs,
     marginLeft: spacing.xs,
+  },
+  // Emoji Picker Modal Styles
+  emojiModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emojiPickerContainer: {
+    backgroundColor: colors.surface[900],
+    borderRadius: borderRadius.xl,
+    padding: spacing.md,
+    width: '90%',
+    maxWidth: 380,
+    maxHeight: '60%',
+    borderWidth: 1,
+    borderColor: colors.surface[700],
+  },
+  emojiPickerLeft: {},
+  emojiPickerRight: {},
+  quickReactionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginBottom: spacing.md,
+    paddingBottom: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surface[700],
+  },
+  quickReactionButton: {
+    padding: spacing.xs,
+    margin: 2,
+  },
+  quickReactionEmoji: {
+    fontSize: 26,
+  },
+  emojiSearchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface[800],
+    borderRadius: borderRadius.lg,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  emojiSearchInput: {
+    flex: 1,
+    color: colors.white,
+    fontSize: fontSize.md,
+    marginLeft: spacing.sm,
+    paddingVertical: 0,
+  },
+  emojiSearchResults: {
+    maxHeight: 200,
+  },
+  emojiGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'flex-start',
+  },
+  emojiGridItem: {
+    width: '12.5%',
+    aspectRatio: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emojiGridEmoji: {
+    fontSize: 24,
+  },
+  noEmojisText: {
+    color: colors.surface[500],
+    fontSize: fontSize.sm,
+    textAlign: 'center',
+    padding: spacing.md,
+  },
+  emojiHint: {
+    color: colors.surface[500],
+    fontSize: fontSize.sm,
+    textAlign: 'center',
+    marginTop: spacing.sm,
   },
   reactionsContainer: {
     flexDirection: 'row',

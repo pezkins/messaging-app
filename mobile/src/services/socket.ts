@@ -135,6 +135,10 @@ class SocketService {
   leaveConversation(conversationId: string) {
     this.send('conversation:leave', conversationId);
   }
+
+  sendReaction(conversationId: string, messageId: string, messageTimestamp: string, emoji: string) {
+    this.send('message:reaction', { conversationId, messageId, messageTimestamp, emoji });
+  }
 }
 
 export const socketService = new SocketService();
@@ -150,4 +154,13 @@ export interface TypingEvent {
   conversationId: string;
   userId: string;
   isTyping: boolean;
+}
+
+export interface ReactionEvent {
+  conversationId: string;
+  messageId: string;
+  messageTimestamp: string;
+  reactions: Record<string, string[]>; // emoji -> [userIds]
+  userId: string;
+  emoji: string;
 }

@@ -89,6 +89,8 @@ export const message: APIGatewayProxyHandler = async (event) => {
       await handleSendMessage(event, userId, data);
     } else if (action === 'message:typing') {
       await handleTyping(event, userId, data);
+    } else if (action === 'message:reaction') {
+      await handleReaction(event, userId, data);
     }
 
     return { statusCode: 200, body: 'OK' };
@@ -265,6 +267,101 @@ async function handleTyping(event: any, userId: string, data: any) {
         }));
       } catch {
         // Ignore stale connections
+      }
+    }
+  }
+}
+
+async function handleReaction(event: any, userId: string, data: any) {
+  const { conversationId, messageId, messageTimestamp, emoji } = data;
+
+  // Get the message to update reactions
+  const messageResult = await dynamodb.send(new GetCommand({
+    TableName: Tables.MESSAGES,
+    Key: { conversationId, timestamp: messageTimestamp },
+  }));
+
+  if (!messageResult.Item) {
+    console.error('Message not found for reaction');
+    return;
+  }
+
+  // Get current reactions or initialize
+  const currentReactions = messageResult.Item.reactions || {};
+  
+  // Toggle reaction: if user already reacted with this emoji, remove it; otherwise add it
+  const userReactions = currentReactions[emoji] || [];
+  const userIndex = userReactions.indexOf(userId);
+  
+  if (userIndex > -1) {
+    // User already reacted, remove their reaction
+    userReactions.splice(userIndex, 1);
+    if (userReactions.length === 0) {
+      delete currentReactions[emoji];
+    } else {
+      currentReactions[emoji] = userReactions;
+    }
+  } else {
+    // Add user's reaction
+    currentReactions[emoji] = [...userReactions, userId];
+  }
+
+  // Update message in database
+  await dynamodb.send(new UpdateCommand({
+    TableName: Tables.MESSAGES,
+    Key: { conversationId, timestamp: messageTimestamp },
+    UpdateExpression: 'SET reactions = :reactions',
+    ExpressionAttributeValues: { ':reactions': currentReactions },
+  }));
+
+  // Get conversation participants
+  const convResult = await dynamodb.send(new QueryCommand({
+    TableName: Tables.CONVERSATIONS,
+    IndexName: 'user-conversations-index',
+    KeyConditionExpression: 'visibleTo = :userId',
+    FilterExpression: 'conversationId = :convId',
+    ExpressionAttributeValues: {
+      ':userId': userId,
+      ':convId': conversationId,
+    },
+  }));
+
+  const conversation = convResult.Items?.[0];
+  if (!conversation) return;
+
+  const api = getApiClient(event);
+  const participantIds = conversation.participantIds as string[];
+
+  // Broadcast reaction update to all participants
+  for (const participantId of participantIds) {
+    const connections = await dynamodb.send(new QueryCommand({
+      TableName: Tables.CONNECTIONS,
+      IndexName: 'user-connections-index',
+      KeyConditionExpression: 'userId = :userId',
+      ExpressionAttributeValues: { ':userId': participantId },
+    }));
+
+    for (const conn of connections.Items || []) {
+      try {
+        await api.send(new PostToConnectionCommand({
+          ConnectionId: conn.connectionId,
+          Data: JSON.stringify({
+            action: 'message:reaction',
+            conversationId,
+            messageId,
+            messageTimestamp,
+            reactions: currentReactions,
+            userId, // Who reacted
+            emoji,
+          }),
+        }));
+      } catch (err: any) {
+        if (err.statusCode === 410) {
+          await dynamodb.send(new DeleteCommand({
+            TableName: Tables.CONNECTIONS,
+            Key: { connectionId: conn.connectionId },
+          }));
+        }
       }
     }
   }

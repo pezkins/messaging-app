@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { api } from '../services/api';
-import { socketService, type MessageReceiveEvent, type TypingEvent } from '../services/socket';
+import { socketService, type MessageReceiveEvent, type TypingEvent, type ReactionEvent } from '../services/socket';
 import type { Conversation, Message, UserPublic } from '../types';
 
 interface ChatState {
@@ -21,6 +21,7 @@ interface ChatState {
   startConversation: (user: UserPublic) => Promise<Conversation>;
   startGroupConversation: (users: UserPublic[], name?: string) => Promise<Conversation>;
   setTyping: (isTyping: boolean) => void;
+  sendReaction: (messageId: string, messageTimestamp: string, emoji: string) => void;
   subscribeToEvents: () => () => void;
 }
 
@@ -180,6 +181,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
     socketService.sendTyping(activeConversation.id, isTyping);
   },
 
+  sendReaction: (messageId, messageTimestamp, emoji) => {
+    const { activeConversation } = get();
+    
+    if (!activeConversation) {
+      return;
+    }
+
+    socketService.sendReaction(activeConversation.id, messageId, messageTimestamp, emoji);
+  },
+
   subscribeToEvents: () => {
     const unsubMessage = socketService.on<MessageReceiveEvent>('message:receive', (data) => {
       const { message } = data;
@@ -243,9 +254,27 @@ export const useChatStore = create<ChatState>((set, get) => ({
       });
     });
 
+    const unsubReaction = socketService.on<ReactionEvent>('message:reaction', (data) => {
+      set((state) => {
+        const newMessages = state.messages.map((msg) => {
+          if (msg.id === data.messageId) {
+            // Convert reactions from {emoji: [userIds]} to {emoji: count}
+            const reactionCounts: Record<string, number> = {};
+            for (const [emoji, userIds] of Object.entries(data.reactions)) {
+              reactionCounts[emoji] = userIds.length;
+            }
+            return { ...msg, reactions: reactionCounts };
+          }
+          return msg;
+        });
+        return { messages: newMessages };
+      });
+    });
+
     return () => {
       unsubMessage();
       unsubTyping();
+      unsubReaction();
     };
   },
 }));
