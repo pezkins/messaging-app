@@ -62,3 +62,7 @@ mobile/credentials.json
 mobile/credentials/
 *.jks
 *.keystore
+google-play-service-account.json
+*.p8
+*.p12
+*.pem
