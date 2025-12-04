@@ -56,3 +56,9 @@ Thumbs.db
 
 # Source images (already copied to mobile/assets)
 images/
+
+# Credentials (DO NOT COMMIT)
+mobile/credentials.json
+mobile/credentials/
+*.jks
+*.keystore
