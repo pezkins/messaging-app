@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intok - Talk to Anyone, Anywhere</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            line-height: 1.6;
+            color: #e2e8f0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .hero-content {
+            max-width: 700px;
+        }
+        .logo {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+            border-radius: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 60px;
+            margin: 0 auto 30px;
+            box-shadow: 0 20px 40px rgba(139, 92, 246, 0.3);
+        }
+        h1 {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #fff 0%, #c4b5fd 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .tagline {
+            font-size: 1.5rem;
+            color: #a5b4fc;
+            margin-bottom: 30px;
+            font-weight: 500;
+        }
+        .description {
+            font-size: 1.1rem;
+            color: #94a3b8;
+            margin-bottom: 40px;
+            line-height: 1.8;
+        }
+        
+        /* Buttons */
+        .buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 60px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 40px rgba(139, 92, 246, 0.4);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin-bottom: 60px;
+        }
+        .feature {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 24px;
+            text-align: left;
+        }
+        .feature-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+        }
+        .feature h3 {
+            color: #f1f5f9;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+        .feature p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+        
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .footer-links {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .footer-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: color 0.2s;
+        }
+        .footer-links a:hover {
+            color: #a5b4fc;
+        }
+        .copyright {
+            color: #64748b;
+            font-size: 0.85rem;
+        }
+        
+        @media (max-width: 640px) {
+            h1 {
+                font-size: 2.5rem;
+            }
+            .tagline {
+                font-size: 1.2rem;
+            }
+            .buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            .btn {
+                width: 100%;
+                max-width: 280px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <section class="hero">
+        <div class="hero-content">
+            <div class="logo">💬</div>
+            <h1>Intok</h1>
+            <p class="tagline">Talk to Anyone, Anywhere</p>
+            <p class="description">
+                Break language barriers with real-time AI translation. 
+                Send messages in your language, and they'll be automatically 
+                translated for the recipient. It's that simple.
+            </p>
+            
+            <div class="buttons">
+                <a href="#" class="btn btn-primary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M17.9 5c-.5-.4-1-.5-1.5-.5H5.5C4.1 4.5 3 5.6 3 7v10c0 1.4 1.1 2.5 2.5 2.5h10.9c.5 0 1-.1 1.5-.5l4.5-5.5c.4-.5.4-1.3 0-1.8L17.9 5z"/>
+                    </svg>
+                    Get on Play Store
+                </a>
+                <a href="#" class="btn btn-secondary">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    </svg>
+                    Get on App Store
+                </a>
+            </div>
+            
+            <div class="features">
+                <div class="feature">
+                    <div class="feature-icon">🌍</div>
+                    <h3>Auto Translation</h3>
+                    <p>Messages are automatically translated to each user's preferred language.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Real-Time</h3>
+                    <p>Instant messaging with live translation powered by AI.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">👥</div>
+                    <h3>Group Chats</h3>
+                    <p>Create group conversations with people from around the world.</p>
+                </div>
+                <div class="feature">
+                    <div class="feature-icon">😊</div>
+                    <h3>Emoji Reactions</h3>
+                    <p>React to messages with emojis - no translation needed!</p>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="footer-links">
+            <a href="privacy-policy.html">Privacy Policy</a>
+            <a href="terms-of-service.html">Terms of Service</a>
+            <a href="support.html">Support</a>
+            <a href="mailto:support@intok.app">Contact</a>
+        </div>
+        <p class="copyright">© 2024 Intok. All rights reserved.</p>
+    </footer>
+</body>
+</html>
+
