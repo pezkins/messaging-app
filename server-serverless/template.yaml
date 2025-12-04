@@ -266,6 +266,22 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
 
+  UpdateProfileFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/users.updateProfile
+      CodeUri: .
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/users/me
+            Method: PATCH
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
   UpdateLanguageFunction:
     Type: AWS::Serverless::Function
     Properties:

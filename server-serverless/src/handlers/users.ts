@@ -1,8 +1,19 @@
 import { APIGatewayProxyHandler } from 'aws-lambda';
-import { QueryCommand, ScanCommand, UpdateCommand } from '@aws-sdk/lib-dynamodb';
+import { QueryCommand, ScanCommand, UpdateCommand, GetCommand } from '@aws-sdk/lib-dynamodb';
 import { z } from 'zod';
 import { dynamodb, Tables } from '../lib/dynamo';
 import { verifyToken } from '../lib/auth';
+
+// Helper to get user by ID
+async function getUser(userId: string) {
+  const result = await dynamodb.send(new GetCommand({
+    TableName: Tables.USERS,
+    Key: { id: userId },
+  }));
+  if (!result.Item) return null;
+  const { passwordHash, ...user } = result.Item;
+  return user;
+}
 
 const response = (statusCode: number, body: object) => ({
   statusCode,
@@ -69,6 +80,62 @@ export const search: APIGatewayProxyHandler = async (event) => {
   }
 };
 
+// Update user profile (username, avatarUrl)
+export const updateProfile: APIGatewayProxyHandler = async (event) => {
+  try {
+    // Verify auth
+    const authHeader = event.headers.authorization || event.headers.Authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      return response(401, { message: 'Unauthorized' });
+    }
+    
+    let userId: string;
+    try {
+      const payload = verifyToken(authHeader.split(' ')[1]);
+      userId = payload.userId;
+    } catch {
+      return response(401, { message: 'Invalid token' });
+    }
+
+    const body = JSON.parse(event.body || '{}');
+    const data = z.object({
+      username: z.string().min(3).max(30).optional(),
+      avatarUrl: z.string().url().optional(),
+    }).parse(body);
+
+    const updates: string[] = [];
+    const expressionValues: Record<string, any> = {
+      ':now': new Date().toISOString(),
+    };
+
+    if (data.username) {
+      updates.push('username = :username');
+      expressionValues[':username'] = data.username;
+    }
+    if (data.avatarUrl) {
+      updates.push('avatarUrl = :avatarUrl');
+      expressionValues[':avatarUrl'] = data.avatarUrl;
+    }
+    updates.push('updatedAt = :now');
+
+    await dynamodb.send(new UpdateCommand({
+      TableName: Tables.USERS,
+      Key: { id: userId },
+      UpdateExpression: `SET ${updates.join(', ')}`,
+      ExpressionAttributeValues: expressionValues,
+    }));
+
+    const user = await getUser(userId);
+    return response(200, { user });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return response(400, { message: 'Validation error', details: error.errors });
+    }
+    console.error('Update profile error:', error);
+    return response(500, { message: 'Internal server error' });
+  }
+};
+
 // Update user's preferred language
 export const updateLanguage: APIGatewayProxyHandler = async (event) => {
   try {
@@ -102,10 +169,8 @@ export const updateLanguage: APIGatewayProxyHandler = async (event) => {
       },
     }));
 
-    return response(200, { 
-      message: 'Language updated successfully',
-      preferredLanguage,
-    });
+    const user = await getUser(userId);
+    return response(200, { user });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return response(400, { message: 'Validation error', details: error.errors });
@@ -148,10 +213,8 @@ export const updateCountry: APIGatewayProxyHandler = async (event) => {
       },
     }));
 
-    return response(200, { 
-      message: 'Country updated successfully',
-      preferredCountry,
-    });
+    const user = await getUser(userId);
+    return response(200, { user });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return response(400, { message: 'Validation error', details: error.errors });
