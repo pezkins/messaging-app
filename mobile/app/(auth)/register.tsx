@@ -6,9 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
   KeyboardAvoidingView,
-  Platform,
   ScrollView,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -131,7 +131,7 @@ export default function RegisterScreen() {
                     key={lang.code} 
                     label={`${lang.native} (${lang.name})`} 
                     value={lang.code}
-                    color={Platform.OS === 'web' ? '#000000' : colors.white}
+                    color="#000000"
                   />
                 ))}
               </Picker>
@@ -155,7 +155,7 @@ export default function RegisterScreen() {
                     key={country.code} 
                     label={`${country.flag} ${country.name}`} 
                     value={country.code}
-                    color={Platform.OS === 'web' ? '#000000' : colors.white}
+                    color="#000000"
                   />
                 ))}
               </Picker>

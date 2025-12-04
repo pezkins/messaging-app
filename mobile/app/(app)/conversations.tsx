@@ -30,6 +30,7 @@ export default function ConversationsScreen() {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [showMenu, setShowMenu] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
   const filteredConversations = conversations.filter((conv) => {
     const name = getConversationName(conv);
@@ -49,8 +50,17 @@ export default function ConversationsScreen() {
   }
 
   const handleConversationPress = async (conv: Conversation) => {
-    await selectConversation(conv);
-    router.push('/(app)/chat');
+    // Prevent multiple taps from opening multiple chat screens
+    if (isNavigating) return;
+    
+    setIsNavigating(true);
+    try {
+      await selectConversation(conv);
+      router.push('/(app)/chat');
+    } finally {
+      // Reset after a short delay to allow navigation to complete
+      setTimeout(() => setIsNavigating(false), 500);
+    }
   };
 
   const renderConversation = ({ item }: { item: Conversation }) => (

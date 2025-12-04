@@ -30,6 +30,7 @@ interface AuthState {
   logout: () => Promise<void>;
   updateLanguage: (language: LanguageCode) => Promise<void>;
   updateCountry: (country: CountryCode) => Promise<void>;
+  updateUsername: (username: string) => Promise<void>;
   clearError: () => void;
 }
 
@@ -228,6 +229,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'Failed to update country',
+      });
+      throw error;
+    }
+  },
+
+  updateUsername: async (username) => {
+    try {
+      const { user } = await api.updateProfile({ username });
+      await storage.setUser(user);
+      set({ user });
+    } catch (error) {
+      set({
+        error: error instanceof Error ? error.message : 'Failed to update username',
       });
       throw error;
     }

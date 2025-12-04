@@ -6,7 +6,7 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  Platform,
+  TextInput,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +17,8 @@ import { colors, spacing, borderRadius, fontSize } from '../../src/constants/the
 import { LANGUAGES, COUNTRIES, type LanguageCode, type CountryCode } from '../../src/constants/languages';
 
 export default function SettingsScreen() {
-  const { user, updateLanguage, updateCountry, logout } = useAuthStore();
+  const { user, updateLanguage, updateCountry, updateUsername, logout } = useAuthStore();
+  const [displayName, setDisplayName] = useState(user?.username || '');
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>(
     (user?.preferredLanguage as LanguageCode) || 'en'
   );
@@ -27,16 +28,20 @@ export default function SettingsScreen() {
   const [isSaving, setIsSaving] = useState(false);
 
   const handleSave = async () => {
+    const nameChanged = displayName !== user?.username && displayName.trim().length >= 3;
     const languageChanged = selectedLanguage !== user?.preferredLanguage;
     const countryChanged = selectedCountry !== user?.preferredCountry;
 
-    if (!languageChanged && !countryChanged) {
+    if (!nameChanged && !languageChanged && !countryChanged) {
       router.back();
       return;
     }
 
     setIsSaving(true);
     try {
+      if (nameChanged) {
+        await updateUsername(displayName.trim());
+      }
       if (languageChanged) {
         await updateLanguage(selectedLanguage);
       }
@@ -86,14 +91,24 @@ export default function SettingsScreen() {
           <View style={styles.profileCard}>
             <View style={styles.profileAvatar}>
               <Text style={styles.profileAvatarText}>
-                {user?.username?.charAt(0).toUpperCase()}
+                {displayName?.charAt(0).toUpperCase() || '?'}
               </Text>
             </View>
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>{user?.username}</Text>
+              <TextInput
+                style={styles.displayNameInput}
+                value={displayName}
+                onChangeText={setDisplayName}
+                placeholder="Display name"
+                placeholderTextColor={colors.surface[500]}
+                maxLength={30}
+              />
               <Text style={styles.profileEmail}>{user?.email}</Text>
             </View>
           </View>
+          {displayName.trim().length < 3 && displayName !== user?.username && (
+            <Text style={styles.errorHint}>Display name must be at least 3 characters</Text>
+          )}
         </View>
 
         {/* Language section */}
@@ -115,7 +130,7 @@ export default function SettingsScreen() {
                   key={lang.code} 
                   label={`${lang.native} (${lang.name})`} 
                   value={lang.code}
-                  color={Platform.OS === 'web' ? '#000000' : colors.white}
+                  color="#000000"
                 />
               ))}
             </Picker>
@@ -141,7 +156,7 @@ export default function SettingsScreen() {
                   key={country.code} 
                   label={`${country.flag} ${country.name}`} 
                   value={country.code}
-                  color={Platform.OS === 'web' ? '#000000' : colors.white}
+                  color="#000000"
                 />
               ))}
             </Picker>
@@ -251,10 +266,26 @@ const styles = StyleSheet.create({
     fontSize: fontSize.lg,
     fontWeight: '600',
   },
+  displayNameInput: {
+    color: colors.white,
+    fontSize: fontSize.lg,
+    fontWeight: '600',
+    padding: 0,
+    margin: 0,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surface[600],
+    paddingBottom: spacing.xs,
+  },
   profileEmail: {
     color: colors.surface[400],
     fontSize: fontSize.sm,
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
+  },
+  errorHint: {
+    color: colors.error,
+    fontSize: fontSize.xs,
+    marginTop: spacing.sm,
+    marginLeft: spacing.md,
   },
   pickerCard: {
     flexDirection: 'row',
