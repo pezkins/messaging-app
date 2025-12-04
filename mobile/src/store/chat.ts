@@ -19,6 +19,7 @@ interface ChatState {
   loadMoreMessages: () => Promise<void>;
   sendMessage: (content: string) => void;
   startConversation: (user: UserPublic) => Promise<Conversation>;
+  startGroupConversation: (users: UserPublic[], name?: string) => Promise<Conversation>;
   setTyping: (isTyping: boolean) => void;
   subscribeToEvents: () => () => void;
 }
@@ -144,6 +145,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
     const { conversation } = await api.createConversation({
       participantIds: [user.id],
       type: 'direct',
+    });
+
+    set((state) => ({
+      conversations: [conversation, ...state.conversations],
+    }));
+
+    await get().selectConversation(conversation);
+    return conversation;
+  },
+
+  startGroupConversation: async (users, name) => {
+    const { conversation } = await api.createConversation({
+      participantIds: users.map(u => u.id),
+      type: 'group',
+      name,
     });
 
     set((state) => ({

@@ -1,5 +1,5 @@
 import type { APIGatewayProxyHandler } from 'aws-lambda';
-import { dynamodb, Tables, QueryCommand, GetCommand } from '../lib/dynamo';
+import { dynamodb, Tables, QueryCommand, GetCommand, UpdateCommand } from '../lib/dynamo';
 import { getUserIdFromEvent, response } from '../lib/auth';
 import { translate } from '../lib/translation';
 
@@ -67,12 +67,22 @@ export const list: APIGatewayProxyHandler = async (event) => {
           if (msg.translations?.[targetLanguage]) {
             translatedContent = msg.translations[targetLanguage];
           } else {
+            // Translate and cache it
             translatedContent = await translate(
               msg.originalContent,
               msg.originalLanguage,
               targetLanguage,
               targetCountry
             );
+
+            // Save translation to database for future use (fire and forget)
+            dynamodb.send(new UpdateCommand({
+              TableName: Tables.MESSAGES,
+              Key: { conversationId: msg.conversationId, timestamp: msg.timestamp },
+              UpdateExpression: 'SET translations.#lang = :translation',
+              ExpressionAttributeNames: { '#lang': targetLanguage },
+              ExpressionAttributeValues: { ':translation': translatedContent },
+            })).catch(err => console.error('Failed to cache translation:', err));
           }
         }
 

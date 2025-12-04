@@ -41,8 +41,14 @@ export default function LoginScreen() {
     setOauthLoading('google');
     try {
       const userInfo = await signInWithGoogle();
-      await oauthLogin(userInfo);
-      router.replace('/(app)/conversations');
+      const response = await oauthLogin(userInfo);
+      // Check if this is a new user (first time login) - redirect to setup
+      // New users won't have preferredCountry set or will have isNewUser flag
+      if (response?.isNewUser || !response?.user?.preferredCountry) {
+        router.replace('/(app)/setup');
+      } else {
+        router.replace('/(app)/conversations');
+      }
     } catch (err) {
       console.error('Google Sign-In error:', err);
       setOauthLoading(null);

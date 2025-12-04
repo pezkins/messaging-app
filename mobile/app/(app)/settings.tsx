@@ -169,7 +169,7 @@ export default function SettingsScreen() {
           <View style={styles.aboutCard}>
             <View style={styles.aboutItem}>
               <Ionicons name="information-circle-outline" size={20} color={colors.primary[400]} />
-              <Text style={styles.aboutText}>Intok v1.0.0</Text>
+              <Text style={styles.aboutText}>Intok v0.0.2</Text>
             </View>
             <View style={styles.aboutItem}>
               <Ionicons name="language-outline" size={20} color={colors.primary[400]} />

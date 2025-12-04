@@ -148,6 +148,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         isAuthenticated: true,
         isLoading: false,
       });
+
+      // Return response so caller can check if new user
+      return { user: response.user, isNewUser: (response as any).isNewUser };
     } catch (error) {
       set({
         error: error instanceof Error ? error.message : 'OAuth login failed',

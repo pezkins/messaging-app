@@ -103,6 +103,12 @@ export default function ChatScreen() {
     .map((id) => activeConversation.participants.find((p) => p.id === id)?.username)
     .filter(Boolean);
 
+  const handleReaction = useCallback((messageId: string, emoji: string) => {
+    // TODO: Send reaction to backend via WebSocket
+    console.log('React to message:', messageId, emoji);
+    // For now, this is a UI-only feature. Backend integration can be added later.
+  }, []);
+
   const renderMessage = ({ item, index }: { item: Message; index: number }) => {
     const isOwn = item.senderId === user?.id;
     const itemTime = item.createdAt ? new Date(item.createdAt).getTime() : 0;
@@ -114,6 +120,7 @@ export default function ChatScreen() {
         message={item} 
         isOwn={isOwn} 
         showTimestamp={showTimestamp}
+        onReact={handleReaction}
       />
     );
   };
@@ -237,13 +244,18 @@ export default function ChatScreen() {
   );
 }
 
+// Quick emoji reactions
+const REACTION_EMOJIS = ['❤️', '👍', '😂', '😮', '😢', '😡'];
+
 // Message Bubble Component
-function MessageBubble({ message, isOwn, showTimestamp }: { 
+function MessageBubble({ message, isOwn, showTimestamp, onReact }: { 
   message: Message; 
   isOwn: boolean;
   showTimestamp: boolean;
+  onReact?: (messageId: string, emoji: string) => void;
 }) {
   const [showOriginal, setShowOriginal] = useState(false);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
   
   const displayContent = showOriginal 
     ? message.originalContent 
@@ -252,6 +264,19 @@ function MessageBubble({ message, isOwn, showTimestamp }: {
   const wasTranslated = message.translatedContent && message.originalContent !== message.translatedContent;
 
   const messageDate = message.createdAt ? new Date(message.createdAt) : new Date();
+
+  // Get reactions from message (if any)
+  const reactions = (message as any).reactions || {};
+  const hasReactions = Object.keys(reactions).length > 0;
+
+  const handleLongPress = () => {
+    setShowReactionPicker(true);
+  };
+
+  const handleReaction = (emoji: string) => {
+    setShowReactionPicker(false);
+    onReact?.(message.id, emoji);
+  };
   
   return (
     <View style={styles.messageWrapper}>
@@ -260,8 +285,37 @@ function MessageBubble({ message, isOwn, showTimestamp }: {
           {format(messageDate, 'MMM d, h:mm a')}
         </Text>
       )}
+
+      {/* Reaction Picker */}
+      {showReactionPicker && (
+        <View style={[
+          styles.reactionPicker,
+          isOwn ? styles.reactionPickerOwn : styles.reactionPickerOther
+        ]}>
+          {REACTION_EMOJIS.map((emoji) => (
+            <TouchableOpacity
+              key={emoji}
+              style={styles.reactionOption}
+              onPress={() => handleReaction(emoji)}
+            >
+              <Text style={styles.reactionEmoji}>{emoji}</Text>
+            </TouchableOpacity>
+          ))}
+          <TouchableOpacity
+            style={styles.reactionClose}
+            onPress={() => setShowReactionPicker(false)}
+          >
+            <Ionicons name="close" size={16} color={colors.surface[400]} />
+          </TouchableOpacity>
+        </View>
+      )}
       
-      <View style={[styles.messageBubble, isOwn ? styles.ownMessage : styles.otherMessage]}>
+      <TouchableOpacity 
+        activeOpacity={0.8}
+        onLongPress={handleLongPress}
+        delayLongPress={300}
+        style={[styles.messageBubble, isOwn ? styles.ownMessage : styles.otherMessage]}
+      >
         {!isOwn && (
           <Text style={styles.senderName}>{message.sender?.username || 'Unknown'}</Text>
         )}
@@ -294,7 +348,24 @@ function MessageBubble({ message, isOwn, showTimestamp }: {
         <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
           {format(messageDate, 'h:mm a')}
         </Text>
-      </View>
+      </TouchableOpacity>
+
+      {/* Display Reactions */}
+      {hasReactions && (
+        <View style={[
+          styles.reactionsContainer,
+          isOwn ? styles.reactionsOwn : styles.reactionsOther
+        ]}>
+          {Object.entries(reactions).map(([emoji, users]: [string, any]) => (
+            <View key={emoji} style={styles.reactionBadge}>
+              <Text style={styles.reactionBadgeEmoji}>{emoji}</Text>
+              {Array.isArray(users) && users.length > 1 && (
+                <Text style={styles.reactionCount}>{users.length}</Text>
+              )}
+            </View>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
@@ -510,6 +581,67 @@ const styles = StyleSheet.create({
     color: colors.surface[500],
     fontSize: fontSize.xs,
     paddingBottom: spacing.sm,
+  },
+  reactionPicker: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface[800],
+    borderRadius: borderRadius.full,
+    padding: spacing.xs,
+    marginBottom: spacing.xs,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.surface[700],
+    shadowColor: colors.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  reactionPickerOwn: {
+    alignSelf: 'flex-end',
+  },
+  reactionPickerOther: {
+    alignSelf: 'flex-start',
+  },
+  reactionOption: {
+    padding: spacing.xs,
+  },
+  reactionEmoji: {
+    fontSize: 22,
+  },
+  reactionClose: {
+    padding: spacing.xs,
+    marginLeft: spacing.xs,
+  },
+  reactionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: spacing.xs,
+    gap: spacing.xs,
+  },
+  reactionsOwn: {
+    justifyContent: 'flex-end',
+  },
+  reactionsOther: {
+    justifyContent: 'flex-start',
+  },
+  reactionBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface[800],
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderWidth: 1,
+    borderColor: colors.surface[700],
+  },
+  reactionBadgeEmoji: {
+    fontSize: 14,
+  },
+  reactionCount: {
+    color: colors.surface[300],
+    fontSize: fontSize.xs,
+    marginLeft: spacing.xs,
   },
 });
 
