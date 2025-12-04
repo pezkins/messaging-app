@@ -1,16 +1,16 @@
 export const colors = {
-  // Deep ocean blue palette
+  // Purple palette (matching Intok logo)
   primary: {
-    50: '#e6f4f9',
-    100: '#cce9f3',
-    200: '#99d3e7',
-    300: '#66bddb',
-    400: '#33a7cf',
-    500: '#0091c3',
-    600: '#00749c',
-    700: '#005775',
-    800: '#003a4e',
-    900: '#001d27',
+    50: '#f5f3ff',
+    100: '#ede9fe',
+    200: '#ddd6fe',
+    300: '#c4b5fd',
+    400: '#a78bfa',
+    500: '#8B5CF6',
+    600: '#7c3aed',
+    700: '#6d28d9',
+    800: '#5b21b6',
+    900: '#4c1d95',
   },
   // Warm coral accent
   accent: {
