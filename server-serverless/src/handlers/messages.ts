@@ -1,7 +1,6 @@
 import type { APIGatewayProxyHandler } from 'aws-lambda';
-import { dynamodb, Tables, QueryCommand, GetCommand, UpdateCommand } from '../lib/dynamo';
+import { dynamodb, Tables, QueryCommand, GetCommand } from '../lib/dynamo';
 import { getUserIdFromEvent, response } from '../lib/auth';
-import { translate } from '../lib/translation';
 
 export const list: APIGatewayProxyHandler = async (event) => {
   try {
@@ -37,7 +36,6 @@ export const list: APIGatewayProxyHandler = async (event) => {
       Key: { id: userId },
     }));
     const targetLanguage = userResult.Item?.preferredLanguage || 'en';
-    const targetCountry = userResult.Item?.preferredCountry || 'US';
 
     // Get messages
     const limit = parseInt(event.queryStringParameters?.limit || '50');
@@ -63,30 +61,15 @@ export const list: APIGatewayProxyHandler = async (event) => {
         let translatedContent = msg.originalContent;
 
         if (msg.originalLanguage !== targetLanguage) {
-          // Check cache first (stored in message)
+          // Only use cached translations for message history
+          // Don't call AI to re-translate old messages when user changes language
           if (msg.translations?.[targetLanguage]) {
+            // Use cached translation for current target language
             translatedContent = msg.translations[targetLanguage];
           } else {
-            // Translate and cache it
-            translatedContent = await translate(
-              msg.originalContent,
-              msg.originalLanguage,
-              targetLanguage,
-              targetCountry
-            );
-
-            // Save translation to database for future use
-            try {
-              await dynamodb.send(new UpdateCommand({
-                TableName: Tables.MESSAGES,
-                Key: { conversationId: msg.conversationId, timestamp: msg.timestamp },
-                UpdateExpression: 'SET #t = if_not_exists(#t, :empty), #t.#lang = :translation',
-                ExpressionAttributeNames: { '#t': 'translations', '#lang': targetLanguage },
-                ExpressionAttributeValues: { ':empty': {}, ':translation': translatedContent },
-              }));
-            } catch (err) {
-              console.error('Failed to cache translation:', err);
-            }
+            // No cached translation for this language - show original content
+            // New messages will be translated in real-time via WebSocket
+            translatedContent = msg.originalContent;
           }
         }
 

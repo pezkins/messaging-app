@@ -2,7 +2,7 @@
   "expo": {
     "name": "Intok",
     "slug": "intok",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "intok",
@@ -28,7 +28,7 @@
         "backgroundColor": "#8B5CF6"
       },
       "package": "com.intok.app",
-      "versionCode": 2,
+      "versionCode": 3,
       "permissions": [
         "INTERNET",
         "RECORD_AUDIO",

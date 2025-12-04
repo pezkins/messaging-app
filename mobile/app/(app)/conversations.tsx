@@ -18,6 +18,7 @@ import { useAuthStore } from '../../src/store/auth';
 import { colors, spacing, borderRadius, fontSize } from '../../src/constants/theme';
 import { LANGUAGES, COUNTRIES, getLanguageByCode, getCountryByCode } from '../../src/constants/languages';
 import type { Conversation } from '../../src/types';
+import { WhatsNewModal } from '../../src/components/WhatsNewModal';
 
 export default function ConversationsScreen() {
   const { user, logout } = useAuthStore();
@@ -100,6 +101,9 @@ export default function ConversationsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      {/* What's New Modal - shows on first launch after update */}
+      <WhatsNewModal />
+      
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>

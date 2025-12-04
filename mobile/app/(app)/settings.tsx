@@ -7,6 +7,7 @@ import {
   ScrollView,
   ActivityIndicator,
   TextInput,
+  Modal,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/auth';
 import { colors, spacing, borderRadius, fontSize } from '../../src/constants/theme';
 import { LANGUAGES, COUNTRIES, type LanguageCode, type CountryCode } from '../../src/constants/languages';
+import { CHANGELOG, CURRENT_VERSION, type ChangelogEntry } from '../../src/constants/changelog';
 
 export default function SettingsScreen() {
   const { user, updateLanguage, updateCountry, updateUsername, logout } = useAuthStore();
@@ -26,6 +28,7 @@ export default function SettingsScreen() {
     (user?.preferredCountry as CountryCode) || 'US'
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [showChangelog, setShowChangelog] = useState(false);
 
   const handleSave = async () => {
     const nameChanged = displayName !== user?.username && displayName.trim().length >= 3;
@@ -169,8 +172,16 @@ export default function SettingsScreen() {
           <View style={styles.aboutCard}>
             <View style={styles.aboutItem}>
               <Ionicons name="information-circle-outline" size={20} color={colors.primary[400]} />
-              <Text style={styles.aboutText}>Intok v0.0.2</Text>
+              <Text style={styles.aboutText}>Intok v{CURRENT_VERSION}</Text>
             </View>
+            <TouchableOpacity 
+              style={styles.aboutItemButton}
+              onPress={() => setShowChangelog(true)}
+            >
+              <Ionicons name="sparkles" size={20} color={colors.primary[400]} />
+              <Text style={styles.aboutText}>What's New</Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.surface[500]} style={styles.chevron} />
+            </TouchableOpacity>
             <View style={styles.aboutItem}>
               <Ionicons name="language-outline" size={20} color={colors.primary[400]} />
               <Text style={styles.aboutText}>Powered by OpenAI Translation</Text>
@@ -184,6 +195,50 @@ export default function SettingsScreen() {
           <Text style={styles.logoutText}>Sign out</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Changelog Modal */}
+      <Modal
+        visible={showChangelog}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowChangelog(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <View style={styles.modalHeaderIcon}>
+                <Ionicons name="sparkles" size={28} color={colors.primary[400]} />
+              </View>
+              <Text style={styles.modalTitle}>What's New</Text>
+            </View>
+
+            <ScrollView 
+              style={styles.modalScrollView}
+              contentContainerStyle={styles.modalScrollContent}
+              showsVerticalScrollIndicator={false}
+            >
+              {CHANGELOG.map((entry) => (
+                <View key={entry.version} style={styles.versionSection}>
+                  <View style={styles.versionHeaderRow}>
+                    <Text style={styles.versionHeader}>v{entry.version}</Text>
+                    <Text style={styles.versionDate}>{entry.date}</Text>
+                  </View>
+                  {entry.changes.map((change, index) => (
+                    <Text key={index} style={styles.changeText}>{change}</Text>
+                  ))}
+                </View>
+              ))}
+            </ScrollView>
+
+            <TouchableOpacity 
+              style={styles.modalButton} 
+              onPress={() => setShowChangelog(false)}
+            >
+              <Text style={styles.modalButtonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -320,9 +375,19 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     gap: spacing.sm,
   },
+  aboutItemButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+  },
   aboutText: {
     color: colors.surface[400],
     fontSize: fontSize.sm,
+    flex: 1,
+  },
+  chevron: {
+    marginLeft: 'auto',
   },
   logoutButton: {
     flexDirection: 'row',
@@ -339,5 +404,92 @@ const styles = StyleSheet.create({
     color: colors.error,
     fontSize: fontSize.md,
     fontWeight: '500',
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing.lg,
+  },
+  modalContainer: {
+    backgroundColor: colors.surface[900],
+    borderRadius: borderRadius.xl,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '80%',
+    borderWidth: 1,
+    borderColor: colors.surface[700],
+    overflow: 'hidden',
+  },
+  modalHeader: {
+    alignItems: 'center',
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.md,
+    paddingHorizontal: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surface[800],
+  },
+  modalHeaderIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.primary[900],
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  modalTitle: {
+    fontSize: fontSize.xxl,
+    fontWeight: '700',
+    color: colors.white,
+  },
+  modalScrollView: {
+    maxHeight: 350,
+  },
+  modalScrollContent: {
+    padding: spacing.lg,
+  },
+  versionSection: {
+    marginBottom: spacing.lg,
+    paddingBottom: spacing.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.surface[800],
+  },
+  versionHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  versionHeader: {
+    fontSize: fontSize.lg,
+    fontWeight: '600',
+    color: colors.primary[400],
+  },
+  versionDate: {
+    fontSize: fontSize.sm,
+    color: colors.surface[500],
+  },
+  changeText: {
+    fontSize: fontSize.md,
+    color: colors.surface[200],
+    lineHeight: 24,
+    paddingVertical: spacing.xs,
+  },
+  modalButton: {
+    backgroundColor: colors.primary[600],
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
+    marginTop: spacing.sm,
+    paddingVertical: spacing.md,
+    borderRadius: borderRadius.lg,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: colors.white,
+    fontSize: fontSize.lg,
+    fontWeight: '600',
   },
 });
