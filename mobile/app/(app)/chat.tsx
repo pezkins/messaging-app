@@ -435,6 +435,19 @@ function EmojiPicker({
   );
 }
 
+// Helper to detect and extract GIF URL from message
+function extractGifUrl(content: string): string | null {
+  // Check for [GIF] prefix format
+  const gifPrefixMatch = content.match(/^\[GIF\]\s*(https?:\/\/[^\s]+)/i);
+  if (gifPrefixMatch) return gifPrefixMatch[1];
+  
+  // Check for direct Tenor/Giphy URLs
+  const gifUrlMatch = content.match(/^(https?:\/\/(?:media\.tenor\.com|media\d*\.giphy\.com)[^\s]+\.gif)/i);
+  if (gifUrlMatch) return gifUrlMatch[1];
+  
+  return null;
+}
+
 // Message Bubble Component
 function MessageBubble({ message, isOwn, showTimestamp, onReact }: { 
   message: Message; 
@@ -444,6 +457,7 @@ function MessageBubble({ message, isOwn, showTimestamp, onReact }: {
 }) {
   const [showOriginal, setShowOriginal] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [gifLoading, setGifLoading] = useState(true);
   
   const displayContent = showOriginal 
     ? message.originalContent 
@@ -457,6 +471,10 @@ function MessageBubble({ message, isOwn, showTimestamp, onReact }: {
   // Get reactions from message (if any)
   const reactions = (message as any).reactions || {};
   const hasReactions = Object.keys(reactions).length > 0;
+
+  // Check if this is a GIF message
+  const gifUrl = extractGifUrl(message.originalContent);
+  const isGifMessage = !!gifUrl;
 
   const handleLongPress = () => {
     setShowReactionPicker(true);
@@ -487,15 +505,36 @@ function MessageBubble({ message, isOwn, showTimestamp, onReact }: {
         activeOpacity={0.8}
         onLongPress={handleLongPress}
         delayLongPress={300}
-        style={[styles.messageBubble, isOwn ? styles.ownMessage : styles.otherMessage]}
+        style={[
+          styles.messageBubble, 
+          isOwn ? styles.ownMessage : styles.otherMessage,
+          isGifMessage && styles.gifMessageBubble
+        ]}
       >
         {!isOwn && (
           <Text style={styles.senderName}>{message.sender?.username || 'Unknown'}</Text>
         )}
         
-        <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
-          {displayContent}
-        </Text>
+        {isGifMessage ? (
+          <View style={styles.gifContainer}>
+            {gifLoading && (
+              <View style={styles.gifLoadingContainer}>
+                <ActivityIndicator size="small" color={colors.primary[400]} />
+              </View>
+            )}
+            <Image
+              source={{ uri: gifUrl }}
+              style={styles.gifImage}
+              resizeMode="contain"
+              onLoadStart={() => setGifLoading(true)}
+              onLoadEnd={() => setGifLoading(false)}
+            />
+          </View>
+        ) : (
+          <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
+            {displayContent}
+          </Text>
+        )}
         
         {wasTranslated && (
           <TouchableOpacity 
@@ -968,6 +1007,34 @@ const styles = StyleSheet.create({
     color: colors.surface[300],
     fontSize: fontSize.xs,
     marginLeft: spacing.xs,
+  },
+  // GIF styles
+  gifMessageBubble: {
+    padding: spacing.xs,
+    backgroundColor: 'transparent',
+  },
+  gifContainer: {
+    width: 200,
+    minHeight: 150,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+    backgroundColor: colors.surface[800],
+  },
+  gifImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: borderRadius.lg,
+  },
+  gifLoadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.surface[800],
+    borderRadius: borderRadius.lg,
   },
 });
 
