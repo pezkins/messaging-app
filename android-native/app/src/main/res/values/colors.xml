@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Purple -->
+    <color name="purple_500">#8B5CF6</color>
+    <color name="purple_600">#7C3AED</color>
+    
+    <!-- Surface Colors -->
+    <color name="surface_900">#0F172A</color>
+    <color name="surface_950">#020617</color>
+    
+    <!-- Common -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+</resources>
+
