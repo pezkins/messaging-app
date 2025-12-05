@@ -120,16 +120,35 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   sendMessage: (content) => {
-    const { activeConversation } = get();
+    const { activeConversation, messages } = get();
     
     if (!activeConversation || !content.trim()) {
       return;
     }
 
+    // Create optimistic message with 'sending' status
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const optimisticMessage: Message = {
+      id: tempId,
+      conversationId: activeConversation.id,
+      senderId: '', // Will be filled in by backend
+      sender: { id: '', username: 'You', preferredLanguage: 'en' },
+      type: 'text',
+      originalContent: content.trim(),
+      originalLanguage: 'en', // Will be detected by backend
+      status: 'sending',
+      createdAt: new Date().toISOString(),
+    };
+
+    // Add optimistic message immediately
+    set({ messages: [...messages, optimisticMessage] });
+
+    // Send via socket
     socketService.sendMessage({
       conversationId: activeConversation.id,
       content: content.trim(),
       type: 'TEXT',
+      tempId, // Send tempId so we can match the response
     });
   },
 
@@ -193,21 +212,33 @@ export const useChatStore = create<ChatState>((set, get) => ({
 
   subscribeToEvents: () => {
     const unsubMessage = socketService.on<MessageReceiveEvent>('message:receive', (data) => {
-      const { message } = data;
+      const { message, tempId } = data as any;
       
       // Normalize message - backend might send timestamp instead of createdAt
       const normalizedMessage = {
         ...message,
         createdAt: message.createdAt || (message as any).timestamp || new Date().toISOString(),
+        status: 'sent' as const, // Mark as sent when received from server
       };
       
       set((state) => {
-        // Check if message already exists (avoid duplicates)
-        const messageExists = state.messages.some(m => m.id === normalizedMessage.id);
+        let newMessages = state.messages;
         
-        const newMessages = state.activeConversation?.id === normalizedMessage.conversationId && !messageExists
-          ? [...state.messages, normalizedMessage]
-          : state.messages;
+        // If tempId is provided, replace the optimistic message
+        if (tempId) {
+          const tempIndex = state.messages.findIndex(m => m.id === tempId);
+          if (tempIndex !== -1) {
+            newMessages = [...state.messages];
+            newMessages[tempIndex] = normalizedMessage;
+          }
+        } else {
+          // Check if message already exists (avoid duplicates)
+          const messageExists = state.messages.some(m => m.id === normalizedMessage.id);
+          
+          if (state.activeConversation?.id === normalizedMessage.conversationId && !messageExists) {
+            newMessages = [...state.messages, normalizedMessage];
+          }
+        }
 
         const newConversations = state.conversations.map((c) => {
           if (c.id === normalizedMessage.conversationId) {

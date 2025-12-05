@@ -85,6 +85,7 @@ export const list: APIGatewayProxyHandler = async (event) => {
           targetLanguage,
           status: msg.status,
           createdAt: msg.timestamp,
+          reactions: msg.reactions || {}, // Include reactions in response
         };
       })
     );

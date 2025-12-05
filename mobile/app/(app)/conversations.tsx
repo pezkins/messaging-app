@@ -129,8 +129,12 @@ export default function ConversationsScreen() {
           </View>
         </View>
 
-        {/* User info bar */}
-        <View style={styles.userBar}>
+        {/* User info bar - tap to go to settings */}
+        <TouchableOpacity 
+          style={styles.userBar}
+          onPress={() => router.push('/(app)/settings')}
+          activeOpacity={0.7}
+        >
           <View style={styles.userAvatar}>
             <Text style={styles.userAvatarText}>
               {user?.username?.charAt(0).toUpperCase()}
@@ -143,7 +147,8 @@ export default function ConversationsScreen() {
               {getLanguageByCode(user?.preferredLanguage || 'en')?.native}
             </Text>
           </View>
-        </View>
+          <Ionicons name="chevron-forward" size={20} color={colors.surface[500]} />
+        </TouchableOpacity>
 
         {/* Search */}
         <View style={styles.searchContainer}>
@@ -158,31 +163,39 @@ export default function ConversationsScreen() {
         </View>
       </View>
 
-      {/* Menu dropdown */}
+      {/* Menu dropdown with backdrop overlay */}
       {showMenu && (
-        <View style={styles.menuDropdown}>
+        <>
+          {/* Invisible backdrop to capture outside taps */}
           <TouchableOpacity 
-            style={styles.menuItem}
-            onPress={() => {
-              setShowMenu(false);
-              router.push('/(app)/settings');
-            }}
-          >
-            <Ionicons name="settings-outline" size={20} color={colors.surface[300]} />
-            <Text style={styles.menuItemText}>Settings</Text>
-          </TouchableOpacity>
-          <TouchableOpacity 
-            style={styles.menuItem}
-            onPress={() => {
-              setShowMenu(false);
-              logout();
-              router.replace('/(auth)/login');
-            }}
-          >
-            <Ionicons name="log-out-outline" size={20} color={colors.error} />
-            <Text style={[styles.menuItemText, { color: colors.error }]}>Sign out</Text>
-          </TouchableOpacity>
-        </View>
+            style={styles.menuBackdrop}
+            activeOpacity={1}
+            onPress={() => setShowMenu(false)}
+          />
+          <View style={styles.menuDropdown}>
+            <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={() => {
+                setShowMenu(false);
+                router.push('/(app)/settings');
+              }}
+            >
+              <Ionicons name="settings-outline" size={20} color={colors.surface[300]} />
+              <Text style={styles.menuItemText}>Settings</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.menuItem}
+              onPress={() => {
+                setShowMenu(false);
+                logout();
+                router.replace('/(auth)/login');
+              }}
+            >
+              <Ionicons name="log-out-outline" size={20} color={colors.error} />
+              <Text style={[styles.menuItemText, { color: colors.error }]}>Sign out</Text>
+            </TouchableOpacity>
+          </View>
+        </>
       )}
 
       {/* Conversations list */}
@@ -265,6 +278,7 @@ const styles = StyleSheet.create({
     borderRadius: borderRadius.lg,
     padding: spacing.sm,
     marginBottom: spacing.md,
+    justifyContent: 'space-between',
   },
   userAvatar: {
     width: 40,
@@ -281,6 +295,7 @@ const styles = StyleSheet.create({
   },
   userInfo: {
     marginLeft: spacing.sm,
+    flex: 1,
   },
   userName: {
     color: colors.white,
@@ -304,6 +319,14 @@ const styles = StyleSheet.create({
     marginLeft: spacing.sm,
     color: colors.white,
     fontSize: fontSize.md,
+  },
+  menuBackdrop: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 99,
   },
   menuDropdown: {
     position: 'absolute',

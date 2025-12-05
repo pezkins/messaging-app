@@ -19,7 +19,7 @@ export interface UserPublic {
 }
 
 export type MessageType = 'text' | 'voice';
-export type MessageStatus = 'sent' | 'delivered' | 'seen';
+export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'seen' | 'failed';
 export type ConversationType = 'direct' | 'group';
 
 export interface Message {
@@ -34,6 +34,7 @@ export interface Message {
   targetLanguage?: LanguageCode;
   status: MessageStatus;
   createdAt: string;
+  reactions?: Record<string, string[]>; // emoji -> [userIds]
 }
 
 export interface Conversation {

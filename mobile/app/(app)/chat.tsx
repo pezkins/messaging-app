@@ -442,9 +442,28 @@ function MessageBubble({ message, isOwn, showTimestamp, onReact }: {
           </TouchableOpacity>
         )}
         
-        <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
-          {format(messageDate, 'h:mm a')}
-        </Text>
+        <View style={styles.messageFooter}>
+          <Text style={[styles.messageTime, isOwn && styles.ownMessageTime]}>
+            {format(messageDate, 'h:mm a')}
+          </Text>
+          {isOwn && (
+            <View style={styles.statusIndicator}>
+              {message.status === 'sending' ? (
+                <Ionicons name="time-outline" size={12} color={colors.primary[200]} />
+              ) : message.status === 'sent' ? (
+                <Ionicons name="checkmark" size={12} color={colors.primary[200]} />
+              ) : message.status === 'delivered' ? (
+                <Ionicons name="checkmark-done" size={12} color={colors.primary[200]} />
+              ) : message.status === 'seen' ? (
+                <Ionicons name="checkmark-done" size={12} color={colors.accent[400]} />
+              ) : message.status === 'failed' ? (
+                <Ionicons name="alert-circle" size={12} color={colors.error} />
+              ) : (
+                <Ionicons name="checkmark" size={12} color={colors.primary[200]} />
+              )}
+            </View>
+          )}
+        </View>
       </TouchableOpacity>
 
       {/* Display Reactions */}
@@ -598,14 +617,22 @@ const styles = StyleSheet.create({
   ownTranslationText: {
     color: colors.primary[200],
   },
+  messageFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    marginTop: spacing.xs,
+    gap: spacing.xs,
+  },
   messageTime: {
     color: colors.surface[500],
     fontSize: fontSize.xs,
-    marginTop: spacing.xs,
-    textAlign: 'right',
   },
   ownMessageTime: {
     color: colors.primary[200],
+  },
+  statusIndicator: {
+    marginLeft: 2,
   },
   typingContainer: {
     flexDirection: 'row',

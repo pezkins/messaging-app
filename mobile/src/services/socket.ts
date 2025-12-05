@@ -116,7 +116,7 @@ class SocketService {
     }
   }
 
-  sendMessage(data: { conversationId: string; content: string; type: 'TEXT' | 'VOICE' }) {
+  sendMessage(data: { conversationId: string; content: string; type: 'TEXT' | 'VOICE'; tempId?: string }) {
     this.send('message:send', data);
   }
 
