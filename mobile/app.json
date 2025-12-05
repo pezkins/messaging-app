@@ -27,7 +27,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#8B5CF6"
       },
-      "package": "com.intok.app",
+      "package": "com.intokapp.app",
       "versionCode": 3,
       "permissions": [
         "INTERNET",
