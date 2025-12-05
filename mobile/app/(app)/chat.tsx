@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   Modal,
   ScrollView,
+  Image,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,7 +22,9 @@ import { useAuthStore } from '../../src/store/auth';
 import { colors, spacing, borderRadius, fontSize } from '../../src/constants/theme';
 import { getLanguageByCode } from '../../src/constants/languages';
 import { EMOJIS, searchEmojis, FREQUENT_EMOJIS, type EmojiData } from '../../src/constants/emojis';
-import type { Message } from '../../src/types';
+import { AttachmentPicker } from '../../src/components/AttachmentPicker';
+import { GifPicker } from '../../src/components/GifPicker';
+import type { Message, Attachment } from '../../src/types';
 
 export default function ChatScreen() {
   const { user } = useAuthStore();
@@ -40,6 +43,9 @@ export default function ChatScreen() {
 
   const [inputValue, setInputValue] = useState('');
   const [isTypingLocal, setIsTypingLocal] = useState(false);
+  const [showAttachmentPicker, setShowAttachmentPicker] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  const [pendingAttachment, setPendingAttachment] = useState<{ attachment: Attachment; localUri: string } | null>(null);
   const flatListRef = useRef<FlatList>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout>();
 
@@ -75,16 +81,32 @@ export default function ChatScreen() {
   };
 
   const handleSend = () => {
-    if (!inputValue.trim()) return;
+    if (!inputValue.trim() && !pendingAttachment) return;
     
-    sendMessage(inputValue);
+    // TODO: Send message with attachment if pending
+    sendMessage(inputValue || (pendingAttachment ? '📎 Attachment' : ''));
     setInputValue('');
+    setPendingAttachment(null);
     setIsTypingLocal(false);
     setTyping(false);
     
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
+  };
+
+  const handleAttachmentReady = (attachment: Attachment, localUri: string) => {
+    setPendingAttachment({ attachment, localUri });
+  };
+
+  const handleGifSelect = (gifUrl: string) => {
+    // Send GIF as a message
+    // TODO: Update backend to handle GIF type messages
+    sendMessage(`[GIF] ${gifUrl}`);
+  };
+
+  const clearPendingAttachment = () => {
+    setPendingAttachment(null);
   };
 
   const handleLoadMore = () => {
@@ -218,8 +240,45 @@ export default function ChatScreen() {
           </View>
         )}
 
+        {/* Pending Attachment Preview */}
+        {pendingAttachment && (
+          <View style={styles.attachmentPreview}>
+            {pendingAttachment.attachment.category === 'image' ? (
+              <Image 
+                source={{ uri: pendingAttachment.localUri }} 
+                style={styles.attachmentThumbnail}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.attachmentFile}>
+                <Ionicons name="document" size={24} color={colors.primary[400]} />
+              </View>
+            )}
+            <Text style={styles.attachmentName} numberOfLines={1}>
+              {pendingAttachment.attachment.fileName}
+            </Text>
+            <TouchableOpacity onPress={clearPendingAttachment}>
+              <Ionicons name="close-circle" size={20} color={colors.surface[400]} />
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Input */}
         <View style={styles.inputContainer}>
+          <TouchableOpacity 
+            style={styles.attachButton}
+            onPress={() => setShowAttachmentPicker(true)}
+          >
+            <Ionicons name="add-circle-outline" size={26} color={colors.surface[400]} />
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={styles.gifButton}
+            onPress={() => setShowGifPicker(true)}
+          >
+            <Text style={styles.gifButtonText}>GIF</Text>
+          </TouchableOpacity>
+          
           <TextInput
             style={styles.input}
             placeholder="Type a message..."
@@ -230,9 +289,9 @@ export default function ChatScreen() {
             maxLength={5000}
           />
           <TouchableOpacity 
-            style={[styles.sendButton, !inputValue.trim() && styles.sendButtonDisabled]}
+            style={[styles.sendButton, (!inputValue.trim() && !pendingAttachment) && styles.sendButtonDisabled]}
             onPress={handleSend}
-            disabled={!inputValue.trim()}
+            disabled={!inputValue.trim() && !pendingAttachment}
           >
             <Ionicons name="send" size={20} color={colors.white} />
           </TouchableOpacity>
@@ -241,6 +300,23 @@ export default function ChatScreen() {
         <Text style={styles.translationHint}>
           Messages translate automatically to each person's language
         </Text>
+
+        {/* Attachment Picker */}
+        {activeConversation && (
+          <AttachmentPicker
+            visible={showAttachmentPicker}
+            onClose={() => setShowAttachmentPicker(false)}
+            conversationId={activeConversation.id}
+            onAttachmentReady={handleAttachmentReady}
+          />
+        )}
+
+        {/* GIF Picker */}
+        <GifPicker
+          visible={showGifPicker}
+          onClose={() => setShowGifPicker(false)}
+          onSelectGif={handleGifSelect}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -670,12 +746,58 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     marginLeft: spacing.sm,
   },
+  attachmentPreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surface[800],
+    marginHorizontal: spacing.md,
+    marginTop: spacing.sm,
+    padding: spacing.sm,
+    borderRadius: borderRadius.lg,
+    gap: spacing.sm,
+  },
+  attachmentThumbnail: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.md,
+  },
+  attachmentFile: {
+    width: 40,
+    height: 40,
+    borderRadius: borderRadius.md,
+    backgroundColor: colors.surface[700],
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  attachmentName: {
+    flex: 1,
+    color: colors.surface[300],
+    fontSize: fontSize.sm,
+  },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     padding: spacing.md,
     paddingBottom: spacing.sm,
-    gap: spacing.sm,
+    gap: spacing.xs,
+  },
+  attachButton: {
+    padding: spacing.xs,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  gifButton: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    backgroundColor: colors.surface[800],
+    borderRadius: borderRadius.md,
+    borderWidth: 1,
+    borderColor: colors.surface[600],
+  },
+  gifButtonText: {
+    color: colors.surface[400],
+    fontSize: fontSize.xs,
+    fontWeight: '600',
   },
   input: {
     flex: 1,

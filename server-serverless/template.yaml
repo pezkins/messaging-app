@@ -13,6 +13,7 @@ Globals:
         MESSAGES_TABLE: !Ref MessagesTable
         CONVERSATIONS_TABLE: !Ref ConversationsTable
         CONNECTIONS_TABLE: !Ref ConnectionsTable
+        ATTACHMENTS_BUCKET: !Ref AttachmentsBucket
         AI_PROVIDER: !Ref AIProvider
         OPENAI_API_KEY: !Ref OpenAIApiKey
         ANTHROPIC_API_KEY: !Ref AnthropicApiKey
@@ -146,6 +147,33 @@ Resources:
       TimeToLiveSpecification:
         AttributeName: ttl
         Enabled: true
+
+  # ============== S3 Bucket for Attachments ==============
+  AttachmentsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "intok-attachments-${AWS::AccountId}"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+            AllowedOrigins:
+              - "*"
+            MaxAge: 3600
+      LifecycleConfiguration:
+        Rules:
+          - Id: DeleteOldAttachments
+            Status: Enabled
+            ExpirationInDays: 365
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
 
   # ============== HTTP API ==============
   HttpApi:
@@ -368,6 +396,43 @@ Resources:
             TableName: !Ref MessagesTable
         - DynamoDBCrudPolicy:
             TableName: !Ref ConversationsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
+  # Attachments
+  GetUploadUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/attachments.getUploadUrl
+      CodeUri: .
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/attachments/upload-url
+            Method: POST
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref AttachmentsBucket
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
+  GetDownloadUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/attachments.getDownloadUrl
+      CodeUri: .
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/attachments/{attachmentId}
+            Method: GET
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref AttachmentsBucket
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
 

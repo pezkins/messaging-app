@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Serverless backend for LinguaLink (AWS Lambda)",
   "scripts": {
-    "build": "esbuild src/handlers/*.ts --bundle --platform=node --target=node18 --outdir=dist --format=cjs --external:@aws-sdk/client-dynamodb --external:@aws-sdk/lib-dynamodb",
+    "build": "esbuild src/handlers/*.ts --bundle --platform=node --target=node18 --outdir=dist --format=cjs --external:@aws-sdk/client-dynamodb --external:@aws-sdk/lib-dynamodb --external:@aws-sdk/client-s3 --external:@aws-sdk/s3-request-presigner",
     "deploy": "sam deploy --guided",
     "deploy:prod": "sam deploy --config-env prod",
     "local": "sam local start-api",
@@ -13,6 +13,8 @@
     "@aws-sdk/client-dynamodb": "^3.490.0",
     "@aws-sdk/lib-dynamodb": "^3.490.0",
     "@aws-sdk/client-apigatewaymanagementapi": "^3.490.0",
+    "@aws-sdk/client-s3": "^3.490.0",
+    "@aws-sdk/s3-request-presigner": "^3.490.0",
     "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
     "uuid": "^9.0.1",

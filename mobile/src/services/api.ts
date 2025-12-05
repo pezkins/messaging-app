@@ -170,6 +170,61 @@ class ApiClient {
   async getOriginalMessage(id: string): Promise<{ originalContent: string; originalLanguage: LanguageCode }> {
     return this.request(`/api/messages/${id}/original`);
   }
+
+  // Attachments
+  async getUploadUrl(data: {
+    fileName: string;
+    contentType: string;
+    fileSize: number;
+    conversationId: string;
+  }): Promise<{
+    attachmentId: string;
+    uploadUrl: string;
+    key: string;
+    category: 'image' | 'video' | 'document' | 'audio';
+    expiresIn: number;
+  }> {
+    return this.request('/api/attachments/upload-url', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getDownloadUrl(attachmentId: string, conversationId: string, key: string): Promise<{
+    downloadUrl: string;
+    expiresIn: number;
+  }> {
+    const params = new URLSearchParams({ conversationId, key });
+    return this.request(`/api/attachments/${attachmentId}?${params}`);
+  }
+
+  // Upload file directly to S3 using presigned URL
+  async uploadFile(uploadUrl: string, file: Blob, contentType: string, onProgress?: (progress: number) => void): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      
+      xhr.upload.onprogress = (event) => {
+        if (event.lengthComputable && onProgress) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          onProgress(progress);
+        }
+      };
+
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve();
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}`));
+        }
+      };
+
+      xhr.onerror = () => reject(new Error('Upload failed'));
+      
+      xhr.open('PUT', uploadUrl);
+      xhr.setRequestHeader('Content-Type', contentType);
+      xhr.send(file);
+    });
+  }
 }
 
 export const api = new ApiClient();

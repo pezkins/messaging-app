@@ -135,7 +135,8 @@ jobs:
               AIProvider=${{ secrets.AI_PROVIDER }} \
               OpenAIApiKey=${{ secrets.OPENAI_API_KEY }}
 
-      - name: 📋 Deployment Summary
+      - name: 📋 Get Stack Outputs
+        working-directory: ./server-serverless
         run: |
           echo "## 🚀 Backend Deployed!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -143,7 +144,16 @@ jobs:
           echo "- 🌍 Region: ${{ env.AWS_REGION }}" >> $GITHUB_STEP_SUMMARY
           echo "- 📚 Stack: ${{ env.STACK_NAME }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
-          echo "- Check [AWS CloudFormation](https://console.aws.amazon.com/cloudformation) for stack status" >> $GITHUB_STEP_SUMMARY
-          echo "- Test API endpoints" >> $GITHUB_STEP_SUMMARY
+          
+          # Get stack outputs
+          echo "### API Endpoints:" >> $GITHUB_STEP_SUMMARY
+          aws cloudformation describe-stacks \
+            --stack-name ${{ env.STACK_NAME }} \
+            --query 'Stacks[0].Outputs[*].[OutputKey,OutputValue]' \
+            --output text | while read key value; do
+              echo "- **$key**: \`$value\`" >> $GITHUB_STEP_SUMMARY
+          done
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Deployment Complete!" >> $GITHUB_STEP_SUMMARY
 
