@@ -7,6 +7,19 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.0.4',
+    date: '2024-12-05',
+    changes: [
+      '📎 Attachments - Send photos, videos, and documents',
+      '🎭 GIF picker - Search and send GIFs powered by Tenor',
+      '✅ Message status indicators - See when messages are sending/sent',
+      '👤 Tap your profile to quickly access settings',
+      '🔧 Fixed emoji reactions not persisting',
+      '🔧 Fixed settings menu closing behavior',
+      '🚀 Automated Play Store updates via CI/CD',
+    ],
+  },
+  {
     version: '0.0.3',
     date: '2024-12-04',
     changes: [
@@ -43,7 +56,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
 ];
 
-export const CURRENT_VERSION = '0.0.3';
+export const CURRENT_VERSION = '0.0.4';
 
 export function getLatestChangelog(): ChangelogEntry | undefined {
   return CHANGELOG[0];

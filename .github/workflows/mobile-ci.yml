@@ -16,11 +16,21 @@ on:
         options:
           - apk
           - aab
+      submit_to_play_store:
+        description: 'Submit to Google Play Store (Internal Testing)'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
+  # ============================================
+  # STAGE 1: Build Android
+  # ============================================
   build-android:
     name: 🤖 Build Android
     runs-on: ubuntu-latest
+    outputs:
+      build_type: ${{ github.event.inputs.build_type || 'aab' }}
     
     steps:
       - name: 📥 Checkout code
@@ -97,3 +107,56 @@ jobs:
           echo "Build type: **${{ github.event.inputs.build_type || 'aab' }}**" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Download from the **Artifacts** section below ⬇️" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # STAGE 2: Submit to Google Play Store
+  # ============================================
+  submit-to-play-store:
+    name: 🚀 Submit to Google Play
+    runs-on: ubuntu-latest
+    needs: build-android
+    if: |
+      (github.event.inputs.submit_to_play_store == 'true' || github.event.inputs.submit_to_play_store == '') &&
+      (github.event.inputs.build_type == 'aab' || github.event.inputs.build_type == '' || github.event_name == 'push')
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 📥 Download AAB Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: intok-aab
+          path: ./build
+
+      - name: 🔑 Create Service Account JSON
+        run: |
+          echo '${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}' > service-account.json
+
+      - name: 🚀 Upload to Google Play (Internal Testing)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJson: service-account.json
+          packageName: com.intokapp.app
+          releaseFiles: ./build/intok.aab
+          track: internal
+          status: completed
+          changesNotSentForReview: false
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: rm -f service-account.json
+
+      - name: 📋 Submission Summary
+        run: |
+          echo "## 🚀 Google Play Submission Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Details:" >> $GITHUB_STEP_SUMMARY
+          echo "- 📦 Package: \`com.intokapp.app\`" >> $GITHUB_STEP_SUMMARY
+          echo "- 🎯 Track: **Internal Testing**" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Status: Submitted" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps:" >> $GITHUB_STEP_SUMMARY
+          echo "1. Go to [Google Play Console](https://play.google.com/console)" >> $GITHUB_STEP_SUMMARY
+          echo "2. Check **Internal testing** track for the new build" >> $GITHUB_STEP_SUMMARY
+          echo "3. Testers will receive the update automatically" >> $GITHUB_STEP_SUMMARY
