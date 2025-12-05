@@ -2,7 +2,7 @@
   "expo": {
     "name": "Intok",
     "slug": "intok",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "scheme": "intok",
@@ -28,7 +28,7 @@
         "backgroundColor": "#8B5CF6"
       },
       "package": "com.intokapp.app",
-      "versionCode": 6,
+      "versionCode": 7,
       "targetSdkVersion": 35,
       "softwareKeyboardLayoutMode": "pan",
       "permissions": [

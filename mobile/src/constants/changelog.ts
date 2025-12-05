@@ -7,6 +7,18 @@ export interface ChangelogEntry {
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    version: '0.0.5',
+    date: '2024-12-05',
+    changes: [
+      '🖼️ GIFs now display as images instead of links',
+      '📷 Fixed camera picker - no more confusing crop screen',
+      '🖼️ Fixed gallery picker loading issues',
+      '📄 Fixed document upload failures',
+      '📎 Attachments now display properly in chat',
+      '⌨️ Fixed keyboard covering input field on Android',
+    ],
+  },
+  {
     version: '0.0.4',
     date: '2024-12-05',
     changes: [
@@ -56,7 +68,7 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
 ];
 
-export const CURRENT_VERSION = '0.0.4';
+export const CURRENT_VERSION = '0.0.5';
 
 export function getLatestChangelog(): ChangelogEntry | undefined {
   return CHANGELOG[0];
