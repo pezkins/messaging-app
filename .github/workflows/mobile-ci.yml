@@ -64,13 +64,6 @@ jobs:
       - name: 🔍 Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: 🔑 Setup Keystore
-        working-directory: ./mobile
-        run: |
-          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android-keystore.jks
-          echo "ANDROID_KEYSTORE_PATH=$(pwd)/android-keystore.jks" >> $GITHUB_ENV
-        if: secrets.ANDROID_KEYSTORE_BASE64 != ''
-
       - name: 🏗️ Build APK (Local)
         if: github.event.inputs.build_type == 'apk' || github.event.inputs.build_type == ''
         working-directory: ./mobile
