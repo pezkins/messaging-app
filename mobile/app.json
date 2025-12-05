@@ -27,7 +27,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#8B5CF6"
       },
-      "package": "com.pezkins.intok",
+      "package": "com.intok.app",
       "versionCode": 3,
       "permissions": [
         "INTERNET",
