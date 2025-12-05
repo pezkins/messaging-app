@@ -428,7 +428,7 @@ Resources:
           Type: HttpApi
           Properties:
             ApiId: !Ref HttpApi
-            Path: /api/attachments/{attachmentId}
+            Path: /api/attachments/download-url
             Method: GET
       Policies:
         - S3CrudPolicy:

@@ -47,7 +47,7 @@ export function AttachmentPicker({
         result = await ImagePicker.launchCameraAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.All,
           quality: 0.8,
-          allowsEditing: true,
+          allowsEditing: false, // Disabled to skip confusing crop screen
         });
       } else if (option === 'gallery') {
         const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -58,7 +58,7 @@ export function AttachmentPicker({
         result = await ImagePicker.launchImageLibraryAsync({
           mediaTypes: ImagePicker.MediaTypeOptions.All,
           quality: 0.8,
-          allowsEditing: true,
+          allowsEditing: false, // Disabled to avoid selection issues
         });
       } else if (option === 'document') {
         result = await DocumentPicker.getDocumentAsync({

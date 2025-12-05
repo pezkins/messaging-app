@@ -1,7 +1,13 @@
 import { create } from 'zustand';
 import { api } from '../services/api';
 import { socketService, type MessageReceiveEvent, type TypingEvent, type ReactionEvent } from '../services/socket';
-import type { Conversation, Message, UserPublic } from '../types';
+import type { Conversation, Message, UserPublic, Attachment } from '../types';
+
+interface SendMessageOptions {
+  type?: 'TEXT' | 'VOICE' | 'ATTACHMENT' | 'GIF';
+  attachment?: Attachment;
+  localUri?: string; // For displaying local preview before upload completes
+}
 
 interface ChatState {
   conversations: Conversation[];
@@ -17,7 +23,7 @@ interface ChatState {
   selectConversation: (conversation: Conversation) => Promise<void>;
   clearActiveConversation: () => void;
   loadMoreMessages: () => Promise<void>;
-  sendMessage: (content: string) => void;
+  sendMessage: (content: string, options?: SendMessageOptions) => void;
   startConversation: (user: UserPublic) => Promise<Conversation>;
   startGroupConversation: (users: UserPublic[], name?: string) => Promise<Conversation>;
   setTyping: (isTyping: boolean) => void;
@@ -119,12 +125,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
     }
   },
 
-  sendMessage: (content) => {
+  sendMessage: (content, options = {}) => {
     const { activeConversation, messages } = get();
+    const { type = 'TEXT', attachment, localUri } = options;
     
-    if (!activeConversation || !content.trim()) {
-      return;
-    }
+    // For text messages, require content; for attachments/GIFs, content can be empty
+    if (!activeConversation) return;
+    if (type === 'TEXT' && !content.trim()) return;
+    if (type === 'ATTACHMENT' && !attachment) return;
+    if (type === 'GIF' && !content.trim()) return;
 
     // Create optimistic message with 'sending' status
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
@@ -133,11 +142,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
       conversationId: activeConversation.id,
       senderId: '', // Will be filled in by backend
       sender: { id: '', username: 'You', preferredLanguage: 'en' },
-      type: 'text',
-      originalContent: content.trim(),
+      type: type.toLowerCase() as any,
+      originalContent: content.trim() || (attachment ? attachment.fileName : ''),
       originalLanguage: 'en', // Will be detected by backend
       status: 'sending',
       createdAt: new Date().toISOString(),
+      attachment: attachment ? { ...attachment, localUri } : undefined,
     };
 
     // Add optimistic message immediately
@@ -147,8 +157,16 @@ export const useChatStore = create<ChatState>((set, get) => ({
     socketService.sendMessage({
       conversationId: activeConversation.id,
       content: content.trim(),
-      type: 'TEXT',
+      type,
       tempId, // Send tempId so we can match the response
+      attachment: attachment ? {
+        id: attachment.id,
+        key: attachment.key,
+        fileName: attachment.fileName,
+        contentType: attachment.contentType,
+        fileSize: attachment.fileSize,
+        category: attachment.category,
+      } : undefined,
     });
   },
 

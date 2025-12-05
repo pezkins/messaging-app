@@ -18,7 +18,7 @@ export interface UserPublic {
   avatarUrl?: string;
 }
 
-export type MessageType = 'text' | 'voice' | 'image' | 'file' | 'gif';
+export type MessageType = 'text' | 'voice' | 'image' | 'file' | 'gif' | 'attachment';
 
 export interface Attachment {
   id: string;
@@ -28,6 +28,7 @@ export interface Attachment {
   fileSize: number;
   category: 'image' | 'video' | 'document' | 'audio';
   url?: string; // Presigned download URL (populated on demand)
+  localUri?: string; // Local URI for preview before upload completes
 }
 export type MessageStatus = 'sending' | 'sent' | 'delivered' | 'seen' | 'failed';
 export type ConversationType = 'direct' | 'group';
@@ -45,7 +46,8 @@ export interface Message {
   status: MessageStatus;
   createdAt: string;
   reactions?: Record<string, string[]>; // emoji -> [userIds]
-  attachments?: Attachment[];
+  attachment?: Attachment; // Single attachment for current message
+  attachments?: Attachment[]; // Multiple attachments (future support)
   gifUrl?: string; // For GIF messages
 }
 

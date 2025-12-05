@@ -115,24 +115,17 @@ export const getDownloadUrl: APIGatewayProxyHandler = async (event) => {
       return response(401, { message: 'Authentication required' });
     }
 
-    const attachmentId = event.pathParameters?.attachmentId;
-    const conversationId = event.queryStringParameters?.conversationId;
-
-    if (!attachmentId || !conversationId) {
-      return response(400, { message: 'Missing attachmentId or conversationId' });
-    }
-
-    // Reconstruct the key (we need to find it in S3)
-    // For simplicity, we'll use a pattern match
+    // Get key from query parameter
     const key = event.queryStringParameters?.key;
     
     if (!key) {
       return response(400, { message: 'Missing key parameter' });
     }
 
-    // Verify the key belongs to the requested conversation
-    if (!key.startsWith(`${conversationId}/`)) {
-      return response(403, { message: 'Access denied' });
+    // Key format is: conversationId/attachmentId.extension
+    // Basic validation: ensure key has the expected format
+    if (!key.includes('/')) {
+      return response(400, { message: 'Invalid key format' });
     }
 
     // Create presigned URL for download

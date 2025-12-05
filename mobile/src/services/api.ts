@@ -190,12 +190,12 @@ class ApiClient {
     });
   }
 
-  async getDownloadUrl(attachmentId: string, conversationId: string, key: string): Promise<{
+  async getDownloadUrl(key: string): Promise<{
     downloadUrl: string;
-    expiresIn: number;
+    expiresIn?: number;
   }> {
-    const params = new URLSearchParams({ conversationId, key });
-    return this.request(`/api/attachments/${attachmentId}?${params}`);
+    const params = new URLSearchParams({ key });
+    return this.request(`/api/attachments/download-url?${params}`);
   }
 
   // Upload file directly to S3 using presigned URL

@@ -116,7 +116,20 @@ class SocketService {
     }
   }
 
-  sendMessage(data: { conversationId: string; content: string; type: 'TEXT' | 'VOICE'; tempId?: string }) {
+  sendMessage(data: { 
+    conversationId: string; 
+    content: string; 
+    type: 'TEXT' | 'VOICE' | 'ATTACHMENT' | 'GIF'; 
+    tempId?: string;
+    attachment?: {
+      id: string;
+      key: string;
+      fileName: string;
+      contentType: string;
+      fileSize: number;
+      category: string;
+    };
+  }) {
     this.send('message:send', data);
   }
 

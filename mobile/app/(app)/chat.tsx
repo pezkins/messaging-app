@@ -24,6 +24,7 @@ import { getLanguageByCode } from '../../src/constants/languages';
 import { EMOJIS, searchEmojis, FREQUENT_EMOJIS, type EmojiData } from '../../src/constants/emojis';
 import { AttachmentPicker } from '../../src/components/AttachmentPicker';
 import { GifPicker } from '../../src/components/GifPicker';
+import { api } from '../../src/services/api';
 import type { Message, Attachment } from '../../src/types';
 
 export default function ChatScreen() {
@@ -83,8 +84,18 @@ export default function ChatScreen() {
   const handleSend = () => {
     if (!inputValue.trim() && !pendingAttachment) return;
     
-    // TODO: Send message with attachment if pending
-    sendMessage(inputValue || (pendingAttachment ? '📎 Attachment' : ''));
+    if (pendingAttachment) {
+      // Send attachment message
+      sendMessage('', {
+        type: 'ATTACHMENT',
+        attachment: pendingAttachment.attachment,
+        localUri: pendingAttachment.localUri,
+      });
+    } else {
+      // Send text message
+      sendMessage(inputValue);
+    }
+    
     setInputValue('');
     setPendingAttachment(null);
     setIsTypingLocal(false);
@@ -100,9 +111,8 @@ export default function ChatScreen() {
   };
 
   const handleGifSelect = (gifUrl: string) => {
-    // Send GIF as a message
-    // TODO: Update backend to handle GIF type messages
-    sendMessage(`[GIF] ${gifUrl}`);
+    // Send GIF as a message with GIF type
+    sendMessage(gifUrl, { type: 'GIF' });
   };
 
   const clearPendingAttachment = () => {
@@ -445,7 +455,118 @@ function extractGifUrl(content: string): string | null {
   const gifUrlMatch = content.match(/^(https?:\/\/(?:media\.tenor\.com|media\d*\.giphy\.com)[^\s]+\.gif)/i);
   if (gifUrlMatch) return gifUrlMatch[1];
   
+  // Check if the content itself is a direct GIF URL (for GIF type messages)
+  if (content.match(/^https?:\/\/.*\.(gif|webp)/i)) {
+    return content;
+  }
+  
   return null;
+}
+
+// Attachment Bubble Component
+function AttachmentBubble({ attachment, isOwn }: { 
+  attachment?: Attachment; 
+  isOwn: boolean;
+}) {
+  const [loading, setLoading] = useState(true);
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const fetchDownloadUrl = async () => {
+      if (!attachment) return;
+      
+      // If we have a local URI, use it directly
+      if (attachment.localUri) {
+        setDownloadUrl(attachment.localUri);
+        setLoading(false);
+        return;
+      }
+
+      // Otherwise, fetch presigned URL
+      try {
+        const { downloadUrl: url } = await api.getDownloadUrl(attachment.key);
+        setDownloadUrl(url);
+      } catch (err) {
+        console.error('Failed to get download URL:', err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDownloadUrl();
+  }, [attachment]);
+
+  if (!attachment) {
+    return (
+      <View style={styles.attachmentPlaceholder}>
+        <Ionicons name="document-outline" size={24} color={colors.surface[400]} />
+        <Text style={styles.attachmentPlaceholderText}>Attachment</Text>
+      </View>
+    );
+  }
+
+  const isImage = attachment.category === 'image' || attachment.contentType.startsWith('image/');
+  const isVideo = attachment.category === 'video' || attachment.contentType.startsWith('video/');
+
+  if (loading) {
+    return (
+      <View style={styles.attachmentLoading}>
+        <ActivityIndicator size="small" color={colors.primary[400]} />
+      </View>
+    );
+  }
+
+  if (error || !downloadUrl) {
+    return (
+      <View style={styles.attachmentError}>
+        <Ionicons name="alert-circle-outline" size={24} color={colors.error} />
+        <Text style={styles.attachmentErrorText}>Failed to load</Text>
+      </View>
+    );
+  }
+
+  if (isImage) {
+    return (
+      <View style={styles.attachmentImageContainer}>
+        <Image
+          source={{ uri: downloadUrl }}
+          style={styles.attachmentImage}
+          resizeMode="cover"
+        />
+        <Text style={[styles.attachmentFileName, isOwn && styles.ownAttachmentFileName]} numberOfLines={1}>
+          {attachment.fileName}
+        </Text>
+      </View>
+    );
+  }
+
+  // For documents and other files
+  return (
+    <View style={styles.attachmentDocument}>
+      <Ionicons 
+        name={isVideo ? 'videocam' : 'document'} 
+        size={32} 
+        color={isOwn ? colors.primary[200] : colors.primary[400]} 
+      />
+      <View style={styles.attachmentDocInfo}>
+        <Text style={[styles.attachmentFileName, isOwn && styles.ownAttachmentFileName]} numberOfLines={1}>
+          {attachment.fileName}
+        </Text>
+        <Text style={[styles.attachmentFileSize, isOwn && styles.ownAttachmentFileSize]}>
+          {formatFileSize(attachment.fileSize)}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+// Helper to format file size
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 // Message Bubble Component
@@ -530,6 +651,8 @@ function MessageBubble({ message, isOwn, showTimestamp, onReact }: {
               onLoadEnd={() => setGifLoading(false)}
             />
           </View>
+        ) : message.attachment || message.type === 'attachment' ? (
+          <AttachmentBubble attachment={message.attachment} isOwn={isOwn} />
         ) : (
           <Text style={[styles.messageText, isOwn && styles.ownMessageText]}>
             {displayContent}
@@ -1035,6 +1158,70 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.surface[800],
     borderRadius: borderRadius.lg,
+  },
+  // Attachment styles
+  attachmentPlaceholder: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.sm,
+  },
+  attachmentPlaceholderText: {
+    color: colors.surface[400],
+    fontSize: fontSize.sm,
+  },
+  attachmentLoading: {
+    width: 200,
+    height: 150,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.surface[800],
+    borderRadius: borderRadius.lg,
+  },
+  attachmentError: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.sm,
+  },
+  attachmentErrorText: {
+    color: colors.error,
+    fontSize: fontSize.sm,
+  },
+  attachmentImageContainer: {
+    width: 200,
+    borderRadius: borderRadius.lg,
+    overflow: 'hidden',
+  },
+  attachmentImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: borderRadius.lg,
+  },
+  attachmentFileName: {
+    color: colors.surface[300],
+    fontSize: fontSize.xs,
+    marginTop: spacing.xs,
+  },
+  ownAttachmentFileName: {
+    color: colors.primary[200],
+  },
+  attachmentDocument: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    padding: spacing.xs,
+    minWidth: 180,
+  },
+  attachmentDocInfo: {
+    flex: 1,
+  },
+  attachmentFileSize: {
+    color: colors.surface[500],
+    fontSize: fontSize.xs,
+  },
+  ownAttachmentFileSize: {
+    color: colors.primary[300],
   },
 });
 
