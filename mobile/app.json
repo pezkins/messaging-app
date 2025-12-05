@@ -28,7 +28,8 @@
         "backgroundColor": "#8B5CF6"
       },
       "package": "com.intokapp.app",
-      "versionCode": 3,
+      "versionCode": 4,
+      "targetSdkVersion": 35,
       "permissions": [
         "INTERNET",
         "RECORD_AUDIO",
