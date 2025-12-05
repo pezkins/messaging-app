@@ -56,7 +56,7 @@ jobs:
 
       - name: 📦 Install dependencies
         working-directory: ./mobile
-        run: npm ci
+        run: npm install --legacy-peer-deps
 
       - name: 🔧 Setup EAS CLI
         run: npm install -g eas-cli
