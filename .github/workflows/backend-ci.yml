@@ -125,6 +125,8 @@ jobs:
         run: |
           sam deploy \
             --stack-name ${{ env.STACK_NAME }} \
+            --resolve-s3 \
+            --capabilities CAPABILITY_IAM \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --parameter-overrides \
