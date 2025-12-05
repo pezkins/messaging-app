@@ -12,6 +12,14 @@ on:
       - 'mobile/**'
   workflow_dispatch:
     inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'apk'
+        type: choice
+        options:
+          - apk
+          - aab
       deploy_to_stores:
         description: 'Deploy to Play Store & TestFlight'
         required: false
@@ -23,15 +31,21 @@ env:
 
 jobs:
   # ============================================
-  # STAGE 1: Build Preview APKs (Automatic)
+  # Build Android Locally (No EAS cloud limits!)
   # ============================================
-  build-preview:
-    name: 🔨 Build Preview
+  build-android:
+    name: 🤖 Build Android
     runs-on: ubuntu-latest
     
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+
+      - name: ☕ Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
@@ -44,78 +58,83 @@ jobs:
         working-directory: ./mobile
         run: npm ci
 
-      - name: 🔍 Type Check
-        working-directory: ./mobile
-        run: npx tsc --noEmit --skipLibCheck || echo "Type check completed with warnings"
-
       - name: 🔧 Setup EAS CLI
         run: npm install -g eas-cli
 
-      - name: 🤖 Build Android APK (Preview)
-        working-directory: ./mobile
-        run: eas build --platform android --profile preview --non-interactive --no-wait
+      - name: 🔍 Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: 🍎 Build iOS (Preview)
-        if: github.event_name != 'pull_request'
+      - name: 🔑 Setup Keystore
         working-directory: ./mobile
-        run: eas build --platform ios --profile preview --non-interactive --no-wait
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android-keystore.jks
+          echo "ANDROID_KEYSTORE_PATH=$(pwd)/android-keystore.jks" >> $GITHUB_ENV
+        if: secrets.ANDROID_KEYSTORE_BASE64 != ''
+
+      - name: 🏗️ Build APK (Local)
+        if: github.event.inputs.build_type == 'apk' || github.event.inputs.build_type == ''
+        working-directory: ./mobile
+        run: |
+          eas build --platform android --profile preview --local --output ./build/intok.apk --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 🏗️ Build AAB (Local)
+        if: github.event.inputs.build_type == 'aab'
+        working-directory: ./mobile
+        run: |
+          eas build --platform android --profile production --local --output ./build/intok.aab --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 📤 Upload APK Artifact
+        if: github.event.inputs.build_type == 'apk' || github.event.inputs.build_type == ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: intok-apk
+          path: mobile/build/intok.apk
+          retention-days: 30
+
+      - name: 📤 Upload AAB Artifact
+        if: github.event.inputs.build_type == 'aab'
+        uses: actions/upload-artifact@v4
+        with:
+          name: intok-aab
+          path: mobile/build/intok.aab
+          retention-days: 30
 
       - name: 📋 Build Summary
         run: |
-          echo "## 📱 Mobile Build Started!" >> $GITHUB_STEP_SUMMARY
+          echo "## 📱 Android Build Complete!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Build Status" >> $GITHUB_STEP_SUMMARY
-          echo "Check build progress at: [Expo Builds](https://expo.dev/accounts/pezkins/projects/intok/builds)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### What was built:" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Android APK (preview)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ iOS (preview)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Once complete, download APKs from Expo dashboard for testing." >> $GITHUB_STEP_SUMMARY
+          echo "### Build Output" >> $GITHUB_STEP_SUMMARY
+          echo "- Build type: ${{ github.event.inputs.build_type || 'apk' }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Download from **Artifacts** section below" >> $GITHUB_STEP_SUMMARY
 
   # ============================================
-  # STAGE 2: Deploy to Stores (Manual Trigger)
+  # Deploy to Stores (Manual Trigger)
   # ============================================
   deploy-to-stores:
     name: 🚀 Deploy to Stores
     runs-on: ubuntu-latest
     if: github.event.inputs.deploy_to_stores == 'true'
-    needs: build-preview
+    needs: build-android
     
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
+      - name: 📥 Download AAB
+        uses: actions/download-artifact@v4
         with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: mobile/package-lock.json
+          name: intok-aab
+          path: ./build
 
-      - name: 📦 Install dependencies
-        working-directory: ./mobile
-        run: npm ci
-
-      - name: 🔧 Setup EAS CLI
-        run: npm install -g eas-cli
-
-      - name: 🤖 Build & Submit to Play Store
-        working-directory: ./mobile
-        run: eas build --platform android --profile production --non-interactive --auto-submit
-
-      - name: 🍎 Build & Submit to TestFlight
-        working-directory: ./mobile
-        run: eas build --platform ios --profile production --non-interactive --auto-submit
-
-      - name: 📋 Deployment Summary
-        run: |
-          echo "## 🚀 Store Deployment Initiated!" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Android (Play Store)" >> $GITHUB_STEP_SUMMARY
-          echo "- 📦 Building AAB and submitting to Internal Testing track" >> $GITHUB_STEP_SUMMARY
-          echo "- 🔗 Check status: [Google Play Console](https://play.google.com/console)" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### iOS (TestFlight)" >> $GITHUB_STEP_SUMMARY
-          echo "- 📦 Building IPA and submitting to TestFlight" >> $GITHUB_STEP_SUMMARY
-          echo "- 🔗 Check status: [App Store Connect](https://appstoreconnect.apple.com)" >> $GITHUB_STEP_SUMMARY
+      - name: 🚀 Upload to Play Store
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.intokapp.app
+          releaseFiles: ./build/intok.aab
+          track: internal
+          status: completed
