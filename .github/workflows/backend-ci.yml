@@ -38,12 +38,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: server-serverless/package-lock.json
 
       - name: 📦 Install dependencies
         working-directory: ./server-serverless
-        run: npm ci
+        run: npm install
 
       - name: 🔍 Type Check
         working-directory: ./server-serverless
@@ -97,12 +95,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: server-serverless/package-lock.json
 
       - name: 📦 Install dependencies
         working-directory: ./server-serverless
-        run: npm ci
+        run: npm install
 
       - name: 🏗️ Build TypeScript
         working-directory: ./server-serverless
@@ -156,4 +152,3 @@ jobs:
           
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "### ✅ Deployment Complete!" >> $GITHUB_STEP_SUMMARY
-
