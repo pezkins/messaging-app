@@ -28,7 +28,7 @@
         "backgroundColor": "#8B5CF6"
       },
       "package": "com.intokapp.app",
-      "versionCode": 4,
+      "versionCode": 5,
       "targetSdkVersion": 35,
       "permissions": [
         "INTERNET",
@@ -42,7 +42,17 @@
     },
     "plugins": [
       "expo-router",
-      "@react-native-google-signin/google-signin"
+      "@react-native-google-signin/google-signin",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0"
+          }
+        }
+      ]
     ],
     "sdkVersion": "52.0.0",
     "extra": {
