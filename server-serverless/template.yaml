@@ -6,7 +6,7 @@ Globals:
   Function:
     Timeout: 30
     MemorySize: 256
-    Runtime: nodejs18.x
+    Runtime: nodejs20.x
     Environment:
       Variables:
         USERS_TABLE: !Ref UsersTable
