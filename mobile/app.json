@@ -30,6 +30,7 @@
       "package": "com.intokapp.app",
       "versionCode": 6,
       "targetSdkVersion": 35,
+      "softwareKeyboardLayoutMode": "pan",
       "permissions": [
         "INTERNET",
         "RECORD_AUDIO",
