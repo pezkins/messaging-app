@@ -1,0 +1,344 @@
+name: 🍎 iOS Native CI/CD
+
+on:
+  push:
+    branches: [dev, stage, main]
+    paths: ['ios-native/**']
+  pull_request:
+    branches: [dev, stage, main]
+    paths: ['ios-native/**']
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'dev'
+        type: choice
+        options: [dev, stage, production]
+
+env:
+  RUBY_VERSION: '3.2'
+
+jobs:
+  # ============================================
+  # Setup & Configuration
+  # ============================================
+  setup:
+    name: 🔧 Setup
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.config.outputs.environment }}
+      should_deploy: ${{ steps.config.outputs.should_deploy }}
+      target: ${{ steps.config.outputs.target }}
+      version: ${{ steps.version.outputs.version }}
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔍 Determine Environment
+        id: config
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENV="${{ github.event.inputs.environment }}"
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            ENV="production"
+          elif [ "${{ github.ref }}" == "refs/heads/stage" ]; then
+            ENV="stage"
+          else
+            ENV="dev"
+          fi
+
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+
+          if [ "${{ github.event_name }}" == "push" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "should_deploy=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_deploy=false" >> $GITHUB_OUTPUT
+          fi
+
+          case $ENV in
+            production) echo "target=app-store" >> $GITHUB_OUTPUT ;;
+            stage) echo "target=testflight" >> $GITHUB_OUTPUT ;;
+            *) echo "target=simulator" >> $GITHUB_OUTPUT ;;
+          esac
+
+      - name: 📋 Get Version
+        id: version
+        run: |
+          if [ -f "ios-native/Intok.xcodeproj/project.pbxproj" ]; then
+            VERSION=$(grep -m1 'MARKETING_VERSION' ios-native/Intok.xcodeproj/project.pbxproj | sed 's/.*= \(.*\);/\1/' | tr -d ' ')
+            echo "version=$VERSION" >> $GITHUB_OUTPUT
+          else
+            echo "version=0.1.0" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📋 Summary
+        run: |
+          echo "## 🍎 iOS Build Configuration" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | \`${{ steps.config.outputs.environment }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | \`${{ steps.version.outputs.version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Target | \`${{ steps.config.outputs.target }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy | \`${{ steps.config.outputs.should_deploy }}\` |" >> $GITHUB_STEP_SUMMARY
+
+  # ============================================
+  # Code Quality
+  # ============================================
+  lint:
+    name: 🔍 SwiftLint
+    runs-on: macos-14
+    needs: setup
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🔍 Install SwiftLint
+        run: brew install swiftlint
+
+      - name: 🔍 Run SwiftLint
+        working-directory: ./ios-native
+        run: |
+          if [ -f ".swiftlint.yml" ]; then
+            swiftlint lint --strict
+          else
+            swiftlint lint
+          fi
+
+  test:
+    name: 🧪 Test
+    runs-on: macos-14
+    needs: setup
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🍎 Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.2.app
+
+      - name: 🔍 Check Project
+        id: check
+        working-directory: ./ios-native
+        run: |
+          if [ -f "Intok.xcodeproj/project.pbxproj" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 🧪 Run Tests
+        if: steps.check.outputs.exists == 'true'
+        working-directory: ./ios-native
+        run: |
+          xcodebuild test \
+            -project Intok.xcodeproj \
+            -scheme Intok \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+  # ============================================
+  # Build
+  # ============================================
+  build:
+    name: 🏗️ Build
+    runs-on: macos-14
+    needs: [setup, lint, test]
+    outputs:
+      artifact_name: ${{ steps.artifact.outputs.name }}
+
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+
+      - name: 🍎 Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.2.app
+
+      - name: 💎 Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ env.RUBY_VERSION }}
+          bundler-cache: true
+          working-directory: ./ios-native
+
+      - name: 📦 Install Dependencies
+        working-directory: ./ios-native
+        run: |
+          if [ -f "Gemfile" ]; then
+            bundle install
+          fi
+          if [ -f "Podfile" ]; then
+            pod install
+          fi
+
+      - name: 🔍 Check Project
+        id: check
+        working-directory: ./ios-native
+        run: |
+          if [ -f "Intok.xcodeproj/project.pbxproj" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "❌ Xcode project not found"
+            exit 1
+          fi
+
+      - name: 🔐 Import Certificate
+        if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          KEYCHAIN_PASSWORD: ${{ secrets.KEYCHAIN_PASSWORD }}
+        run: |
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+
+          echo -n "$APPLE_CERTIFICATE_BASE64" | base64 --decode -o $RUNNER_TEMP/certificate.p12
+          security import $RUNNER_TEMP/certificate.p12 -P "$APPLE_CERTIFICATE_PASSWORD" \
+            -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+
+          security list-keychains -d user -s $KEYCHAIN_PATH
+          security default-keychain -s $KEYCHAIN_PATH
+
+      - name: 📝 Install Provisioning Profile
+        if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
+        env:
+          PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+
+      - name: 🏗️ Build Debug
+        if: needs.setup.outputs.environment == 'dev'
+        working-directory: ./ios-native
+        run: |
+          xcodebuild build \
+            -project Intok.xcodeproj \
+            -scheme Intok \
+            -configuration Debug \
+            -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+            -derivedDataPath build \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO
+
+      - name: 🏗️ Build Release
+        if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
+        working-directory: ./ios-native
+        run: |
+          xcodebuild archive \
+            -project Intok.xcodeproj \
+            -scheme Intok \
+            -configuration Release \
+            -archivePath build/Intok.xcarchive \
+            -destination 'generic/platform=iOS'
+
+          if [ ! -d "build/Intok.xcarchive" ]; then
+            echo "❌ Archive failed"
+            exit 1
+          fi
+
+          xcodebuild -exportArchive \
+            -archivePath build/Intok.xcarchive \
+            -exportPath build/ipa \
+            -exportOptionsPlist ExportOptions.plist
+
+          if [ ! -f build/ipa/*.ipa ]; then
+            echo "❌ Export failed"
+            exit 1
+          fi
+
+          ls -la build/ipa/
+
+      - name: 📦 Set Artifact Name
+        id: artifact
+        run: |
+          if [ "${{ needs.setup.outputs.environment }}" == "dev" ]; then
+            echo "name=ios-debug-${{ needs.setup.outputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "name=ios-release-${{ needs.setup.outputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: 📤 Upload Debug Build
+        if: needs.setup.outputs.environment == 'dev'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-debug-${{ needs.setup.outputs.version }}
+          path: ios-native/build/Build/Products/Debug-iphonesimulator/Intok.app
+          retention-days: 14
+
+      - name: 📤 Upload Release Build
+        if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-release-${{ needs.setup.outputs.version }}
+          path: ios-native/build/ipa/*.ipa
+          retention-days: 30
+
+      - name: 🧹 Cleanup
+        if: always()
+        run: |
+          security delete-keychain $RUNNER_TEMP/app-signing.keychain-db 2>/dev/null || true
+          rm -f $RUNNER_TEMP/certificate.p12
+
+  # ============================================
+  # Deploy
+  # ============================================
+  deploy:
+    name: 🚀 Deploy
+    runs-on: macos-14
+    needs: [setup, build]
+    if: |
+      needs.setup.outputs.should_deploy == 'true' &&
+      needs.setup.outputs.environment != 'dev' &&
+      needs.setup.outputs.target != 'simulator'
+    environment: ${{ needs.setup.outputs.environment }}
+
+    steps:
+      - name: 📥 Download IPA
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-release-${{ needs.setup.outputs.version }}
+          path: ./build
+
+      - name: 🔍 Find IPA
+        id: find_ipa
+        run: |
+          IPA_FILE=$(find ./build -name "*.ipa" | head -1)
+          if [ -z "$IPA_FILE" ]; then
+            echo "❌ No IPA file found"
+            ls -laR ./build
+            exit 1
+          fi
+          echo "ipa_file=$IPA_FILE" >> $GITHUB_OUTPUT
+          echo "📦 Found: $IPA_FILE"
+
+      - name: 🚀 Upload to App Store Connect
+        env:
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          echo "$APP_STORE_CONNECT_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
+
+          xcrun altool --upload-app \
+            --type ios \
+            --file "${{ steps.find_ipa.outputs.ipa_file }}" \
+            --apiKey "$APP_STORE_CONNECT_API_KEY_ID" \
+            --apiIssuer "$APP_STORE_CONNECT_API_ISSUER_ID"
+
+      - name: 📋 Summary
+        run: |
+          echo "## 🚀 iOS Deployed!" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Bundle | \`com.pezkins.intok\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | \`${{ needs.setup.outputs.version }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Target | \`${{ needs.setup.outputs.target }}\` |" >> $GITHUB_STEP_SUMMARY
