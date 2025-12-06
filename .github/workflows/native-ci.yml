@@ -432,15 +432,22 @@ jobs:
             echo "artifact_name=intok-ios-release-${{ needs.setup.outputs.version_name }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: 📤 Upload iOS Build
-        if: steps.check_project.outputs.project_exists == 'true'
+      - name: 📤 Upload iOS Debug Build
+        if: steps.check_project.outputs.project_exists == 'true' && needs.setup.outputs.environment == 'dev'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build.outputs.artifact_name }}
-          path: |
-            ios-native/build/*.app
-            ios-native/build/ipa/*.ipa
-          retention-days: ${{ needs.setup.outputs.environment == 'dev' && '14' || '30' }}
+          path: ios-native/build/Build/Products/Debug-iphonesimulator/Intok.app
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: 📤 Upload iOS Release Build
+        if: steps.check_project.outputs.project_exists == 'true' && needs.setup.outputs.environment != 'dev'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build.outputs.artifact_name }}
+          path: ios-native/build/ipa/*.ipa
+          retention-days: 30
           if-no-files-found: warn
 
       - name: 🧹 Cleanup Keychain
