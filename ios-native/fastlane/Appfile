@@ -1,7 +1,7 @@
 # Intok iOS App Configuration
 
 # App Identifier (Bundle ID)
-app_identifier("com.intokapp.app")
+app_identifier("com.pezkins.intok")
 
 # Apple Developer Portal Team ID
 # Get this from: https://developer.apple.com/account -> Membership

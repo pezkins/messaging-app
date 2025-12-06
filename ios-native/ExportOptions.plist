@@ -5,7 +5,7 @@
     <key>method</key>
     <string>app-store</string>
     <key>teamID</key>
-    <string>YOUR_TEAM_ID</string>
+    <string>LW7QG2H5ST</string>
     <key>uploadBitcode</key>
     <false/>
     <key>uploadSymbols</key>
@@ -14,7 +14,7 @@
     <string>manual</string>
     <key>provisioningProfiles</key>
     <dict>
-        <key>com.intokapp.app</key>
+        <key>com.pezkins.intok</key>
         <string>Intok App Store Profile</string>
     </dict>
 </dict>
