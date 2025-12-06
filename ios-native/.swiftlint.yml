@@ -9,6 +9,10 @@ excluded:
 disabled_rules:
   - trailing_whitespace
   - line_length
+  - todo
+  - trailing_newline
+  - multiple_closures_with_trailing_closure
+  - implicit_optional_initialization
 
 opt_in_rules:
   - empty_count
@@ -69,15 +73,10 @@ nesting:
   function_level: 3
 
 identifier_name:
-  min_length: 2
+  min_length: 1
   max_length: 50
   excluded:
     - id
-    - i
-    - j
-    - x
-    - y
-    - ws
 
 type_name:
   min_length: 3

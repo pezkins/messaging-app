@@ -228,12 +228,22 @@ jobs:
           name: android-release-${{ needs.setup.outputs.version_name }}
           path: ./build
 
+      - name: ✅ Verify Download
+        run: |
+          if [ ! -d "./build" ]; then
+            echo "❌ Download failed - build directory does not exist"
+            exit 1
+          fi
+          echo "✅ Download directory exists"
+          ls -la ./build
+
       - name: 🔍 Find AAB
         id: find_aab
         run: |
-          AAB_FILE=$(find ./build -name "*.aab" | head -1)
+          AAB_FILE=$(find ./build -name "*.aab" 2>/dev/null | head -1)
           if [ -z "$AAB_FILE" ]; then
-            echo "❌ No AAB file found"
+            echo "❌ No AAB file found in ./build"
+            find ./build -type f 2>/dev/null || echo "No files found"
             exit 1
           fi
           echo "aab_file=$AAB_FILE" >> $GITHUB_OUTPUT
