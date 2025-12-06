@@ -191,6 +191,10 @@ jobs:
       github.event.inputs.platform != 'ios'
     outputs:
       artifact_name: ${{ steps.build.outputs.artifact_name }}
+      environment: ${{ needs.setup.outputs.environment }}
+      should_deploy: ${{ needs.setup.outputs.should_deploy }}
+      android_track: ${{ needs.setup.outputs.android_track }}
+      version_name: ${{ needs.setup.outputs.version_name }}
     
     steps:
       - name: 📥 Checkout code
@@ -292,6 +296,10 @@ jobs:
       github.event.inputs.platform != 'android'
     outputs:
       artifact_name: ${{ steps.build.outputs.artifact_name }}
+      environment: ${{ needs.setup.outputs.environment }}
+      should_deploy: ${{ needs.setup.outputs.should_deploy }}
+      ios_target: ${{ needs.setup.outputs.ios_target }}
+      version_name: ${{ needs.setup.outputs.version_name }}
     
     steps:
       - name: 📥 Checkout code
@@ -472,18 +480,20 @@ jobs:
   deploy-android:
     name: 🚀 Deploy Android
     runs-on: ubuntu-latest
-    needs: [setup, build-android]
+    needs: [build-android]
     if: |
-      needs.setup.outputs.should_deploy == 'true' &&
-      needs.setup.outputs.environment != 'dev' &&
-      needs.setup.outputs.android_track != 'none'
-    environment: ${{ needs.setup.outputs.environment }}
+      always() &&
+      needs.build-android.result == 'success' &&
+      needs.build-android.outputs.should_deploy == 'true' &&
+      needs.build-android.outputs.environment != 'dev' &&
+      needs.build-android.outputs.android_track != 'none'
+    environment: ${{ needs.build-android.outputs.environment }}
     
     steps:
       - name: 📥 Download AAB Artifact
         uses: actions/download-artifact@v4
         with:
-          name: intok-android-release-${{ needs.setup.outputs.version_name }}
+          name: intok-android-release-${{ needs.build-android.outputs.version_name }}
           path: ./build
 
       - name: 🔍 Find AAB File
@@ -503,7 +513,7 @@ jobs:
           serviceAccountJson: service-account.json
           packageName: com.intokapp.app
           releaseFiles: ${{ steps.find_aab.outputs.aab_file }}
-          track: ${{ needs.setup.outputs.android_track }}
+          track: ${{ needs.build-android.outputs.android_track }}
           status: completed
           changesNotSentForReview: false
 
@@ -518,9 +528,9 @@ jobs:
           echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| Package | \`com.intokapp.app\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Version | \`${{ needs.setup.outputs.version_name }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Track | \`${{ needs.setup.outputs.android_track }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Environment | \`${{ needs.setup.outputs.environment }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | \`${{ needs.build-android.outputs.version_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Track | \`${{ needs.build-android.outputs.android_track }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | \`${{ needs.build-android.outputs.environment }}\` |" >> $GITHUB_STEP_SUMMARY
 
   # ============================================
   # Deploy iOS to App Store Connect (Stage/Production)
@@ -528,12 +538,14 @@ jobs:
   deploy-ios:
     name: 🚀 Deploy iOS
     runs-on: macos-14
-    needs: [setup, build-ios]
+    needs: [build-ios]
     if: |
-      needs.setup.outputs.should_deploy == 'true' &&
-      needs.setup.outputs.environment != 'dev' &&
-      needs.setup.outputs.ios_target != 'none'
-    environment: ${{ needs.setup.outputs.environment }}
+      always() &&
+      needs.build-ios.result == 'success' &&
+      needs.build-ios.outputs.should_deploy == 'true' &&
+      needs.build-ios.outputs.environment != 'dev' &&
+      needs.build-ios.outputs.ios_target != 'none'
+    environment: ${{ needs.build-ios.outputs.environment }}
     
     steps:
       - name: 📥 Checkout code
@@ -542,7 +554,7 @@ jobs:
       - name: 📥 Download IPA Artifact
         uses: actions/download-artifact@v4
         with:
-          name: intok-ios-release-${{ needs.setup.outputs.version_name }}
+          name: intok-ios-release-${{ needs.build-ios.outputs.version_name }}
           path: ./build
         continue-on-error: true
 
@@ -587,8 +599,8 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
             echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
-            echo "| Version | \`${{ needs.setup.outputs.version_name }}\` |" >> $GITHUB_STEP_SUMMARY
-            echo "| Target | \`${{ needs.setup.outputs.ios_target }}\` |" >> $GITHUB_STEP_SUMMARY
+            echo "| Version | \`${{ needs.build-ios.outputs.version_name }}\` |" >> $GITHUB_STEP_SUMMARY
+            echo "| Target | \`${{ needs.build-ios.outputs.ios_target }}\` |" >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ No IPA artifact found. iOS build may have failed." >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
