@@ -217,11 +217,20 @@ jobs:
 
       - name: 📝 Install Provisioning Profile
         if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
+        id: profile
         env:
           PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
         run: |
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o ~/Library/MobileDevice/Provisioning\ Profiles/profile.mobileprovision
+          echo -n "$PROVISIONING_PROFILE_BASE64" | base64 --decode -o /tmp/profile.mobileprovision
+          
+          # Extract UUID from provisioning profile
+          PROFILE_UUID=$(/usr/libexec/PlistBuddy -c "Print UUID" /dev/stdin <<< $(/usr/bin/security cms -D -i /tmp/profile.mobileprovision))
+          echo "uuid=$PROFILE_UUID" >> $GITHUB_OUTPUT
+          
+          # Install with UUID as filename (required by Xcode)
+          cp /tmp/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
+          echo "✅ Provisioning profile installed: $PROFILE_UUID"
 
       - name: 🏗️ Build Debug
         if: needs.setup.outputs.environment == 'dev'
@@ -242,7 +251,11 @@ jobs:
         working-directory: ./ios-native
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          PROFILE_UUID: ${{ steps.profile.outputs.uuid }}
         run: |
+          echo "📦 Building with Team: $APPLE_TEAM_ID"
+          echo "📦 Using Profile: $PROFILE_UUID"
+          
           xcodebuild archive \
             -project Intok.xcodeproj \
             -scheme Intok \
@@ -251,7 +264,8 @@ jobs:
             -destination 'generic/platform=iOS' \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution"
+            CODE_SIGN_IDENTITY="Apple Distribution" \
+            PROVISIONING_PROFILE="$PROFILE_UUID"
 
           if [ ! -d "build/Intok.xcarchive" ]; then
             echo "❌ Archive failed"
