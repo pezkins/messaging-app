@@ -65,10 +65,26 @@ jobs:
       ios_target: ${{ steps.config.outputs.ios_target }}
       version_name: ${{ steps.version.outputs.version_name }}
       version_code: ${{ steps.version.outputs.version_code }}
+      build_android: ${{ steps.changes.outputs.android }}
+      build_ios: ${{ steps.changes.outputs.ios }}
     
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🔍 Detect Changed Paths
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            android:
+              - 'android-native/**'
+              - '.github/workflows/native-ci.yml'
+            ios:
+              - 'ios-native/**'
+              - '.github/workflows/native-ci.yml'
 
       - name: 🔍 Determine Environment
         id: config
@@ -135,6 +151,12 @@ jobs:
           echo "| Should Deploy | \`${{ steps.config.outputs.should_deploy }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| Android Track | \`${{ steps.config.outputs.android_track }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "| iOS Target | \`${{ steps.config.outputs.ios_target }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📂 Changed Paths Detection" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | Changes Detected | Will Build |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|------------------|------------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Android | \`${{ steps.changes.outputs.android }}\` | ${{ steps.changes.outputs.android == 'true' && '✅ Yes' || '⏭️ Skip' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| iOS | \`${{ steps.changes.outputs.ios }}\` | ${{ steps.changes.outputs.ios == 'true' && '✅ Yes' || '⏭️ Skip' }} |" >> $GITHUB_STEP_SUMMARY
 
   # ============================================
   # Code Quality Checks
@@ -188,7 +210,8 @@ jobs:
     runs-on: ubuntu-latest
     needs: [setup, code-quality]
     if: |
-      github.event.inputs.platform != 'ios'
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.platform != 'ios') ||
+      (github.event_name != 'workflow_dispatch' && needs.setup.outputs.build_android == 'true')
     outputs:
       artifact_name: ${{ steps.build.outputs.artifact_name }}
       environment: ${{ needs.setup.outputs.environment }}
@@ -293,7 +316,8 @@ jobs:
     runs-on: macos-14
     needs: [setup, code-quality]
     if: |
-      github.event.inputs.platform != 'android'
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.platform != 'android') ||
+      (github.event_name != 'workflow_dispatch' && needs.setup.outputs.build_ios == 'true')
     outputs:
       artifact_name: ${{ steps.build.outputs.artifact_name }}
       environment: ${{ needs.setup.outputs.environment }}
