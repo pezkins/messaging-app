@@ -101,3 +101,4 @@ ios-native/fastlane/Preview.html
 ios-native/fastlane/screenshots/
 ios-native/fastlane/test_output/
 ios-native/.bundle/
+.secrets/

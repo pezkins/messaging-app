@@ -169,6 +169,62 @@ main   → Production release (Play Store + App Store)
 
 **📖 See [NATIVE_MIGRATION.md](./NATIVE_MIGRATION.md) for detailed setup and deployment instructions.**
 
+### Developer Workflow: Testing CI/CD Builds Locally
+
+After pushing to the `dev` branch, the CI/CD pipeline builds debug artifacts for both Android and iOS. Here's how to download and install them on your local simulators:
+
+#### Prerequisites
+
+```bash
+# Install GitHub CLI (if not already installed)
+brew install gh
+
+# Authenticate with GitHub
+gh auth login
+```
+
+#### Download & Install Builds
+
+```bash
+# 1. Find the latest successful run
+gh run list --branch dev --limit 5
+
+# 2. Download artifacts (replace RUN_ID with the actual run ID)
+gh run download RUN_ID -D ./builds
+
+# 3. Install Android APK to emulator
+#    (Make sure Android emulator is running)
+adb install ./builds/intok-android-debug-*/app-debug.apk
+
+# 4. Install iOS app to simulator
+#    (Make sure iOS simulator is running)
+xcrun simctl install booted ./builds/intok-ios-debug-*/Intok.app
+```
+
+#### One-Liner: Download & Install Latest Build
+
+```bash
+# Android (emulator must be running)
+gh run download $(gh run list --branch dev --limit 1 --json databaseId -q '.[0].databaseId') -D ./builds && \
+adb install ./builds/intok-android-debug-*/app-debug.apk
+
+# iOS (simulator must be running)
+gh run download $(gh run list --branch dev --limit 1 --json databaseId -q '.[0].databaseId') -D ./builds && \
+xcrun simctl install booted ./builds/intok-ios-debug-*/Intok.app
+```
+
+#### Start Simulators
+
+```bash
+# Start Android emulator
+emulator -avd Pixel_8_API_35 &
+
+# Start iOS simulator
+open -a Simulator
+# Or specific device:
+xcrun simctl boot "iPhone 15"
+```
+
 ---
 
 ## Features

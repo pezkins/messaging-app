@@ -191,6 +191,10 @@ jobs:
       github.event.inputs.platform != 'ios'
     outputs:
       artifact_name: ${{ steps.build.outputs.artifact_name }}
+      environment: ${{ needs.setup.outputs.environment }}
+      should_deploy: ${{ needs.setup.outputs.should_deploy }}
+      android_track: ${{ needs.setup.outputs.android_track }}
+      version_name: ${{ needs.setup.outputs.version_name }}
     
     steps:
       - name: 📥 Checkout code
@@ -292,6 +296,10 @@ jobs:
       github.event.inputs.platform != 'android'
     outputs:
       artifact_name: ${{ steps.build.outputs.artifact_name }}
+      environment: ${{ needs.setup.outputs.environment }}
+      should_deploy: ${{ needs.setup.outputs.should_deploy }}
+      ios_target: ${{ needs.setup.outputs.ios_target }}
+      version_name: ${{ needs.setup.outputs.version_name }}
     
     steps:
       - name: 📥 Checkout code
@@ -432,15 +440,22 @@ jobs:
             echo "artifact_name=intok-ios-release-${{ needs.setup.outputs.version_name }}" >> $GITHUB_OUTPUT
           fi
 
-      - name: 📤 Upload iOS Build
-        if: steps.check_project.outputs.project_exists == 'true'
+      - name: 📤 Upload iOS Debug Build
+        if: steps.check_project.outputs.project_exists == 'true' && needs.setup.outputs.environment == 'dev'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.build.outputs.artifact_name }}
-          path: |
-            ios-native/build/*.app
-            ios-native/build/ipa/*.ipa
-          retention-days: ${{ needs.setup.outputs.environment == 'dev' && '14' || '30' }}
+          path: ios-native/build/Build/Products/Debug-iphonesimulator/Intok.app
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: 📤 Upload iOS Release Build
+        if: steps.check_project.outputs.project_exists == 'true' && needs.setup.outputs.environment != 'dev'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build.outputs.artifact_name }}
+          path: ios-native/build/ipa/*.ipa
+          retention-days: 30
           if-no-files-found: warn
 
       - name: 🧹 Cleanup Keychain
@@ -465,18 +480,20 @@ jobs:
   deploy-android:
     name: 🚀 Deploy Android
     runs-on: ubuntu-latest
-    needs: [setup, build-android]
+    needs: [build-android]
     if: |
-      needs.setup.outputs.should_deploy == 'true' &&
-      needs.setup.outputs.environment != 'dev' &&
-      needs.setup.outputs.android_track != 'none'
-    environment: ${{ needs.setup.outputs.environment }}
+      always() &&
+      needs.build-android.result == 'success' &&
+      needs.build-android.outputs.should_deploy == 'true' &&
+      needs.build-android.outputs.environment != 'dev' &&
+      needs.build-android.outputs.android_track != 'none'
+    environment: ${{ needs.build-android.outputs.environment }}
     
     steps:
       - name: 📥 Download AAB Artifact
         uses: actions/download-artifact@v4
         with:
-          name: intok-android-release-${{ needs.setup.outputs.version_name }}
+          name: intok-android-release-${{ needs.build-android.outputs.version_name }}
           path: ./build
 
       - name: 🔍 Find AAB File
@@ -496,7 +513,7 @@ jobs:
           serviceAccountJson: service-account.json
           packageName: com.intokapp.app
           releaseFiles: ${{ steps.find_aab.outputs.aab_file }}
-          track: ${{ needs.setup.outputs.android_track }}
+          track: ${{ needs.build-android.outputs.android_track }}
           status: completed
           changesNotSentForReview: false
 
@@ -511,9 +528,9 @@ jobs:
           echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| Package | \`com.intokapp.app\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Version | \`${{ needs.setup.outputs.version_name }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Track | \`${{ needs.setup.outputs.android_track }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Environment | \`${{ needs.setup.outputs.environment }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | \`${{ needs.build-android.outputs.version_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Track | \`${{ needs.build-android.outputs.android_track }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Environment | \`${{ needs.build-android.outputs.environment }}\` |" >> $GITHUB_STEP_SUMMARY
 
   # ============================================
   # Deploy iOS to App Store Connect (Stage/Production)
@@ -521,12 +538,14 @@ jobs:
   deploy-ios:
     name: 🚀 Deploy iOS
     runs-on: macos-14
-    needs: [setup, build-ios]
+    needs: [build-ios]
     if: |
-      needs.setup.outputs.should_deploy == 'true' &&
-      needs.setup.outputs.environment != 'dev' &&
-      needs.setup.outputs.ios_target != 'none'
-    environment: ${{ needs.setup.outputs.environment }}
+      always() &&
+      needs.build-ios.result == 'success' &&
+      needs.build-ios.outputs.should_deploy == 'true' &&
+      needs.build-ios.outputs.environment != 'dev' &&
+      needs.build-ios.outputs.ios_target != 'none'
+    environment: ${{ needs.build-ios.outputs.environment }}
     
     steps:
       - name: 📥 Checkout code
@@ -535,7 +554,7 @@ jobs:
       - name: 📥 Download IPA Artifact
         uses: actions/download-artifact@v4
         with:
-          name: intok-ios-release-${{ needs.setup.outputs.version_name }}
+          name: intok-ios-release-${{ needs.build-ios.outputs.version_name }}
           path: ./build
         continue-on-error: true
 
@@ -580,8 +599,8 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
             echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
-            echo "| Version | \`${{ needs.setup.outputs.version_name }}\` |" >> $GITHUB_STEP_SUMMARY
-            echo "| Target | \`${{ needs.setup.outputs.ios_target }}\` |" >> $GITHUB_STEP_SUMMARY
+            echo "| Version | \`${{ needs.build-ios.outputs.version_name }}\` |" >> $GITHUB_STEP_SUMMARY
+            echo "| Target | \`${{ needs.build-ios.outputs.ios_target }}\` |" >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ No IPA artifact found. iOS build may have failed." >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
@@ -597,11 +616,13 @@ jobs:
   summary:
     name: 📊 Pipeline Summary
     runs-on: ubuntu-latest
-    needs: [setup, code-quality, build-android, build-ios, deploy-android, deploy-ios]
+    needs: [deploy-android, deploy-ios]
     if: always()
     
     steps:
       - name: 📊 Generate Final Summary
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           echo "## 📱 Native App Pipeline Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -609,22 +630,26 @@ jobs:
           echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
           echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
           echo "| Branch | \`${{ github.ref_name }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Environment | \`${{ needs.setup.outputs.environment }}\` |" >> $GITHUB_STEP_SUMMARY
-          echo "| Version | \`${{ needs.setup.outputs.version_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          
+          # Determine environment from branch
+          case "${{ github.ref_name }}" in
+            dev) ENV="dev" ;;
+            stage) ENV="stage" ;;
+            main) ENV="production" ;;
+            *) ENV="dev" ;;
+          esac
+          echo "| Environment | \`$ENV\` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+          
           echo "### Job Results" >> $GITHUB_STEP_SUMMARY
           echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Setup | ${{ needs.setup.result == 'success' && '✅' || '❌' }} ${{ needs.setup.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Code Quality | ${{ needs.code-quality.result == 'success' && '✅' || needs.code-quality.result == 'skipped' && '⏭️' || '❌' }} ${{ needs.code-quality.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Android Build | ${{ needs.build-android.result == 'success' && '✅' || needs.build-android.result == 'skipped' && '⏭️' || '❌' }} ${{ needs.build-android.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| iOS Build | ${{ needs.build-ios.result == 'success' && '✅' || needs.build-ios.result == 'skipped' && '⏭️' || '❌' }} ${{ needs.build-ios.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Android Deploy | ${{ needs.deploy-android.result == 'success' && '✅' || needs.deploy-android.result == 'skipped' && '⏭️' || '❌' }} ${{ needs.deploy-android.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| iOS Deploy | ${{ needs.deploy-ios.result == 'success' && '✅' || needs.deploy-ios.result == 'skipped' && '⏭️' || '❌' }} ${{ needs.deploy-ios.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Android | ${{ needs.deploy-android.result == 'success' && '✅' || needs.deploy-android.result == 'skipped' && '⏭️' || '❌' }} ${{ needs.deploy-android.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| iOS | ${{ needs.deploy-ios.result == 'success' && '✅' || needs.deploy-ios.result == 'skipped' && '⏭️' || '❌' }} ${{ needs.deploy-ios.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           
           # Environment-specific notes
-          case "${{ needs.setup.outputs.environment }}" in
+          case "$ENV" in
             dev)
               echo "### 🔧 Development Build" >> $GITHUB_STEP_SUMMARY
               echo "Debug builds are available in the Artifacts section." >> $GITHUB_STEP_SUMMARY
