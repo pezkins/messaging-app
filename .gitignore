@@ -66,3 +66,38 @@ google-play-service-account.json
 *.p8
 *.p12
 *.pem
+service-account.json
+
+# ============================================
+# Native Android
+# ============================================
+android-native/.gradle/
+android-native/.idea/
+android-native/local.properties
+android-native/keystore.properties
+android-native/app/release.keystore
+android-native/app/build/
+android-native/build/
+android-native/captures/
+android-native/*.apk
+android-native/*.aab
+
+# ============================================
+# Native iOS
+# ============================================
+ios-native/build/
+ios-native/DerivedData/
+ios-native/*.xcworkspace/xcuserdata/
+ios-native/*.xcodeproj/xcuserdata/
+ios-native/*.xcodeproj/project.xcworkspace/xcshareddata/
+ios-native/Pods/
+ios-native/Podfile.lock
+ios-native/*.ipa
+ios-native/*.dSYM.zip
+ios-native/*.app.dSYM/
+ios-native/*.xcarchive/
+ios-native/fastlane/report.xml
+ios-native/fastlane/Preview.html
+ios-native/fastlane/screenshots/
+ios-native/fastlane/test_output/
+ios-native/.bundle/

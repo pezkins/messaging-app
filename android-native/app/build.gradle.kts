@@ -1,9 +1,19 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
     kotlin("kapt")
+}
+
+// Load keystore properties for release signing
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -30,6 +40,18 @@ android {
         buildConfigField("String", "TENOR_API_KEY", "\"AIzaSyAyimkuYQYF_FXVvIi8ND7S_FLRh1xqLYM\"")
     }
 
+    // Release signing configuration
+    signingConfigs {
+        create("release") {
+            if (keystorePropertiesFile.exists()) {
+                storeFile = file(keystoreProperties.getProperty("storeFile") ?: "release.keystore")
+                storePassword = keystoreProperties.getProperty("storePassword") ?: ""
+                keyAlias = keystoreProperties.getProperty("keyAlias") ?: ""
+                keyPassword = keystoreProperties.getProperty("keyPassword") ?: ""
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
@@ -38,6 +60,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            // Use release signing config if available
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
             isDebuggable = true

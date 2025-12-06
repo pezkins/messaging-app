@@ -1,0 +1,504 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		12B23CCA0F9EA70F3EFB6987 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196D3B5805F957A909DAD1F2 /* SettingsView.swift */; };
+		13E97AF4558937103E093D31 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EF4B062A1B8C0B229E1A2F04 /* Assets.xcassets */; };
+		17049A5BC0443C70F5DC9EEA /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364BF34D67B234294D1DA2E4 /* AuthManager.swift */; };
+		26B5FFD35D1066A90B174AAB /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2E2DA7FC82BEE77F0F2738 /* Models.swift */; };
+		40DE0A76B1DA1CE1C8DFD990 /* ConversationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08CAB9E74F4A67184DFF5A2A /* ConversationsView.swift */; };
+		494574466F14DBD2B0A54797 /* IntokApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 209CBB20DB64B3411A313918 /* IntokApp.swift */; };
+		60A4306F3D4F126CCA543555 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12409B09249C3035423A8BCB /* Theme.swift */; };
+		7A6DAFA2FC03F3840A25097C /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19527CB278B7265CD4B6B05D /* SetupView.swift */; };
+		7D45E12CC3607427168D0CAF /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41BA84E3D221AE506BEAEB0E /* LoginView.swift */; };
+		87AEDDE4F49DFFDCCE41B202 /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = A73210F19CB8369E8C2A18B0 /* SDWebImage */; };
+		B98F38C0A33351099F429F3B /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97FEA229E5E1F138D3CA8CE /* ChatView.swift */; };
+		C7CD3D311E159C1417642C45 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = EA5A736AC3C346F43BBF7EF9 /* GoogleSignIn */; };
+		C9858BF749563A4D1DE527A5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E66B7BEAC0BAC39B5363BEA /* ContentView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		08CAB9E74F4A67184DFF5A2A /* ConversationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationsView.swift; sourceTree = "<group>"; };
+		12409B09249C3035423A8BCB /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		19527CB278B7265CD4B6B05D /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
+		196D3B5805F957A909DAD1F2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		1FABA2603C1DFDD12AEABA9D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		209CBB20DB64B3411A313918 /* IntokApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntokApp.swift; sourceTree = "<group>"; };
+		2E66B7BEAC0BAC39B5363BEA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		364BF34D67B234294D1DA2E4 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		41BA84E3D221AE506BEAEB0E /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		73B0FEF31E6B420EE397F67C /* Intok.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Intok.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9D2E2DA7FC82BEE77F0F2738 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		EF4B062A1B8C0B229E1A2F04 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F97FEA229E5E1F138D3CA8CE /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1F8EB9EDD1E05B53D2AC6247 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C7CD3D311E159C1417642C45 /* GoogleSignIn in Frameworks */,
+				87AEDDE4F49DFFDCCE41B202 /* SDWebImage in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0B6D625C3BD4C26CCDE90D88 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				9D2E2DA7FC82BEE77F0F2738 /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		16E716C3FDD87A6E402595BC /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				196D3B5805F957A909DAD1F2 /* SettingsView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		180E7A341716A4BFDA666D28 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				12409B09249C3035423A8BCB /* Theme.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		266AA7BFEB20FA2AE580EAA2 /* Intok */ = {
+			isa = PBXGroup;
+			children = (
+				1FABA2603C1DFDD12AEABA9D /* Info.plist */,
+				45AD77A3C59A3DC54BFCBBFF /* App */,
+				4E498C1834E6E9B379607780 /* Core */,
+				D4542F78D9DABF0ABD531233 /* Features */,
+				362B36429CA3013527F1F6EC /* Resources */,
+			);
+			path = Intok;
+			sourceTree = "<group>";
+		};
+		362B36429CA3013527F1F6EC /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				EF4B062A1B8C0B229E1A2F04 /* Assets.xcassets */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		45AD77A3C59A3DC54BFCBBFF /* App */ = {
+			isa = PBXGroup;
+			children = (
+				2E66B7BEAC0BAC39B5363BEA /* ContentView.swift */,
+				209CBB20DB64B3411A313918 /* IntokApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		4E498C1834E6E9B379607780 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				0B6D625C3BD4C26CCDE90D88 /* Models */,
+				691C26F0DFD2BCD692CA88C9 /* Network */,
+				180E7A341716A4BFDA666D28 /* Utils */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		691C26F0DFD2BCD692CA88C9 /* Network */ = {
+			isa = PBXGroup;
+			children = (
+				364BF34D67B234294D1DA2E4 /* AuthManager.swift */,
+			);
+			path = Network;
+			sourceTree = "<group>";
+		};
+		746867A630186CCFED2E2007 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				73B0FEF31E6B420EE397F67C /* Intok.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A9ACF8DE18A630409695FFD1 /* Chat */ = {
+			isa = PBXGroup;
+			children = (
+				F97FEA229E5E1F138D3CA8CE /* ChatView.swift */,
+			);
+			path = Chat;
+			sourceTree = "<group>";
+		};
+		BB38D97E0DAA7C78D3D51A03 /* Conversations */ = {
+			isa = PBXGroup;
+			children = (
+				08CAB9E74F4A67184DFF5A2A /* ConversationsView.swift */,
+			);
+			path = Conversations;
+			sourceTree = "<group>";
+		};
+		CE18A72710E1017E942C1EB1 = {
+			isa = PBXGroup;
+			children = (
+				266AA7BFEB20FA2AE580EAA2 /* Intok */,
+				746867A630186CCFED2E2007 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D4542F78D9DABF0ABD531233 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				F6CEA5F53E9E7E2AD82BBEC3 /* Auth */,
+				A9ACF8DE18A630409695FFD1 /* Chat */,
+				BB38D97E0DAA7C78D3D51A03 /* Conversations */,
+				16E716C3FDD87A6E402595BC /* Settings */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		F6CEA5F53E9E7E2AD82BBEC3 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				41BA84E3D221AE506BEAEB0E /* LoginView.swift */,
+				19527CB278B7265CD4B6B05D /* SetupView.swift */,
+			);
+			path = Auth;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		1869BECD4A885D08431EB7D6 /* Intok */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 3C81EFE0880922008396271F /* Build configuration list for PBXNativeTarget "Intok" */;
+			buildPhases = (
+				26BE3FA9420E268F651A93D9 /* Sources */,
+				C6A90B743565423E6855690B /* Resources */,
+				1F8EB9EDD1E05B53D2AC6247 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Intok;
+			packageProductDependencies = (
+				EA5A736AC3C346F43BBF7EF9 /* GoogleSignIn */,
+				A73210F19CB8369E8C2A18B0 /* SDWebImage */,
+			);
+			productName = Intok;
+			productReference = 73B0FEF31E6B420EE397F67C /* Intok.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		B521CFDD2D7CECD230546363 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					1869BECD4A885D08431EB7D6 = {
+						DevelopmentTeam = "";
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 8E096C9FEC272F89AF61B4E2 /* Build configuration list for PBXProject "Intok" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = CE18A72710E1017E942C1EB1;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				F0EC5F44720E05363ABD8E50 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				40E26ECA2ECAA1D7DB194F76 /* XCRemoteSwiftPackageReference "SDWebImage" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1869BECD4A885D08431EB7D6 /* Intok */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C6A90B743565423E6855690B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				13E97AF4558937103E093D31 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		26BE3FA9420E268F651A93D9 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				17049A5BC0443C70F5DC9EEA /* AuthManager.swift in Sources */,
+				B98F38C0A33351099F429F3B /* ChatView.swift in Sources */,
+				C9858BF749563A4D1DE527A5 /* ContentView.swift in Sources */,
+				40DE0A76B1DA1CE1C8DFD990 /* ConversationsView.swift in Sources */,
+				494574466F14DBD2B0A54797 /* IntokApp.swift in Sources */,
+				7D45E12CC3607427168D0CAF /* LoginView.swift in Sources */,
+				26B5FFD35D1066A90B174AAB /* Models.swift in Sources */,
+				12B23CCA0F9EA70F3EFB6987 /* SettingsView.swift in Sources */,
+				7A6DAFA2FC03F3840A25097C /* SetupView.swift in Sources */,
+				60A4306F3D4F126CCA543555 /* Theme.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		2C96978BF1743CFE11626871 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Intok/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.intokapp.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		891A3104E9C500712D5C0FBF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Intok;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Release;
+		};
+		9C9351A7A207E275D36AF4BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Intok/Info.plist;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.social-networking";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.intokapp.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		C1FDF3AF01DF1C4B3525141C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = "";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = Intok;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 0.1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.9;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		3C81EFE0880922008396271F /* Build configuration list for PBXNativeTarget "Intok" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2C96978BF1743CFE11626871 /* Debug */,
+				9C9351A7A207E275D36AF4BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8E096C9FEC272F89AF61B4E2 /* Build configuration list for PBXProject "Intok" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C1FDF3AF01DF1C4B3525141C /* Debug */,
+				891A3104E9C500712D5C0FBF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		40E26ECA2ECAA1D7DB194F76 /* XCRemoteSwiftPackageReference "SDWebImage" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SDWebImage/SDWebImage";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.0.0;
+			};
+		};
+		F0EC5F44720E05363ABD8E50 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		A73210F19CB8369E8C2A18B0 /* SDWebImage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 40E26ECA2ECAA1D7DB194F76 /* XCRemoteSwiftPackageReference "SDWebImage" */;
+			productName = SDWebImage;
+		};
+		EA5A736AC3C346F43BBF7EF9 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F0EC5F44720E05363ABD8E50 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = B521CFDD2D7CECD230546363 /* Project object */;
+}

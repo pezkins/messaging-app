@@ -14,8 +14,6 @@ import com.intokapp.app.ui.screens.auth.SetupScreen
 import com.intokapp.app.ui.screens.chat.ChatScreen
 import com.intokapp.app.ui.screens.conversations.ConversationsScreen
 import com.intokapp.app.ui.screens.settings.SettingsScreen
-import com.intokapp.app.data.repository.AuthRepository
-import javax.inject.Inject
 
 sealed class Screen(val route: String) {
     object Login : Screen("login")

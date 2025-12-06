@@ -149,6 +149,28 @@ Alice (English) sends "Hello, how are you?" to Carlos (Spanish):
 └──────────────────────────────────────────────────────────────────┘
 ```
 
+## 🆕 Native App Migration (In Progress)
+
+We are migrating from React Native (Expo) to fully native apps:
+
+| Platform | Technology | Status |
+|----------|------------|--------|
+| Android | Kotlin + Jetpack Compose | 🚧 In Development |
+| iOS | Swift + SwiftUI | 🚧 In Development |
+| React Native | Expo | ✅ Production (being deprecated) |
+
+### Native Development Branches
+
+```
+dev    → Development builds (simulators)
+stage  → Internal testing (Play Store Internal + TestFlight)
+main   → Production release (Play Store + App Store)
+```
+
+**📖 See [NATIVE_MIGRATION.md](./NATIVE_MIGRATION.md) for detailed setup and deployment instructions.**
+
+---
+
 ## Features
 
 - **Real-time messaging** with WebSocket support

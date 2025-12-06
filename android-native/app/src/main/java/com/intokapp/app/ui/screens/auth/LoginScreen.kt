@@ -108,7 +108,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                HorizontalDivider(
+                Divider(
                     modifier = Modifier.weight(1f),
                     color = Surface700
                 )
@@ -117,7 +117,7 @@ fun LoginScreen(
                     color = Surface500,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
-                HorizontalDivider(
+                Divider(
                     modifier = Modifier.weight(1f),
                     color = Surface700
                 )

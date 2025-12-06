@@ -1,0 +1,81 @@
+name: Intok
+options:
+  bundleIdPrefix: com.intokapp
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "15.0"
+  generateEmptyDirectories: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: 1
+    DEVELOPMENT_TEAM: ""
+    CODE_SIGN_STYLE: Automatic
+    INFOPLIST_KEY_CFBundleDisplayName: Intok
+    INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+    INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents: YES
+    INFOPLIST_KEY_UILaunchScreen_Generation: YES
+    INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+    INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+
+targets:
+  Intok:
+    type: application
+    platform: iOS
+    sources:
+      - path: Intok
+        excludes:
+          - "**/.DS_Store"
+    resources:
+      - path: Intok/Resources/Assets.xcassets
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.intokapp.app
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_LSApplicationCategoryType: "public.app-category.social-networking"
+    info:
+      path: Intok/Info.plist
+      properties:
+        CFBundleDisplayName: Intok
+        CFBundleURLTypes:
+          - CFBundleTypeRole: Editor
+            CFBundleURLSchemes:
+              - com.googleusercontent.apps.75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2
+        GIDClientID: 75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2.apps.googleusercontent.com
+        ITSAppUsesNonExemptEncryption: false
+        NSCameraUsageDescription: "Intok needs camera access to take photos for sharing in chats"
+        NSMicrophoneUsageDescription: "Intok needs microphone access for voice messages"
+        NSPhotoLibraryUsageDescription: "Intok needs photo library access to share images in chats"
+        API_URL: "https://aji93f9i0k.execute-api.us-east-1.amazonaws.com/prod"
+        WS_URL: "wss://ksupcb7ucf.execute-api.us-east-1.amazonaws.com/prod"
+    dependencies:
+      - package: GoogleSignIn
+      - package: SDWebImage
+
+packages:
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    majorVersion: 7.0.0
+  SDWebImage:
+    url: https://github.com/SDWebImage/SDWebImage
+    majorVersion: 5.0.0
+
+schemes:
+  Intok:
+    build:
+      targets:
+        Intok: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

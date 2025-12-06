@@ -7,8 +7,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -61,7 +61,7 @@ fun ChatScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            Icons.Filled.ArrowBack,
                             contentDescription = "Back",
                             tint = White
                         )
@@ -171,7 +171,7 @@ fun ChatScreen(
                         elevation = FloatingActionButtonDefaults.elevation(0.dp)
                     ) {
                         Icon(
-                            Icons.AutoMirrored.Filled.Send,
+                            Icons.Filled.Send,
                             contentDescription = "Send",
                             tint = White
                         )

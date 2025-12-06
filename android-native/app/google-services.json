@@ -1,0 +1,68 @@
+{
+  "project_info": {
+    "project_number": "75949298562",
+    "project_id": "intok-app",
+    "storage_bucket": "intok-app.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:75949298562:android:placeholder",
+        "android_client_info": {
+          "package_name": "com.intokapp.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyimkuYQYF_FXVvIi8ND7S_FLRh1xqLYM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:75949298562:android:debug",
+        "android_client_info": {
+          "package_name": "com.intokapp.app.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyimkuYQYF_FXVvIi8ND7S_FLRh1xqLYM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

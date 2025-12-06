@@ -6,9 +6,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.Divider
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -33,7 +32,7 @@ fun SettingsScreen(
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            Icons.Filled.ArrowBack,
                             contentDescription = "Back",
                             tint = White
                         )
@@ -118,14 +117,14 @@ fun SettingsScreen(
                         title = "Edit Profile",
                         onClick = { /* TODO */ }
                     )
-                    HorizontalDivider(color = Surface800)
+                    Divider(color = Surface800)
                     SettingsItem(
                         icon = Icons.Default.Language,
                         title = "Language",
                         subtitle = "English",
                         onClick = { /* TODO */ }
                     )
-                    HorizontalDivider(color = Surface800)
+                    Divider(color = Surface800)
                     SettingsItem(
                         icon = Icons.Default.LocationOn,
                         title = "Country",
@@ -155,13 +154,13 @@ fun SettingsScreen(
                         title = "What's New",
                         onClick = { /* TODO */ }
                     )
-                    HorizontalDivider(color = Surface800)
+                    Divider(color = Surface800)
                     SettingsItem(
                         icon = Icons.Default.Shield,
                         title = "Privacy Policy",
                         onClick = { /* TODO */ }
                     )
-                    HorizontalDivider(color = Surface800)
+                    Divider(color = Surface800)
                     SettingsItem(
                         icon = Icons.Default.Description,
                         title = "Terms of Service",
@@ -194,7 +193,7 @@ fun SettingsScreen(
                 )
             ) {
                 Icon(
-                    Icons.AutoMirrored.Filled.ExitToApp,
+                    Icons.Filled.ExitToApp,
                     contentDescription = null,
                     modifier = Modifier.size(20.dp)
                 )

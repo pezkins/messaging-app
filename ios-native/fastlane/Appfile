@@ -1,0 +1,17 @@
+# Intok iOS App Configuration
+
+# App Identifier (Bundle ID)
+app_identifier("com.intokapp.app")
+
+# Apple Developer Portal Team ID
+# Get this from: https://developer.apple.com/account -> Membership
+team_id(ENV["APPLE_TEAM_ID"] || "YOUR_TEAM_ID")
+
+# App Store Connect Team ID (usually same as team_id for individuals)
+itc_team_id(ENV["APPLE_ITC_TEAM_ID"] || ENV["APPLE_TEAM_ID"] || "YOUR_TEAM_ID")
+
+# Apple ID email (for App Store Connect)
+apple_id(ENV["APPLE_ID"] || "your-apple-id@example.com")
+
+# For more information about the Appfile, see:
+# https://docs.fastlane.tools/advanced/#appfile
