@@ -240,13 +240,18 @@ jobs:
       - name: 🏗️ Build Release
         if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
         working-directory: ./ios-native
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
           xcodebuild archive \
             -project Intok.xcodeproj \
             -scheme Intok \
             -configuration Release \
             -archivePath build/Intok.xcarchive \
-            -destination 'generic/platform=iOS'
+            -destination 'generic/platform=iOS' \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution"
 
           if [ ! -d "build/Intok.xcarchive" ]; then
             echo "❌ Archive failed"
