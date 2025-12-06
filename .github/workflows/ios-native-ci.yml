@@ -31,6 +31,9 @@ jobs:
       should_deploy: ${{ steps.config.outputs.should_deploy }}
       target: ${{ steps.config.outputs.target }}
       version: ${{ steps.version.outputs.version }}
+      runner: ${{ steps.config.outputs.runner }}
+      xcode: ${{ steps.config.outputs.xcode }}
+      simulator: ${{ steps.config.outputs.simulator }}
 
     steps:
       - name: 📥 Checkout
@@ -58,9 +61,24 @@ jobs:
           fi
 
           case $ENV in
-            production) echo "target=app-store" >> $GITHUB_OUTPUT ;;
-            stage) echo "target=testflight" >> $GITHUB_OUTPUT ;;
-            *) echo "target=simulator" >> $GITHUB_OUTPUT ;;
+            production)
+              echo "target=app-store" >> $GITHUB_OUTPUT
+              echo "runner=macos-15" >> $GITHUB_OUTPUT
+              echo "xcode=26.1" >> $GITHUB_OUTPUT
+              echo "simulator=iPhone 16 Pro" >> $GITHUB_OUTPUT
+              ;;
+            stage)
+              echo "target=testflight" >> $GITHUB_OUTPUT
+              echo "runner=macos-15" >> $GITHUB_OUTPUT
+              echo "xcode=26.1" >> $GITHUB_OUTPUT
+              echo "simulator=iPhone 16 Pro" >> $GITHUB_OUTPUT
+              ;;
+            *)
+              echo "target=simulator" >> $GITHUB_OUTPUT
+              echo "runner=macos-13" >> $GITHUB_OUTPUT
+              echo "xcode=15.2" >> $GITHUB_OUTPUT
+              echo "simulator=iPhone 15" >> $GITHUB_OUTPUT
+              ;;
           esac
 
       - name: 📋 Get Version
@@ -88,7 +106,7 @@ jobs:
   # ============================================
   lint:
     name: 🔍 SwiftLint
-    runs-on: macos-26
+    runs-on: ${{ needs.setup.outputs.runner }}
     needs: setup
 
     steps:
@@ -104,7 +122,7 @@ jobs:
 
   test:
     name: 🧪 Test
-    runs-on: macos-26
+    runs-on: ${{ needs.setup.outputs.runner }}
     needs: setup
 
     steps:
@@ -112,7 +130,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🍎 Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_26.1.app
+        run: sudo xcode-select -s /Applications/Xcode_${{ needs.setup.outputs.xcode }}.app
 
       - name: 🔍 Check Test Target
         id: check
@@ -137,7 +155,7 @@ jobs:
           xcodebuild test \
             -project Intok.xcodeproj \
             -scheme Intok \
-            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -destination 'platform=iOS Simulator,name=${{ needs.setup.outputs.simulator }},OS=latest' \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
@@ -155,7 +173,7 @@ jobs:
   # ============================================
   build:
     name: 🏗️ Build
-    runs-on: macos-26
+    runs-on: ${{ needs.setup.outputs.runner }}
     needs: [setup, lint, test]
     outputs:
       artifact_name: ${{ steps.artifact.outputs.name }}
@@ -165,7 +183,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🍎 Select Xcode
-        run: sudo xcode-select -s /Applications/Xcode_26.1.app
+        run: sudo xcode-select -s /Applications/Xcode_${{ needs.setup.outputs.xcode }}.app
 
       - name: 💎 Setup Ruby
         uses: ruby/setup-ruby@v1
@@ -240,7 +258,7 @@ jobs:
             -project Intok.xcodeproj \
             -scheme Intok \
             -configuration Debug \
-            -destination 'platform=iOS Simulator,name=iPhone 17,OS=latest' \
+            -destination 'platform=iOS Simulator,name=${{ needs.setup.outputs.simulator }},OS=latest' \
             -derivedDataPath build \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
@@ -334,7 +352,7 @@ jobs:
   # ============================================
   deploy:
     name: 🚀 Deploy
-    runs-on: macos-26
+    runs-on: ${{ needs.setup.outputs.runner }}
     needs: [setup, build]
     if: |
       needs.setup.outputs.should_deploy == 'true' &&
