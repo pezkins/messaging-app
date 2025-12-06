@@ -1,4 +1,5 @@
 import SwiftUI
+import GoogleSignIn
 
 @main
 struct IntokApp: App {
@@ -9,7 +10,10 @@ struct IntokApp: App {
             ContentView()
                 .environmentObject(authManager)
                 .preferredColorScheme(.dark)
+                .onOpenURL { url in
+                    // Handle Google Sign-In callback URL
+                    GIDSignIn.sharedInstance.handle(url)
+                }
         }
     }
 }
-

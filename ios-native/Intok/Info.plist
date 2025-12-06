@@ -27,14 +27,14 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.googleusercontent.apps.75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2</string>
+				<string>com.googleusercontent.apps.75949298562-g1bf5a941mad8hmha4css3ci7fef5q5o</string>
 			</array>
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>GIDClientID</key>
-	<string>75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2.apps.googleusercontent.com</string>
+	<string>75949298562-g1bf5a941mad8hmha4css3ci7fef5q5o.apps.googleusercontent.com</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>NSCameraUsageDescription</key>

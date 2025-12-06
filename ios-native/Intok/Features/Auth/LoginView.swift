@@ -41,8 +41,7 @@ struct LoginView: View {
                 // Google Sign In Button
                 Button(action: {
                     Task {
-                        // TODO: Implement Google Sign-In
-                        await authManager.signInWithGoogle(idToken: "mock_token")
+                        await authManager.signInWithGoogle()
                     }
                 }) {
                     HStack {

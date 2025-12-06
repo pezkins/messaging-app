@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import GoogleSignIn
 
 @MainActor
 class AuthManager: ObservableObject {
@@ -23,65 +24,51 @@ class AuthManager: ObservableObject {
     
     // MARK: - Public Methods
     
-    func signInWithGoogle(idToken: String) async {
+    func signInWithGoogle() async {
         isLoading = true
         error = nil
         
         do {
-            // TODO: Implement actual API call
-            // let response = try await APIService.shared.oauthLogin(provider: "google", token: idToken)
+            // Get the root view controller
+            guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                  let rootViewController = windowScene.windows.first?.rootViewController else {
+                throw AuthError.noRootViewController
+            }
             
-            // Simulate successful login for now
-            try await Task.sleep(nanoseconds: 1_000_000_000)
+            // Perform Google Sign-In
+            let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
             
-            // Mock response
-            let mockUser = User(
-                id: UUID().uuidString,
-                email: "user@example.com",
-                username: "NewUser",
-                preferredLanguage: "en",
-                preferredCountry: "US",
-                avatarUrl: nil,
-                createdAt: ISO8601DateFormatter().string(from: Date()),
-                updatedAt: ISO8601DateFormatter().string(from: Date())
+            guard let user = result.user.profile else {
+                throw AuthError.noUserProfile
+            }
+            
+            print("✅ Google Sign-In successful: \(user.email)")
+            
+            // Call backend OAuth endpoint
+            let response = try await APIService.shared.oauthLogin(
+                provider: "google",
+                providerId: result.user.userID ?? "",
+                email: user.email,
+                name: user.name,
+                avatarUrl: user.imageURL(withDimension: 200)?.absoluteString
             )
             
-            currentUser = mockUser
+            print("✅ Backend auth successful: \(response.user.email)")
+            
+            // Store tokens
+            accessToken = response.accessToken
+            refreshToken = response.refreshToken
+            APIService.shared.setAccessToken(response.accessToken)
+            
+            // Update state
+            currentUser = response.user
             isAuthenticated = true
-            needsSetup = true // New user needs setup
+            needsSetup = response.isNewUser ?? (response.user.username.isEmpty || response.user.username == response.user.email)
+            
+            saveAuth()
             
         } catch {
-            self.error = error.localizedDescription
-        }
-        
-        isLoading = false
-    }
-    
-    func signInWithEmail(email: String, password: String) async {
-        isLoading = true
-        error = nil
-        
-        do {
-            // TODO: Implement actual API call
-            try await Task.sleep(nanoseconds: 1_000_000_000)
-            
-            // Mock response
-            let mockUser = User(
-                id: UUID().uuidString,
-                email: email,
-                username: email.components(separatedBy: "@").first ?? "User",
-                preferredLanguage: "en",
-                preferredCountry: "US",
-                avatarUrl: nil,
-                createdAt: ISO8601DateFormatter().string(from: Date()),
-                updatedAt: ISO8601DateFormatter().string(from: Date())
-            )
-            
-            currentUser = mockUser
-            isAuthenticated = true
-            needsSetup = false
-            
-        } catch {
+            print("❌ Sign-in error: \(error.localizedDescription)")
             self.error = error.localizedDescription
         }
         
@@ -93,27 +80,20 @@ class AuthManager: ObservableObject {
         error = nil
         
         do {
-            // TODO: Implement actual API call to update profile
-            try await Task.sleep(nanoseconds: 500_000_000)
+            // Update profile on backend
+            let _ = try await APIService.shared.updateProfile(username: displayName)
+            let _ = try await APIService.shared.updateLanguage(preferredLanguage: language)
+            let userResponse = try await APIService.shared.updateCountry(preferredCountry: country)
             
             // Update local user
-            if var user = currentUser {
-                currentUser = User(
-                    id: user.id,
-                    email: user.email,
-                    username: displayName,
-                    preferredLanguage: language,
-                    preferredCountry: country,
-                    avatarUrl: user.avatarUrl,
-                    createdAt: user.createdAt,
-                    updatedAt: ISO8601DateFormatter().string(from: Date())
-                )
-            }
-            
+            currentUser = userResponse.user
             needsSetup = false
             saveAuth()
             
+            print("✅ Setup complete for: \(displayName)")
+            
         } catch {
+            print("❌ Setup error: \(error.localizedDescription)")
             self.error = error.localizedDescription
         }
         
@@ -121,12 +101,19 @@ class AuthManager: ObservableObject {
     }
     
     func signOut() {
+        // Sign out from Google
+        GIDSignIn.sharedInstance.signOut()
+        
+        // Clear local state
         accessToken = nil
         refreshToken = nil
         currentUser = nil
         isAuthenticated = false
         needsSetup = false
+        APIService.shared.setAccessToken(nil)
         clearStoredAuth()
+        
+        print("✅ Signed out")
     }
     
     // MARK: - Private Methods
@@ -135,10 +122,15 @@ class AuthManager: ObservableObject {
         accessToken = userDefaults.string(forKey: tokenKey)
         refreshToken = userDefaults.string(forKey: refreshTokenKey)
         
+        if let token = accessToken {
+            APIService.shared.setAccessToken(token)
+        }
+        
         if let userData = userDefaults.data(forKey: userKey),
            let user = try? JSONDecoder().decode(User.self, from: userData) {
             currentUser = user
             isAuthenticated = true
+            print("✅ Restored auth for: \(user.email)")
         }
     }
     
@@ -159,3 +151,20 @@ class AuthManager: ObservableObject {
     }
 }
 
+// MARK: - Auth Errors
+enum AuthError: LocalizedError {
+    case noRootViewController
+    case noUserProfile
+    case cancelled
+    
+    var errorDescription: String? {
+        switch self {
+        case .noRootViewController:
+            return "Could not find root view controller"
+        case .noUserProfile:
+            return "Could not get user profile from Google"
+        case .cancelled:
+            return "Sign-in was cancelled"
+        }
+    }
+}
