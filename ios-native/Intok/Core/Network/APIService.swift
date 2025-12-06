@@ -1,23 +1,8 @@
 import Foundation
 
-// MARK: - API Response Types
-struct AuthResponse: Codable {
-    let accessToken: String
-    let refreshToken: String
-    let user: User
-    let isNewUser: Bool?
-}
-
+// MARK: - Additional Response Types
 struct UserResponse: Codable {
     let user: User
-}
-
-struct OAuthRequest: Codable {
-    let provider: String
-    let providerId: String
-    let email: String
-    let name: String?
-    let avatarUrl: String?
 }
 
 // MARK: - API Service

@@ -42,9 +42,10 @@ struct RegisterRequest: Codable {
 
 struct OAuthRequest: Codable {
     let provider: String
-    let token: String
-    let email: String?
+    let providerId: String
+    let email: String
     let name: String?
+    let avatarUrl: String?
 }
 
 // MARK: - Conversation Models
