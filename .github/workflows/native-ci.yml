@@ -178,17 +178,11 @@ jobs:
 
       - name: 🔍 Android Lint Check
         working-directory: ./android-native
-        run: |
-          ./gradlew lint --continue || true
-          echo "✅ Lint check complete"
-        continue-on-error: true
+        run: ./gradlew lint
 
       - name: 🧪 Android Unit Tests
         working-directory: ./android-native
-        run: |
-          ./gradlew test --continue || true
-          echo "✅ Unit tests complete"
-        continue-on-error: true
+        run: ./gradlew test
 
       - name: 📊 Quality Summary
         run: |
@@ -351,7 +345,6 @@ jobs:
           if [ -f "Podfile" ]; then
             pod install
           fi
-        continue-on-error: true
 
       - name: 🔐 Import Signing Certificate (Stage/Production)
         if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
@@ -402,12 +395,13 @@ jobs:
         if: steps.check_project.outputs.project_exists == 'false'
         working-directory: ./ios-native
         run: |
-          brew install xcodegen || true
+          brew install xcodegen
           if [ -f "project.yml" ]; then
             xcodegen generate
             echo "✅ Xcode project generated"
           else
-            echo "⚠️ No project.yml found - cannot generate project"
+            echo "❌ No project.yml found - cannot generate project"
+            exit 1
           fi
 
       - name: 🏗️ Build Debug (Dev)
@@ -415,7 +409,6 @@ jobs:
         id: build_debug
         working-directory: ./ios-native
         run: |
-          # Build for simulator
           xcodebuild build \
             -project Intok.xcodeproj \
             -scheme Intok \
@@ -424,8 +417,7 @@ jobs:
             -derivedDataPath build \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO || echo "Build completed with warnings"
-          
+            CODE_SIGNING_ALLOWED=NO
           echo "✅ Debug build complete"
 
       - name: 🏗️ Build Release (Stage/Production)
@@ -434,23 +426,35 @@ jobs:
         working-directory: ./ios-native
         run: |
           # Archive for App Store
+          echo "📦 Creating archive..."
           xcodebuild archive \
             -project Intok.xcodeproj \
             -scheme Intok \
             -configuration Release \
             -archivePath build/Intok.xcarchive \
-            -destination 'generic/platform=iOS' \
-            || echo "Archive completed with warnings"
+            -destination 'generic/platform=iOS'
+          
+          # Verify archive was created
+          if [ ! -d "build/Intok.xcarchive" ]; then
+            echo "❌ Archive failed - no xcarchive created"
+            exit 1
+          fi
           
           # Export IPA
+          echo "📦 Exporting IPA..."
           xcodebuild -exportArchive \
             -archivePath build/Intok.xcarchive \
             -exportPath build/ipa \
-            -exportOptionsPlist ExportOptions.plist \
-            || echo "Export completed with warnings"
+            -exportOptionsPlist ExportOptions.plist
+          
+          # Verify IPA was created
+          if [ ! -f build/ipa/*.ipa ]; then
+            echo "❌ Export failed - no IPA created"
+            exit 1
+          fi
           
           echo "✅ Release build complete"
-        continue-on-error: true
+          ls -la build/ipa/
 
       - name: 📦 Set Artifact Name
         id: build
@@ -468,7 +472,6 @@ jobs:
           name: ${{ steps.build.outputs.artifact_name }}
           path: ios-native/build/Build/Products/Debug-iphonesimulator/Intok.app
           retention-days: 14
-          if-no-files-found: warn
 
       - name: 📤 Upload iOS Release Build
         if: steps.check_project.outputs.project_exists == 'true' && needs.setup.outputs.environment != 'dev'
@@ -477,7 +480,6 @@ jobs:
           name: ${{ steps.build.outputs.artifact_name }}
           path: ios-native/build/ipa/*.ipa
           retention-days: 30
-          if-no-files-found: warn
 
       - name: 🧹 Cleanup Keychain
         if: always()
@@ -577,7 +579,6 @@ jobs:
         with:
           name: intok-ios-release-${{ needs.build-ios.outputs.version_name }}
           path: ./build
-        continue-on-error: true
 
       - name: 🔍 Find IPA File
         id: find_ipa
@@ -585,51 +586,40 @@ jobs:
           IPA_FILE=$(find ./build -name "*.ipa" | head -1)
           if [ -n "$IPA_FILE" ]; then
             echo "ipa_file=$IPA_FILE" >> $GITHUB_OUTPUT
-            echo "ipa_found=true" >> $GITHUB_OUTPUT
             echo "📦 Found IPA: $IPA_FILE"
           else
-            echo "ipa_found=false" >> $GITHUB_OUTPUT
-            echo "⚠️ No IPA found"
+            echo "❌ No IPA found in ./build"
+            ls -laR ./build
+            exit 1
           fi
 
       - name: 🚀 Upload to App Store Connect
-        if: steps.find_ipa.outputs.ipa_found == 'true'
         env:
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
           APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
         run: |
-          # Create API key file
           mkdir -p ~/.appstoreconnect/private_keys
           echo "$APP_STORE_CONNECT_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
           
-          # Upload using xcrun altool or notarytool
           xcrun altool --upload-app \
             --type ios \
             --file "${{ steps.find_ipa.outputs.ipa_file }}" \
             --apiKey "$APP_STORE_CONNECT_API_KEY_ID" \
-            --apiIssuer "$APP_STORE_CONNECT_API_ISSUER_ID" \
-            || echo "Upload completed with warnings"
+            --apiIssuer "$APP_STORE_CONNECT_API_ISSUER_ID"
+          
+          echo "✅ Uploaded to App Store Connect"
 
       - name: 📋 Deployment Summary
         run: |
-          echo "## 🍎 iOS Deployment Status" >> $GITHUB_STEP_SUMMARY
+          echo "## 🍎 iOS Deployment Complete!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ steps.find_ipa.outputs.ipa_found }}" == "true" ]; then
-            echo "✅ IPA uploaded to App Store Connect" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
-            echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
-            echo "| Version | \`${{ needs.build-ios.outputs.version_name }}\` |" >> $GITHUB_STEP_SUMMARY
-            echo "| Target | \`${{ needs.build-ios.outputs.ios_target }}\` |" >> $GITHUB_STEP_SUMMARY
-          else
-            echo "⚠️ No IPA artifact found. iOS build may have failed." >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Next Steps:**" >> $GITHUB_STEP_SUMMARY
-            echo "1. Ensure Xcode project is committed" >> $GITHUB_STEP_SUMMARY
-            echo "2. Configure signing certificates" >> $GITHUB_STEP_SUMMARY
-            echo "3. Set up App Store Connect API keys" >> $GITHUB_STEP_SUMMARY
-          fi
+          echo "✅ IPA uploaded to App Store Connect" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | \`${{ needs.build-ios.outputs.version_name }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Target | \`${{ needs.build-ios.outputs.ios_target }}\` |" >> $GITHUB_STEP_SUMMARY
 
   # ============================================
   # Deployment Summary
