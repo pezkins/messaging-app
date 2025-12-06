@@ -88,7 +88,7 @@ jobs:
   # ============================================
   lint:
     name: 🔍 SwiftLint
-    runs-on: macos-14
+    runs-on: macos-26
     needs: setup
 
     steps:
@@ -104,7 +104,7 @@ jobs:
 
   test:
     name: 🧪 Test
-    runs-on: macos-14
+    runs-on: macos-26
     needs: setup
 
     steps:
@@ -155,7 +155,7 @@ jobs:
   # ============================================
   build:
     name: 🏗️ Build
-    runs-on: macos-14
+    runs-on: macos-26
     needs: [setup, lint, test]
     outputs:
       artifact_name: ${{ steps.artifact.outputs.name }}
@@ -334,7 +334,7 @@ jobs:
   # ============================================
   deploy:
     name: 🚀 Deploy
-    runs-on: macos-14
+    runs-on: macos-26
     needs: [setup, build]
     if: |
       needs.setup.outputs.should_deploy == 'true' &&
