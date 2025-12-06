@@ -16,7 +16,6 @@ on:
     paths:
       - 'android-native/**'
       - 'ios-native/**'
-      - '.github/workflows/native-ci.yml'
   pull_request:
     branches:
       - dev
@@ -81,10 +80,8 @@ jobs:
           filters: |
             android:
               - 'android-native/**'
-              - '.github/workflows/native-ci.yml'
             ios:
               - 'ios-native/**'
-              - '.github/workflows/native-ci.yml'
 
       - name: 🔍 Determine Environment
         id: config
