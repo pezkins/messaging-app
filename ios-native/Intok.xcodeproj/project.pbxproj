@@ -10,6 +10,7 @@
 		12B23CCA0F9EA70F3EFB6987 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196D3B5805F957A909DAD1F2 /* SettingsView.swift */; };
 		13E97AF4558937103E093D31 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EF4B062A1B8C0B229E1A2F04 /* Assets.xcassets */; };
 		17049A5BC0443C70F5DC9EEA /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364BF34D67B234294D1DA2E4 /* AuthManager.swift */; };
+		A1B2C3D4E5F60718091A2B3C /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E5F6A7B8C9D0E1F2A3B4C5 /* APIService.swift */; };
 		26B5FFD35D1066A90B174AAB /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2E2DA7FC82BEE77F0F2738 /* Models.swift */; };
 		40DE0A76B1DA1CE1C8DFD990 /* ConversationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08CAB9E74F4A67184DFF5A2A /* ConversationsView.swift */; };
 		494574466F14DBD2B0A54797 /* IntokApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 209CBB20DB64B3411A313918 /* IntokApp.swift */; };
@@ -25,6 +26,7 @@
 /* Begin PBXFileReference section */
 		08CAB9E74F4A67184DFF5A2A /* ConversationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationsView.swift; sourceTree = "<group>"; };
 		12409B09249C3035423A8BCB /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		D4E5F6A7B8C9D0E1F2A3B4C5 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 		19527CB278B7265CD4B6B05D /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
 		196D3B5805F957A909DAD1F2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		1FABA2603C1DFDD12AEABA9D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -117,6 +119,7 @@
 		691C26F0DFD2BCD692CA88C9 /* Network */ = {
 			isa = PBXGroup;
 			children = (
+				D4E5F6A7B8C9D0E1F2A3B4C5 /* APIService.swift */,
 				364BF34D67B234294D1DA2E4 /* AuthManager.swift */,
 			);
 			path = Network;
@@ -252,6 +255,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1B2C3D4E5F60718091A2B3C /* APIService.swift in Sources */,
 				17049A5BC0443C70F5DC9EEA /* AuthManager.swift in Sources */,
 				B98F38C0A33351099F429F3B /* ChatView.swift in Sources */,
 				C9858BF749563A4D1DE527A5 /* ContentView.swift in Sources */,
