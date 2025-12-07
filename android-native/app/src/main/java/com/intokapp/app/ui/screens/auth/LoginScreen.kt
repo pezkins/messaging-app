@@ -1,6 +1,7 @@
 package com.intokapp.app.ui.screens.auth
 
 import android.app.Activity
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -94,6 +95,8 @@ fun LoginScreen(
             // Google Sign In Button
             Button(
                 onClick = {
+                    Log.d("LoginScreen", "🔘 Google Sign-In button clicked!")
+                    Log.d("LoginScreen", "Context: $context, is Activity: ${context is Activity}")
                     viewModel.signInWithGoogle(context as Activity)
                 },
                 modifier = Modifier
