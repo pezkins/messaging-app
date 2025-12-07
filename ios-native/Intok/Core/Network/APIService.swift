@@ -1,4 +1,7 @@
 import Foundation
+import os.log
+
+private let logger = Logger(subsystem: "com.pezkins.intok", category: "APIService")
 
 // MARK: - Additional Response Types
 struct UserResponse: Codable {
@@ -52,7 +55,7 @@ class APIService {
             request.httpBody = try JSONEncoder().encode(body)
         }
         
-        print("📤 API Request: \(method) \(endpoint)")
+        logger.info("📤 API Request: \(method) \(endpoint)")
         
         let (data, response) = try await URLSession.shared.data(for: request)
         
@@ -60,11 +63,11 @@ class APIService {
             throw APIError.invalidResponse
         }
         
-        print("📥 API Response: \(httpResponse.statusCode)")
+        logger.info("📥 API Response: \(httpResponse.statusCode)")
         
         // Log raw response for debugging
         if let responseString = String(data: data, encoding: .utf8) {
-            print("📦 Raw response: \(responseString)")
+            logger.debug("📦 Raw response: \(responseString, privacy: .public)")
         }
         
         guard (200...299).contains(httpResponse.statusCode) else {
@@ -75,9 +78,11 @@ class APIService {
         }
         
         do {
-            return try JSONDecoder().decode(T.self, from: data)
+            let decoded = try JSONDecoder().decode(T.self, from: data)
+            logger.info("✅ JSON Decode Success")
+            return decoded
         } catch {
-            print("❌ JSON Decode Error: \(error)")
+            logger.error("❌ JSON Decode Error: \(error.localizedDescription, privacy: .public)")
             throw error
         }
     }

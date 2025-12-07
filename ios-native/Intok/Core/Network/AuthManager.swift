@@ -1,6 +1,9 @@
 import Foundation
 import Combine
 import GoogleSignIn
+import os.log
+
+private let logger = Logger(subsystem: "com.pezkins.intok", category: "AuthManager")
 
 @MainActor
 class AuthManager: ObservableObject {
@@ -42,7 +45,7 @@ class AuthManager: ObservableObject {
                 throw AuthError.noUserProfile
             }
             
-            print("✅ Google Sign-In successful: \(user.email)")
+            logger.info("✅ Google Sign-In successful: \(user.email, privacy: .public)")
             
             // Call backend OAuth endpoint
             let response = try await APIService.shared.oauthLogin(
@@ -53,7 +56,8 @@ class AuthManager: ObservableObject {
                 avatarUrl: user.imageURL(withDimension: 200)?.absoluteString
             )
             
-            print("✅ Backend auth successful: \(response.user.email)")
+            logger.info("✅ Backend auth successful: \(response.user.email, privacy: .public)")
+            logger.info("✅ isNewUser: \(String(describing: response.isNewUser)), username: \(response.user.username, privacy: .public)")
             
             // Store tokens
             accessToken = response.accessToken
@@ -66,11 +70,12 @@ class AuthManager: ObservableObject {
             needsSetup = response.isNewUser ?? (response.user.username.isEmpty || response.user.username == response.user.email)
             
             saveAuth()
+            logger.info("✅ Auth state updated - isAuthenticated: \(self.isAuthenticated), needsSetup: \(self.needsSetup)")
             
         } catch {
-            print("❌ Sign-in error: \(error)")
-            print("❌ Error type: \(type(of: error))")
-            print("❌ Localized: \(error.localizedDescription)")
+            logger.error("❌ Sign-in error: \(String(describing: error), privacy: .public)")
+            logger.error("❌ Error type: \(String(describing: type(of: error)), privacy: .public)")
+            logger.error("❌ Localized: \(error.localizedDescription, privacy: .public)")
             self.error = error.localizedDescription
         }
         
