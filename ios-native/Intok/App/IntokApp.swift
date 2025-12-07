@@ -3,12 +3,11 @@ import GoogleSignIn
 
 @main
 struct IntokApp: App {
-    @StateObject private var authManager = AuthManager()
-    
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .environmentObject(authManager)
+                .environmentObject(AuthManager.shared)
+                .environmentObject(ChatStore.shared)
                 .preferredColorScheme(.dark)
                 .onOpenURL { url in
                     // Handle Google Sign-In callback URL

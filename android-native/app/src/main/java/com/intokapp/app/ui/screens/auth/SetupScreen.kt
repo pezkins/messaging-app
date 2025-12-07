@@ -1,135 +1,195 @@
 package com.intokapp.app.ui.screens.auth
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Map
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.intokapp.app.data.constants.COUNTRIES
+import com.intokapp.app.data.constants.Country
+import com.intokapp.app.data.constants.LANGUAGES
+import com.intokapp.app.data.constants.Language
 import com.intokapp.app.ui.theme.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SetupScreen(
-    onSetupComplete: () -> Unit
+    onSetupComplete: () -> Unit,
+    viewModel: SetupViewModel = hiltViewModel()
 ) {
-    var displayName by remember { mutableStateOf("") }
-    var selectedLanguage by remember { mutableStateOf("en") }
-    var selectedCountry by remember { mutableStateOf("US") }
-    var isLoading by remember { mutableStateOf(false) }
+    var currentStep by remember { mutableIntStateOf(0) }
     
+    val uiState by viewModel.uiState.collectAsState()
+    
+    LaunchedEffect(uiState.isComplete) {
+        if (uiState.isComplete) {
+            onSetupComplete()
+        }
+    }
+    
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(Surface950, Surface900)
+                )
+            )
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Progress Indicator
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.padding(top = 20.dp)
+            ) {
+                repeat(3) { index ->
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp)
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (index <= currentStep) Purple500 else Surface700
+                            )
+                    )
+                }
+            }
+            
+            // Content
+            when (currentStep) {
+                0 -> DisplayNameStep(
+                    displayName = uiState.displayName,
+                    onDisplayNameChange = viewModel::setDisplayName,
+                    isLoading = uiState.isLoading,
+                    error = uiState.error,
+                    onContinue = {
+                        viewModel.saveDisplayName {
+                            currentStep = 1
+                        }
+                    }
+                )
+                1 -> LanguageStep(
+                    selectedLanguage = uiState.selectedLanguage,
+                    onLanguageSelect = viewModel::setLanguage,
+                    isLoading = uiState.isLoading,
+                    onContinue = {
+                        viewModel.saveLanguage {
+                            currentStep = 2
+                        }
+                    }
+                )
+                2 -> CountryStep(
+                    selectedCountry = uiState.selectedCountry,
+                    onCountrySelect = viewModel::setCountry,
+                    isLoading = uiState.isLoading,
+                    onSkip = viewModel::completeSetup,
+                    onFinish = viewModel::saveCountryAndComplete
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DisplayNameStep(
+    displayName: String,
+    onDisplayNameChange: (String) -> Unit,
+    isLoading: Boolean,
+    error: String?,
+    onContinue: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Surface950)
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.weight(1f))
+        
+        Icon(
+            imageVector = Icons.Default.Person,
+            contentDescription = null,
+            modifier = Modifier.size(80.dp),
+            tint = Purple500
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
         
         Text(
-            text = "Welcome to Intok! 👋",
+            text = "Choose a Display Name",
             style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
             color = White
         )
         
         Text(
-            text = "Let's set up your profile",
-            style = MaterialTheme.typography.bodyLarge,
+            text = "This is how others will see you",
+            style = MaterialTheme.typography.bodyMedium,
             color = Surface400,
             modifier = Modifier.padding(top = 8.dp)
         )
         
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(32.dp))
         
-        // Display Name
         OutlinedTextField(
             value = displayName,
-            onValueChange = { displayName = it },
-            label = { Text("Display Name") },
+            onValueChange = onDisplayNameChange,
+            placeholder = { Text("Enter your name", color = Surface500) },
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Purple500,
-                unfocusedBorderColor = Surface600,
-                focusedLabelColor = Purple500,
-                unfocusedLabelColor = Surface400,
-                cursorColor = Purple500,
                 focusedTextColor = White,
-                unfocusedTextColor = White
+                unfocusedTextColor = White,
+                focusedBorderColor = Purple500,
+                unfocusedBorderColor = Surface700
             ),
             singleLine = true
         )
         
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Language Dropdown (placeholder)
-        Text(
-            text = "Preferred Language",
-            style = MaterialTheme.typography.labelLarge,
-            color = Surface400,
-            modifier = Modifier.align(Alignment.Start)
-        )
-        
-        // TODO: Add proper language picker
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            shape = RoundedCornerShape(12.dp),
-            color = Surface800
-        ) {
+        error?.let {
             Text(
-                text = "🇺🇸 English",
-                modifier = Modifier.padding(16.dp),
-                color = White
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Country Dropdown (placeholder)
-        Text(
-            text = "Country",
-            style = MaterialTheme.typography.labelLarge,
-            color = Surface400,
-            modifier = Modifier.align(Alignment.Start)
-        )
-        
-        // TODO: Add proper country picker
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            shape = RoundedCornerShape(12.dp),
-            color = Surface800
-        ) {
-            Text(
-                text = "🇺🇸 United States",
-                modifier = Modifier.padding(16.dp),
-                color = White
+                text = it,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(top = 8.dp)
             )
         }
         
         Spacer(modifier = Modifier.weight(1f))
         
-        // Continue Button
         Button(
-            onClick = {
-                isLoading = true
-                // TODO: Save profile settings
-                onSetupComplete()
-            },
+            onClick = onContinue,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp),
+            enabled = displayName.length >= 2 && !isLoading,
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.buttonColors(
-                containerColor = Purple500
-            ),
-            enabled = displayName.isNotBlank() && !isLoading
+                containerColor = Purple500,
+                disabledContainerColor = Surface700
+            )
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
@@ -137,14 +197,311 @@ fun SetupScreen(
                     color = White
                 )
             } else {
-                Text(
-                    text = "Continue",
-                    style = MaterialTheme.typography.titleMedium
+                Text("Continue")
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(Icons.Default.ArrowForward, contentDescription = null)
+            }
+        }
+    }
+}
+
+@Composable
+private fun LanguageStep(
+    selectedLanguage: Language?,
+    onLanguageSelect: (Language) -> Unit,
+    isLoading: Boolean,
+    onContinue: () -> Unit
+) {
+    var searchText by remember { mutableStateOf("") }
+    
+    val filteredLanguages = remember(searchText) {
+        if (searchText.isEmpty()) LANGUAGES
+        else LANGUAGES.filter {
+            it.name.contains(searchText, ignoreCase = true) ||
+            it.native.contains(searchText, ignoreCase = true)
+        }
+    }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = Icons.Default.Public,
+            contentDescription = null,
+            modifier = Modifier.size(60.dp),
+            tint = Purple500
+        )
+        
+        Text(
+            text = "Select Your Language",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = White,
+            modifier = Modifier.padding(top = 16.dp)
+        )
+        
+        Text(
+            text = "Messages will be translated to this language",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Surface400,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+        
+        OutlinedTextField(
+            value = searchText,
+            onValueChange = { searchText = it },
+            placeholder = { Text("Search languages...", color = Surface500) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = White,
+                unfocusedTextColor = White,
+                focusedBorderColor = Purple500,
+                unfocusedBorderColor = Surface700
+            ),
+            singleLine = true
+        )
+        
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .padding(top = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(filteredLanguages) { language ->
+                LanguageItem(
+                    language = language,
+                    isSelected = selectedLanguage?.code == language.code,
+                    onClick = { onLanguageSelect(language) }
                 )
             }
         }
         
-        Spacer(modifier = Modifier.height(24.dp))
+        Button(
+            onClick = onContinue,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            enabled = selectedLanguage != null && !isLoading,
+            shape = RoundedCornerShape(16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Purple500,
+                disabledContainerColor = Surface700
+            )
+        ) {
+            if (isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    color = White
+                )
+            } else {
+                Text("Continue")
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(Icons.Default.ArrowForward, contentDescription = null)
+            }
+        }
     }
 }
 
+@Composable
+private fun LanguageItem(
+    language: Language,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) Purple500.copy(alpha = 0.2f) else Surface800.copy(alpha = 0.5f)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = language.name,
+                    color = White,
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = language.native,
+                    color = Surface400,
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+            
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Purple500
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CountryStep(
+    selectedCountry: Country?,
+    onCountrySelect: (Country) -> Unit,
+    isLoading: Boolean,
+    onSkip: () -> Unit,
+    onFinish: () -> Unit
+) {
+    var searchText by remember { mutableStateOf("") }
+    
+    val filteredCountries = remember(searchText) {
+        if (searchText.isEmpty()) COUNTRIES
+        else COUNTRIES.filter { it.name.contains(searchText, ignoreCase = true) }
+    }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = Icons.Default.Map,
+            contentDescription = null,
+            modifier = Modifier.size(60.dp),
+            tint = Purple500
+        )
+        
+        Text(
+            text = "Select Your Country",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = White,
+            modifier = Modifier.padding(top = 16.dp)
+        )
+        
+        Text(
+            text = "Optional - helps connect you with nearby users",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Surface400,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+        
+        OutlinedTextField(
+            value = searchText,
+            onValueChange = { searchText = it },
+            placeholder = { Text("Search countries...", color = Surface500) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = White,
+                unfocusedTextColor = White,
+                focusedBorderColor = Purple500,
+                unfocusedBorderColor = Surface700
+            ),
+            singleLine = true
+        )
+        
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .padding(top = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(filteredCountries) { country ->
+                CountryItem(
+                    country = country,
+                    isSelected = selectedCountry?.code == country.code,
+                    onClick = { onCountrySelect(country) }
+                )
+            }
+        }
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedButton(
+                onClick = onSkip,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = White)
+            ) {
+                Text("Skip")
+            }
+            
+            Button(
+                onClick = onFinish,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp),
+                enabled = !isLoading,
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Purple500)
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = White
+                    )
+                } else {
+                    Text("Finish")
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(Icons.Default.Check, contentDescription = null)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CountryItem(
+    country: Country,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) Purple500.copy(alpha = 0.2f) else Surface800.copy(alpha = 0.5f)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = country.flag,
+                fontSize = 24.sp,
+                modifier = Modifier.padding(end = 12.dp)
+            )
+            
+            Text(
+                text = country.name,
+                color = White,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f)
+            )
+            
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Purple500
+                )
+            }
+        }
+    }
+}

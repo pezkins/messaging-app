@@ -20,7 +20,7 @@ data class User(
     @SerializedName("createdAt")
     val createdAt: String,
     @SerializedName("updatedAt")
-    val updatedAt: String
+    val updatedAt: String? = null
 )
 
 data class UserPublic(
@@ -63,9 +63,10 @@ data class RegisterRequest(
 
 data class OAuthRequest(
     val provider: String,
-    val token: String,
-    val email: String? = null,
-    val name: String? = null
+    val providerId: String,
+    val email: String,
+    val name: String? = null,
+    val avatarUrl: String? = null
 )
 
 // ============================================

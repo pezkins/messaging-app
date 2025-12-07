@@ -88,7 +88,7 @@ jobs:
             VERSION=$(grep -m1 'MARKETING_VERSION' ios-native/Intok.xcodeproj/project.pbxproj | sed 's/.*= \(.*\);/\1/' | tr -d ' ')
             echo "version=$VERSION" >> $GITHUB_OUTPUT
           else
-            echo "version=0.1.0" >> $GITHUB_OUTPUT
+            echo "version=0.1.1" >> $GITHUB_OUTPUT
           fi
 
       - name: 📋 Summary

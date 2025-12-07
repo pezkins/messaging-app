@@ -1,0 +1,301 @@
+import Foundation
+import Combine
+import os.log
+
+private let logger = Logger(subsystem: "com.pezkins.intok", category: "ChatStore")
+
+// MARK: - Chat Store
+@MainActor
+class ChatStore: ObservableObject {
+    static let shared = ChatStore()
+    
+    @Published var conversations: [Conversation] = []
+    @Published var activeConversation: Conversation?
+    @Published var messages: [Message] = []
+    @Published var typingUsers: [String: Set<String>] = [:] // conversationId -> Set<userId>
+    
+    @Published var isLoadingConversations = false
+    @Published var isLoadingMessages = false
+    @Published var hasMoreMessages = false
+    
+    private var nextCursor: String?
+    
+    private init() {
+        setupWebSocketHandlers()
+    }
+    
+    // MARK: - WebSocket Event Handlers
+    private func setupWebSocketHandlers() {
+        WebSocketService.shared.onMessageReceive = { [weak self] data in
+            self?.handleMessageReceive(data)
+        }
+        
+        WebSocketService.shared.onTyping = { [weak self] data in
+            self?.handleTyping(data)
+        }
+        
+        WebSocketService.shared.onReaction = { [weak self] data in
+            self?.handleReaction(data)
+        }
+    }
+    
+    private func handleMessageReceive(_ data: MessageReceiveData) {
+        let message = data.message
+        
+        // Replace temp message or add new
+        if let tempId = data.tempId, let index = messages.firstIndex(where: { $0.id == tempId }) {
+            messages[index] = message
+        } else if activeConversation?.id == message.conversationId {
+            // Check for duplicates
+            if !messages.contains(where: { $0.id == message.id }) {
+                messages.append(message)
+            }
+        }
+        
+        // Update conversation's last message
+        if let index = conversations.firstIndex(where: { $0.id == message.conversationId }) {
+            var updated = conversations[index]
+            // Create new conversation with updated lastMessage
+            // Note: This is a workaround since Conversation is a struct
+            conversations[index] = Conversation(
+                id: updated.id,
+                type: updated.type,
+                name: updated.name,
+                participants: updated.participants,
+                lastMessage: message,
+                createdAt: updated.createdAt,
+                updatedAt: message.createdAt
+            )
+            
+            // Sort conversations by last message time
+            conversations.sort { ($0.updatedAt) > ($1.updatedAt) }
+        }
+        
+        logger.info("📨 Message received in \(message.conversationId, privacy: .public)")
+    }
+    
+    private func handleTyping(_ data: TypingData) {
+        var users = typingUsers[data.conversationId] ?? Set()
+        
+        if data.isTyping {
+            users.insert(data.userId)
+        } else {
+            users.remove(data.userId)
+        }
+        
+        typingUsers[data.conversationId] = users
+    }
+    
+    private func handleReaction(_ data: ReactionData) {
+        if let index = messages.firstIndex(where: { $0.id == data.messageId }) {
+            var message = messages[index]
+            // Update message with new reactions
+            messages[index] = Message(
+                id: message.id,
+                conversationId: message.conversationId,
+                senderId: message.senderId,
+                sender: message.sender,
+                type: message.type,
+                originalContent: message.originalContent,
+                originalLanguage: message.originalLanguage,
+                translatedContent: message.translatedContent,
+                targetLanguage: message.targetLanguage,
+                status: message.status,
+                createdAt: message.createdAt,
+                reactions: data.reactions,
+                attachment: message.attachment
+            )
+        }
+    }
+    
+    // MARK: - Load Conversations
+    func loadConversations() async {
+        guard !isLoadingConversations else { return }
+        
+        isLoadingConversations = true
+        logger.info("📥 Loading conversations...")
+        
+        do {
+            let response = try await APIService.shared.getConversations()
+            conversations = response.conversations
+            logger.info("✅ Loaded \(response.conversations.count) conversations")
+        } catch {
+            logger.error("❌ Failed to load conversations: \(error.localizedDescription, privacy: .public)")
+        }
+        
+        isLoadingConversations = false
+    }
+    
+    // MARK: - Select Conversation
+    func selectConversation(_ conversation: Conversation) async {
+        // Leave previous conversation
+        if let prev = activeConversation {
+            WebSocketService.shared.leaveConversation(prev.id)
+        }
+        
+        // Join new conversation
+        WebSocketService.shared.joinConversation(conversation.id)
+        
+        activeConversation = conversation
+        messages = []
+        hasMoreMessages = false
+        nextCursor = nil
+        
+        isLoadingMessages = true
+        
+        do {
+            let response = try await APIService.shared.getMessages(conversationId: conversation.id)
+            messages = response.messages
+            hasMoreMessages = response.hasMore
+            nextCursor = response.nextCursor
+            logger.info("✅ Loaded \(response.messages.count) messages")
+        } catch {
+            logger.error("❌ Failed to load messages: \(error.localizedDescription, privacy: .public)")
+        }
+        
+        isLoadingMessages = false
+    }
+    
+    // MARK: - Clear Active Conversation
+    func clearActiveConversation() {
+        if let prev = activeConversation {
+            WebSocketService.shared.leaveConversation(prev.id)
+        }
+        activeConversation = nil
+        messages = []
+        hasMoreMessages = false
+        nextCursor = nil
+    }
+    
+    // MARK: - Load More Messages
+    func loadMoreMessages() async {
+        guard let conversation = activeConversation,
+              hasMoreMessages,
+              !isLoadingMessages,
+              let cursor = nextCursor else { return }
+        
+        isLoadingMessages = true
+        
+        do {
+            let response = try await APIService.shared.getMessages(
+                conversationId: conversation.id,
+                cursor: cursor
+            )
+            
+            // Prepend older messages
+            messages = response.messages + messages
+            hasMoreMessages = response.hasMore
+            nextCursor = response.nextCursor
+        } catch {
+            logger.error("❌ Failed to load more messages: \(error.localizedDescription, privacy: .public)")
+        }
+        
+        isLoadingMessages = false
+    }
+    
+    // MARK: - Send Message
+    func sendMessage(_ content: String, type: String = "TEXT", attachment: [String: Any]? = nil) {
+        guard let conversation = activeConversation,
+              !content.trimmingCharacters(in: .whitespaces).isEmpty || attachment != nil else { return }
+        
+        let tempId = "temp-\(Date().timeIntervalSince1970)-\(UUID().uuidString.prefix(8))"
+        
+        // Create optimistic message
+        let optimisticMessage = Message(
+            id: tempId,
+            conversationId: conversation.id,
+            senderId: "",
+            sender: UserPublic(id: "", username: "You", preferredLanguage: "en", avatarUrl: nil),
+            type: .text,
+            originalContent: content,
+            originalLanguage: "en",
+            status: .sending,
+            createdAt: ISO8601DateFormatter().string(from: Date())
+        )
+        
+        messages.append(optimisticMessage)
+        
+        // Send via WebSocket
+        WebSocketService.shared.sendMessage(
+            conversationId: conversation.id,
+            content: content,
+            type: type,
+            tempId: tempId,
+            attachment: attachment
+        )
+    }
+    
+    // MARK: - Start Conversation
+    func startConversation(with user: UserPublic) async -> Conversation? {
+        // Check for existing direct conversation
+        if let existing = conversations.first(where: { conv in
+            conv.type == "direct" && conv.participants.contains(where: { $0.id == user.id })
+        }) {
+            await selectConversation(existing)
+            return existing
+        }
+        
+        // Create new conversation
+        do {
+            let response = try await APIService.shared.createConversation(
+                participantIds: [user.id],
+                type: "direct"
+            )
+            
+            conversations.insert(response.conversation, at: 0)
+            await selectConversation(response.conversation)
+            return response.conversation
+        } catch {
+            logger.error("❌ Failed to start conversation: \(error.localizedDescription, privacy: .public)")
+            return nil
+        }
+    }
+    
+    // MARK: - Start Group Conversation
+    func startGroupConversation(with users: [UserPublic], name: String? = nil) async -> Conversation? {
+        do {
+            let response = try await APIService.shared.createConversation(
+                participantIds: users.map { $0.id },
+                type: "group",
+                name: name
+            )
+            
+            conversations.insert(response.conversation, at: 0)
+            await selectConversation(response.conversation)
+            return response.conversation
+        } catch {
+            logger.error("❌ Failed to start group: \(error.localizedDescription, privacy: .public)")
+            return nil
+        }
+    }
+    
+    // MARK: - Typing
+    func setTyping(_ isTyping: Bool) {
+        guard let conversation = activeConversation else { return }
+        WebSocketService.shared.sendTyping(conversationId: conversation.id, isTyping: isTyping)
+    }
+    
+    // MARK: - Reaction
+    func sendReaction(messageId: String, messageTimestamp: String, emoji: String) {
+        guard let conversation = activeConversation else { return }
+        WebSocketService.shared.sendReaction(
+            conversationId: conversation.id,
+            messageId: messageId,
+            messageTimestamp: messageTimestamp,
+            emoji: emoji
+        )
+    }
+    
+    // MARK: - Search Users
+    func searchUsers(query: String) async -> [UserPublic] {
+        guard query.count >= 2 else { return [] }
+        
+        do {
+            let response = try await APIService.shared.searchUsers(query: query)
+            return response.users
+        } catch {
+            logger.error("❌ User search failed: \(error.localizedDescription, privacy: .public)")
+            return []
+        }
+    }
+}

@@ -1,6 +1,7 @@
 package com.intokapp.app.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -9,10 +10,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.intokapp.app.data.repository.AuthState
 import com.intokapp.app.ui.screens.auth.LoginScreen
 import com.intokapp.app.ui.screens.auth.SetupScreen
 import com.intokapp.app.ui.screens.chat.ChatScreen
 import com.intokapp.app.ui.screens.conversations.ConversationsScreen
+import com.intokapp.app.ui.screens.newchat.NewChatScreen
 import com.intokapp.app.ui.screens.settings.SettingsScreen
 
 sealed class Screen(val route: String) {
@@ -27,11 +30,50 @@ sealed class Screen(val route: String) {
 }
 
 @Composable
-fun IntokNavigation() {
+fun IntokNavigation(
+    viewModel: NavigationViewModel = hiltViewModel()
+) {
     val navController = rememberNavController()
+    val authState by viewModel.authState.collectAsState()
     
-    // TODO: Check auth state to determine start destination
-    val startDestination = Screen.Login.route
+    // Initialize auth
+    LaunchedEffect(Unit) {
+        viewModel.initialize()
+    }
+    
+    // Handle auth state changes
+    LaunchedEffect(authState) {
+        when (authState) {
+            is AuthState.Unauthenticated -> {
+                navController.navigate(Screen.Login.route) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+            is AuthState.Authenticated -> {
+                val state = authState as AuthState.Authenticated
+                if (state.needsSetup) {
+                    navController.navigate(Screen.Setup.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                } else {
+                    navController.navigate(Screen.Conversations.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            }
+            else -> {}
+        }
+    }
+    
+    // Determine start destination based on initial state
+    val startDestination = when (authState) {
+        is AuthState.Authenticated -> {
+            if ((authState as AuthState.Authenticated).needsSetup) Screen.Setup.route
+            else Screen.Conversations.route
+        }
+        is AuthState.Unauthenticated -> Screen.Login.route
+        else -> Screen.Login.route
+    }
     
     NavHost(
         navController = navController,
@@ -40,15 +82,7 @@ fun IntokNavigation() {
         composable(Screen.Login.route) {
             LoginScreen(
                 onLoginSuccess = { isNewUser ->
-                    if (isNewUser) {
-                        navController.navigate(Screen.Setup.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
-                        }
-                    } else {
-                        navController.navigate(Screen.Conversations.route) {
-                            popUpTo(Screen.Login.route) { inclusive = true }
-                        }
-                    }
+                    // Navigation handled by auth state change
                 }
             )
         }
@@ -56,9 +90,7 @@ fun IntokNavigation() {
         composable(Screen.Setup.route) {
             SetupScreen(
                 onSetupComplete = {
-                    navController.navigate(Screen.Conversations.route) {
-                        popUpTo(Screen.Setup.route) { inclusive = true }
-                    }
+                    // Navigation handled by auth state change
                 }
             )
         }
@@ -90,16 +122,23 @@ fun IntokNavigation() {
             )
         }
         
+        composable(Screen.NewChat.route) {
+            NewChatScreen(
+                onBackClick = { navController.popBackStack() },
+                onChatCreated = { conversationId ->
+                    navController.popBackStack()
+                    navController.navigate(Screen.Chat.createRoute(conversationId))
+                }
+            )
+        }
+        
         composable(Screen.Settings.route) {
             SettingsScreen(
                 onBackClick = { navController.popBackStack() },
                 onLogout = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
+                    // Navigation handled by auth state change
                 }
             )
         }
     }
 }
-

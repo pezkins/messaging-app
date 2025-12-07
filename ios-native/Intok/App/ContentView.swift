@@ -5,30 +5,62 @@ struct ContentView: View {
     
     var body: some View {
         Group {
-            if authManager.isAuthenticated {
-                if authManager.needsSetup {
-                    SetupView()
-                } else {
-                    MainTabView()
-                }
-            } else {
+            if authManager.isLoading && authManager.currentUser == nil {
+                // Loading state
+                loadingView
+            } else if !authManager.isAuthenticated {
+                // Not authenticated - show login
                 LoginView()
+            } else if authManager.needsSetup {
+                // Authenticated but needs setup
+                SetupView()
+            } else {
+                // Fully authenticated - show main app
+                MainTabView()
             }
         }
         .animation(.easeInOut, value: authManager.isAuthenticated)
+        .animation(.easeInOut, value: authManager.needsSetup)
+    }
+    
+    var loadingView: some View {
+        ZStack {
+            Color(hex: "0F0F0F")
+                .ignoresSafeArea()
+            
+            VStack(spacing: 20) {
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "8B5CF6")))
+                    .scaleEffect(1.5)
+                
+                Text("Loading...")
+                    .foregroundColor(.gray)
+            }
+        }
     }
 }
 
+// MARK: - Main Tab View
 struct MainTabView: View {
+    @State private var selectedTab = 0
+    
     var body: some View {
-        NavigationStack {
+        TabView(selection: $selectedTab) {
             ConversationsView()
+                .tabItem {
+                    Image(systemName: "message.fill")
+                    Text("Messages")
+                }
+                .tag(0)
+            
+            // Future: Additional tabs can be added here
+            // e.g., Contacts, Profile, etc.
         }
+        .accentColor(Color(hex: "8B5CF6"))
     }
 }
 
 #Preview {
     ContentView()
-        .environmentObject(AuthManager())
+        .environmentObject(AuthManager.shared)
 }
-

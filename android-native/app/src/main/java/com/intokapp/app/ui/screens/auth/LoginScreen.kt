@@ -1,5 +1,6 @@
 package com.intokapp.app.ui.screens.auth
 
+import android.app.Activity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,17 +9,27 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.intokapp.app.ui.theme.*
 
 @Composable
 fun LoginScreen(
-    onLoginSuccess: (isNewUser: Boolean) -> Unit
+    onLoginSuccess: (isNewUser: Boolean) -> Unit,
+    viewModel: LoginViewModel = hiltViewModel()
 ) {
-    var isLoading by remember { mutableStateOf(false) }
+    val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    
+    LaunchedEffect(uiState.isLoggedIn) {
+        if (uiState.isLoggedIn) {
+            onLoginSuccess(uiState.isNewUser)
+        }
+    }
     
     Box(
         modifier = Modifier
@@ -44,7 +55,7 @@ fun LoginScreen(
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
-                        text = "🌐",
+                        text = "\uD83C\uDF10",
                         fontSize = 48.sp
                     )
                 }
@@ -70,13 +81,20 @@ fun LoginScreen(
             
             Spacer(modifier = Modifier.height(48.dp))
             
+            // Error message
+            uiState.error?.let { error ->
+                Text(
+                    text = error,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+            }
+            
             // Google Sign In Button
             Button(
                 onClick = {
-                    isLoading = true
-                    // TODO: Implement Google Sign-In
-                    // For now, simulate login
-                    onLoginSuccess(true)
+                    viewModel.signInWithGoogle(context as Activity)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -86,9 +104,9 @@ fun LoginScreen(
                     containerColor = White,
                     contentColor = Surface900
                 ),
-                enabled = !isLoading
+                enabled = !uiState.isLoading
             ) {
-                if (isLoading) {
+                if (uiState.isLoading) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
                         color = Purple500
@@ -108,7 +126,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.weight(1f),
                     color = Surface700
                 )
@@ -117,7 +135,7 @@ fun LoginScreen(
                     color = Surface500,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.weight(1f),
                     color = Surface700
                 )
@@ -125,11 +143,9 @@ fun LoginScreen(
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Email Sign In Button
+            // Email Sign In Button (placeholder)
             OutlinedButton(
-                onClick = {
-                    // TODO: Implement Email Sign-In
-                },
+                onClick = { /* TODO: Implement Email Sign-In */ },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
@@ -156,4 +172,3 @@ fun LoginScreen(
         }
     }
 }
-

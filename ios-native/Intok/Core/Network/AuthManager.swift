@@ -7,6 +7,8 @@ private let logger = Logger(subsystem: "com.pezkins.intok", category: "AuthManag
 
 @MainActor
 class AuthManager: ObservableObject {
+    static let shared = AuthManager()
+    
     @Published var isAuthenticated = false
     @Published var needsSetup = false
     @Published var currentUser: User?
@@ -21,7 +23,7 @@ class AuthManager: ObservableObject {
     private let refreshTokenKey = "intok_refresh_token"
     private let userKey = "intok_user"
     
-    init() {
+    private init() {
         loadStoredAuth()
     }
     
@@ -101,6 +103,9 @@ class AuthManager: ObservableObject {
             refreshToken = response.refreshToken
             APIService.shared.setAccessToken(response.accessToken)
             
+            // Connect WebSocket
+            WebSocketService.shared.connect(token: response.accessToken)
+            
             // Update state
             currentUser = response.user
             isAuthenticated = true
@@ -142,7 +147,10 @@ class AuthManager: ObservableObject {
         isLoading = false
     }
     
-    func signOut() {
+    func signOut() async {
+        // Disconnect WebSocket
+        WebSocketService.shared.disconnect()
+        
         // Sign out from Google
         GIDSignIn.sharedInstance.signOut()
         
@@ -155,7 +163,17 @@ class AuthManager: ObservableObject {
         APIService.shared.setAccessToken(nil)
         clearStoredAuth()
         
-        print("✅ Signed out")
+        logger.info("✅ Signed out")
+    }
+    
+    func updateUser(_ user: User) async {
+        currentUser = user
+        saveAuth()
+    }
+    
+    func completeSetup() {
+        needsSetup = false
+        saveAuth()
     }
     
     // MARK: - Private Methods

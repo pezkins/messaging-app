@@ -1,156 +1,331 @@
 import SwiftUI
 
 struct ChatView: View {
-    let conversationId: String
+    let conversation: Conversation
+    @EnvironmentObject var authManager: AuthManager
+    @StateObject private var chatStore = ChatStore.shared
+    @Environment(\.dismiss) var dismiss
+    
     @State private var messageText = ""
-    @State private var messages: [Message] = []
-    @Environment(\.dismiss) private var dismiss
+    @State private var showingAttachmentOptions = false
+    @FocusState private var isInputFocused: Bool
+    
+    var displayName: String {
+        if conversation.type == "group" {
+            return conversation.name ?? "Group Chat"
+        }
+        if let otherUser = conversation.participants.first(where: { $0.id != authManager.currentUser?.id }) {
+            return otherUser.username
+        }
+        return "Chat"
+    }
     
     var body: some View {
         ZStack {
-            Color.surface950.ignoresSafeArea()
+            // Background
+            Color(hex: "0F0F0F")
+                .ignoresSafeArea()
             
             VStack(spacing: 0) {
                 // Messages
-                ScrollView {
-                    LazyVStack(spacing: 8) {
-                        if messages.isEmpty {
-                            VStack(spacing: 8) {
-                                Spacer()
-                                    .frame(height: 100)
-                                Text("💬")
-                                    .font(.system(size: 48))
-                                Text("No messages yet")
-                                    .foregroundColor(.surface400)
-                                Text("Send a message to start the conversation")
-                                    .font(.bodySmall)
-                                    .foregroundColor(.surface500)
-                            }
-                            .frame(maxWidth: .infinity)
-                        } else {
-                            ForEach(messages) { message in
-                                MessageBubble(message: message, isOwn: false) // TODO: Check if own
-                            }
-                        }
-                    }
-                    .padding()
+                messagesView
+                
+                // Typing Indicator
+                if let typingUsers = chatStore.typingUsers[conversation.id], !typingUsers.isEmpty {
+                    typingIndicator
                 }
                 
-                // Input Bar
-                VStack(spacing: 0) {
-                    HStack(spacing: 8) {
-                        // Attachment button
-                        Button(action: { /* TODO */ }) {
-                            Image(systemName: "plus.circle")
-                                .font(.title2)
-                                .foregroundColor(.surface400)
-                        }
-                        
-                        // Text input
-                        TextField("Type a message...", text: $messageText, axis: .vertical)
-                            .textFieldStyle(.plain)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .background(Color.surface800)
-                            .foregroundColor(.white)
-                            .cornerRadius(20)
-                            .lineLimit(1...4)
-                        
-                        // Send button
-                        Button(action: sendMessage) {
-                            Image(systemName: "arrow.up")
-                                .font(.title3)
-                                .foregroundColor(.white)
-                                .frame(width: 36, height: 36)
-                                .background(messageText.isEmpty ? Color.surface700 : Color.purple500)
-                                .clipShape(Circle())
-                        }
-                        .disabled(messageText.isEmpty)
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                    .background(Color.surface900)
-                    
-                    // Translation hint
-                    Text("Messages translate automatically to each person's language")
-                        .font(.caption)
-                        .foregroundColor(.surface500)
-                        .padding(.bottom, 8)
-                        .frame(maxWidth: .infinity)
-                        .background(Color.surface900)
-                }
+                // Input
+                inputBar
             }
         }
+        .navigationTitle(displayName)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .principal) {
-                HStack {
-                    Circle()
-                        .fill(Color.purple600)
-                        .frame(width: 36, height: 36)
-                        .overlay(
-                            Text("U")
-                                .foregroundColor(.white)
-                        )
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button(action: {}) {
+                        Label("View Profile", systemImage: "person")
+                    }
+                    Button(action: {}) {
+                        Label("Search in Chat", systemImage: "magnifyingglass")
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .foregroundColor(Color(hex: "8B5CF6"))
+                }
+            }
+        }
+        .task {
+            await chatStore.selectConversation(conversation)
+        }
+        .onDisappear {
+            chatStore.clearActiveConversation()
+        }
+    }
+    
+    // MARK: - Messages View
+    var messagesView: some View {
+        ScrollViewReader { proxy in
+            ScrollView {
+                LazyVStack(spacing: 4) {
+                    if chatStore.hasMoreMessages {
+                        Button("Load more...") {
+                            Task { await chatStore.loadMoreMessages() }
+                        }
+                        .foregroundColor(Color(hex: "8B5CF6"))
+                        .padding()
+                    }
                     
-                    VStack(alignment: .leading) {
-                        Text("User Name")
-                            .font(.titleSmall)
-                            .foregroundColor(.white)
-                        Text("Online")
-                            .font(.caption)
-                            .foregroundColor(.surface400)
+                    ForEach(chatStore.messages) { message in
+                        MessageBubble(
+                            message: message,
+                            isOwnMessage: message.senderId == authManager.currentUser?.id || message.id.hasPrefix("temp-")
+                        )
+                        .id(message.id)
+                    }
+                }
+                .padding()
+            }
+            .onChange(of: chatStore.messages.count) { _ in
+                if let lastId = chatStore.messages.last?.id {
+                    withAnimation {
+                        proxy.scrollTo(lastId, anchor: .bottom)
                     }
                 }
             }
         }
     }
     
-    private func sendMessage() {
-        guard !messageText.isEmpty else { return }
-        // TODO: Send message via WebSocket
-        messageText = ""
-    }
-}
-
-struct MessageBubble: View {
-    let message: Message
-    let isOwn: Bool
-    
-    var body: some View {
+    // MARK: - Typing Indicator
+    var typingIndicator: some View {
         HStack {
-            if isOwn { Spacer() }
+            Text("Someone is typing...")
+                .font(.caption)
+                .foregroundColor(.gray)
+                .italic()
             
-            VStack(alignment: isOwn ? .trailing : .leading, spacing: 4) {
-                if !isOwn {
-                    Text(message.sender.username)
-                        .font(.caption)
-                        .foregroundColor(.purple400)
+            HStack(spacing: 4) {
+                ForEach(0..<3) { i in
+                    Circle()
+                        .fill(Color.gray)
+                        .frame(width: 6, height: 6)
+                        .animation(
+                            Animation.easeInOut(duration: 0.6)
+                                .repeatForever()
+                                .delay(Double(i) * 0.2),
+                            value: true
+                        )
                 }
-                
-                Text(message.translatedContent ?? message.originalContent)
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
-                    .background(isOwn ? Color.purple600 : Color.surface800)
-                    .cornerRadius(20, corners: isOwn ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight])
-                
-                Text(formatTime(message.createdAt))
-                    .font(.caption2)
-                    .foregroundColor(isOwn ? .purple200 : .surface500)
             }
             
-            if !isOwn { Spacer() }
+            Spacer()
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+    }
+    
+    // MARK: - Input Bar
+    var inputBar: some View {
+        VStack(spacing: 0) {
+            Divider()
+                .background(Color.white.opacity(0.1))
+            
+            HStack(spacing: 12) {
+                // Attachment Button
+                Button(action: { showingAttachmentOptions = true }) {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.title2)
+                        .foregroundColor(Color(hex: "8B5CF6"))
+                }
+                
+                // Text Field
+                TextField("Message...", text: $messageText, axis: .vertical)
+                    .textFieldStyle(.plain)
+                    .padding(12)
+                    .background(Color.white.opacity(0.1))
+                    .cornerRadius(20)
+                    .foregroundColor(.white)
+                    .lineLimit(5)
+                    .focused($isInputFocused)
+                    .onChange(of: messageText) { text in
+                        chatStore.setTyping(!text.isEmpty)
+                    }
+                
+                // Send Button
+                Button(action: sendMessage) {
+                    Image(systemName: "arrow.up.circle.fill")
+                        .font(.title)
+                        .foregroundColor(
+                            messageText.trimmingCharacters(in: .whitespaces).isEmpty ?
+                            Color.gray : Color(hex: "8B5CF6")
+                        )
+                }
+                .disabled(messageText.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+            .padding()
+            .background(Color(hex: "1A1A1A"))
         }
     }
     
-    private func formatTime(_ dateString: String) -> String {
-        // TODO: Proper date formatting
-        return "12:00"
+    // MARK: - Actions
+    func sendMessage() {
+        let text = messageText.trimmingCharacters(in: .whitespaces)
+        guard !text.isEmpty else { return }
+        
+        chatStore.sendMessage(text)
+        messageText = ""
+        chatStore.setTyping(false)
     }
 }
 
-// Helper for selective corner radius
+// MARK: - Message Bubble
+struct MessageBubble: View {
+    let message: Message
+    let isOwnMessage: Bool
+    
+    @State private var showTranslation = false
+    
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 8) {
+            if isOwnMessage {
+                Spacer(minLength: 60)
+            } else {
+                // Avatar
+                Circle()
+                    .fill(Color(hex: "8B5CF6"))
+                    .frame(width: 28, height: 28)
+                    .overlay(
+                        Text(String(message.sender.username.prefix(1).uppercased()))
+                            .font(.caption2)
+                            .foregroundColor(.white)
+                    )
+            }
+            
+            VStack(alignment: isOwnMessage ? .trailing : .leading, spacing: 4) {
+                // Sender name for group chats
+                if !isOwnMessage {
+                    Text(message.sender.username)
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                
+                // Message Content
+                VStack(alignment: .leading, spacing: 4) {
+                    // Original or Translated Content
+                    Text(showTranslation ? (message.translatedContent ?? message.originalContent) : message.originalContent)
+                        .foregroundColor(isOwnMessage ? .white : .white)
+                    
+                    // Translation toggle if available
+                    if message.translatedContent != nil {
+                        Button(action: { showTranslation.toggle() }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "globe")
+                                Text(showTranslation ? "Original" : "Translate")
+                            }
+                            .font(.caption2)
+                            .foregroundColor(isOwnMessage ? .white.opacity(0.7) : Color(hex: "8B5CF6"))
+                        }
+                    }
+                }
+                .padding(12)
+                .background(
+                    isOwnMessage ?
+                    Color(hex: "8B5CF6") :
+                    Color.white.opacity(0.1)
+                )
+                .cornerRadius(16, corners: isOwnMessage ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight])
+                
+                // Status and Time
+                HStack(spacing: 4) {
+                    Text(formatTime(message.createdAt))
+                        .font(.caption2)
+                        .foregroundColor(.gray)
+                    
+                    if isOwnMessage {
+                        Image(systemName: statusIcon)
+                            .font(.caption2)
+                            .foregroundColor(statusColor)
+                    }
+                }
+                
+                // Reactions
+                if let reactions = message.reactions, !reactions.isEmpty {
+                    HStack(spacing: 4) {
+                        ForEach(Array(reactions.keys), id: \.self) { emoji in
+                            if let users = reactions[emoji], !users.isEmpty {
+                                HStack(spacing: 2) {
+                                    Text(emoji)
+                                    Text("\(users.count)")
+                                        .font(.caption2)
+                                        .foregroundColor(.gray)
+                                }
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.white.opacity(0.1))
+                                .cornerRadius(12)
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if !isOwnMessage {
+                Spacer(minLength: 60)
+            }
+        }
+        .padding(.vertical, 2)
+    }
+    
+    var statusIcon: String {
+        switch message.status {
+        case .sending:
+            return "clock"
+        case .sent:
+            return "checkmark"
+        case .delivered:
+            return "checkmark.circle"
+        case .seen:
+            return "checkmark.circle.fill"
+        case .failed:
+            return "exclamationmark.circle"
+        }
+    }
+    
+    var statusColor: Color {
+        switch message.status {
+        case .failed:
+            return .red
+        case .seen:
+            return Color(hex: "8B5CF6")
+        default:
+            return .gray
+        }
+    }
+    
+    func formatTime(_ isoString: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        
+        guard let date = formatter.date(from: isoString) else {
+            formatter.formatOptions = [.withInternetDateTime]
+            guard let date = formatter.date(from: isoString) else {
+                return ""
+            }
+            return formatTimeFromDate(date)
+        }
+        
+        return formatTimeFromDate(date)
+    }
+    
+    func formatTimeFromDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "h:mm a"
+        return formatter.string(from: date)
+    }
+}
+
+// MARK: - Corner Radius Extension
 extension View {
     func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
         clipShape(RoundedCorner(radius: radius, corners: corners))
@@ -172,8 +347,14 @@ struct RoundedCorner: Shape {
 }
 
 #Preview {
-    NavigationStack {
-        ChatView(conversationId: "test")
-    }
+    ChatView(conversation: Conversation(
+        id: "1",
+        type: "direct",
+        name: nil,
+        participants: [UserPublic(id: "1", username: "Test User", preferredLanguage: "en", avatarUrl: nil)],
+        lastMessage: nil,
+        createdAt: "",
+        updatedAt: ""
+    ))
+    .environmentObject(AuthManager.shared)
 }
-
