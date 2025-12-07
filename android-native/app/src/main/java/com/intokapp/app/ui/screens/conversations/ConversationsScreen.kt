@@ -165,7 +165,7 @@ fun ConversationsScreen(
                                 onClick = { onConversationClick(conversation.id) }
                             )
                             
-                            HorizontalDivider(
+                            Divider(
                                 color = Surface700,
                                 modifier = Modifier.padding(start = 76.dp)
                             )

@@ -1,7 +1,6 @@
 package com.intokapp.app.data.models
 
 import com.google.gson.annotations.SerializedName
-import kotlinx.datetime.Instant
 
 // ============================================
 // User Models

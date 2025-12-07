@@ -3,7 +3,6 @@ package com.intokapp.app.data.repository
 import android.util.Log
 import com.intokapp.app.data.models.*
 import com.intokapp.app.data.network.ApiService
-import com.intokapp.app.data.network.CreateConversationRequest
 import com.intokapp.app.data.network.WebSocketEvent
 import com.intokapp.app.data.network.WebSocketService
 import kotlinx.coroutines.CoroutineScope

@@ -10,8 +10,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -98,7 +96,7 @@ fun SettingsScreen(
                     onClick = { showLanguagePicker = true }
                 )
                 
-                HorizontalDivider(color = Surface700)
+                Divider(color = Surface700)
                 
                 SettingsRow(
                     icon = Icons.Default.Map,
@@ -160,7 +158,7 @@ fun SettingsScreen(
                 )
             ) {
                 Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
+                    imageVector = Icons.Default.ExitToApp,
                     contentDescription = null,
                     tint = Red500
                 )
