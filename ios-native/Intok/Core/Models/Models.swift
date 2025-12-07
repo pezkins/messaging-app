@@ -9,7 +9,7 @@ struct User: Codable, Identifiable {
     let preferredCountry: String?
     let avatarUrl: String?
     let createdAt: String
-    let updatedAt: String
+    let updatedAt: String?
 }
 
 struct UserPublic: Codable, Identifiable {
