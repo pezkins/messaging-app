@@ -1,17 +1,14 @@
 package com.intokapp.app.data.repository
 
-import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.util.Log
-import androidx.activity.result.ActivityResultLauncher
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
-import com.intokapp.app.BuildConfig
 import com.intokapp.app.data.models.User
 import com.intokapp.app.data.network.ApiService
 import com.intokapp.app.data.network.OAuthLoginRequest
@@ -48,10 +45,9 @@ class AuthRepository @Inject constructor(
     
     val currentUser: Flow<User?> = tokenManager.userFlow
     
-    // Google Sign-In client
+    // Google Sign-In client - matching iOS approach (no ID token needed)
     private val googleSignInClient: GoogleSignInClient by lazy {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-            .requestIdToken(BuildConfig.GOOGLE_CLIENT_ID)
             .requestEmail()
             .requestProfile()
             .build()
