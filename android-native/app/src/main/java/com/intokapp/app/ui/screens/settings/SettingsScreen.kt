@@ -116,7 +116,7 @@ fun SettingsScreen(
                     onClick = { showWhatsNew = true }
                 )
                 
-                HorizontalDivider(color = Surface700)
+                Divider(color = Surface700)
                 
                 Row(
                     modifier = Modifier

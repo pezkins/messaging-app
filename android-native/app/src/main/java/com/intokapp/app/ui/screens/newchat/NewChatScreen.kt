@@ -53,7 +53,7 @@ fun NewChatScreen(
                 title = { Text(if (isGroupMode) "New Group" else "New Chat", color = White) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = White)
+                        Icon(Icons.Default.ArrowBack, null, tint = White)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Surface950)

@@ -80,7 +80,7 @@ fun ChatScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = White)
+                        Icon(Icons.Default.ArrowBack, null, tint = White)
                     }
                 },
                 actions = {
