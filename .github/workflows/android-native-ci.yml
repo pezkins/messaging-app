@@ -105,6 +105,9 @@ jobs:
 
       - name: 🔍 Run Lint
         working-directory: ./android-native
+        env:
+          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          TENOR_API_KEY: ${{ secrets.TENOR_API_KEY }}
         run: ./gradlew lint
 
   test:
@@ -127,6 +130,9 @@ jobs:
 
       - name: 🧪 Run Tests
         working-directory: ./android-native
+        env:
+          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          TENOR_API_KEY: ${{ secrets.TENOR_API_KEY }}
         run: ./gradlew test
 
   # ============================================
@@ -168,11 +174,17 @@ jobs:
       - name: 🏗️ Build Debug APK
         if: needs.setup.outputs.environment == 'dev'
         working-directory: ./android-native
+        env:
+          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          TENOR_API_KEY: ${{ secrets.TENOR_API_KEY }}
         run: ./gradlew assembleDebug
 
       - name: 🏗️ Build Release AAB
         if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
         working-directory: ./android-native
+        env:
+          GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
+          TENOR_API_KEY: ${{ secrets.TENOR_API_KEY }}
         run: ./gradlew bundleRelease
 
       - name: 📦 Set Artifact Name

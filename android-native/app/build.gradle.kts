@@ -16,6 +16,18 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+// Load local properties (for local development)
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties()
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
+// Helper to get config from: 1) Environment, 2) local.properties, 3) default
+fun getConfig(key: String, default: String = ""): String {
+    return System.getenv(key) ?: localProperties.getProperty(key) ?: default
+}
+
 android {
     namespace = "com.intokapp.app"
     compileSdk = 35
@@ -33,11 +45,11 @@ android {
             useSupportLibrary = true
         }
 
-        // API Configuration
-        buildConfigField("String", "API_URL", "\"https://aji93f9i0k.execute-api.us-east-1.amazonaws.com/prod\"")
-        buildConfigField("String", "WS_URL", "\"wss://ksupcb7ucf.execute-api.us-east-1.amazonaws.com/prod\"")
-        buildConfigField("String", "GOOGLE_CLIENT_ID", "\"75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2.apps.googleusercontent.com\"")
-        buildConfigField("String", "TENOR_API_KEY", "\"AIzaSyAyimkuYQYF_FXVvIi8ND7S_FLRh1xqLYM\"")
+        // API Configuration - from environment or local.properties
+        buildConfigField("String", "API_URL", "\"${getConfig("API_URL", "https://aji93f9i0k.execute-api.us-east-1.amazonaws.com/prod")}\"")
+        buildConfigField("String", "WS_URL", "\"${getConfig("WS_URL", "wss://ksupcb7ucf.execute-api.us-east-1.amazonaws.com/prod")}\"")
+        buildConfigField("String", "GOOGLE_CLIENT_ID", "\"${getConfig("GOOGLE_WEB_CLIENT_ID")}\"")
+        buildConfigField("String", "TENOR_API_KEY", "\"${getConfig("TENOR_API_KEY")}\"")
     }
 
     // Signing configuration - use same keystore for debug and release
