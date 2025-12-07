@@ -30,6 +30,7 @@
 		19527CB278B7265CD4B6B05D /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
 		196D3B5805F957A909DAD1F2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		1FABA2603C1DFDD12AEABA9D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		E1F2A3B4C5D6E7F80910A1B2 /* Intok.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intok.entitlements; sourceTree = "<group>"; };
 		209CBB20DB64B3411A313918 /* IntokApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntokApp.swift; sourceTree = "<group>"; };
 		2E66B7BEAC0BAC39B5363BEA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		364BF34D67B234294D1DA2E4 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
@@ -81,6 +82,7 @@
 			isa = PBXGroup;
 			children = (
 				1FABA2603C1DFDD12AEABA9D /* Info.plist */,
+				E1F2A3B4C5D6E7F80910A1B2 /* Intok.entitlements */,
 				45AD77A3C59A3DC54BFCBBFF /* App */,
 				4E498C1834E6E9B379607780 /* Core */,
 				D4542F78D9DABF0ABD531233 /* Features */,
@@ -277,6 +279,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Intok/Intok.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Intok/Info.plist;
@@ -362,6 +365,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Intok/Intok.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Intok/Info.plist;

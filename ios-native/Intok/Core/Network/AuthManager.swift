@@ -31,29 +31,66 @@ class AuthManager: ObservableObject {
         isLoading = true
         error = nil
         
+        // Step 1: Get Google user info
+        var googleUserId: String?
+        var googleEmail: String?
+        var googleName: String?
+        var googleAvatarUrl: String?
+        
         do {
-            // Get the root view controller
             guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
                   let rootViewController = windowScene.windows.first?.rootViewController else {
                 throw AuthError.noRootViewController
             }
             
-            // Perform Google Sign-In
             let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController)
             
-            guard let user = result.user.profile else {
+            guard let profile = result.user.profile else {
                 throw AuthError.noUserProfile
             }
             
-            logger.info("✅ Google Sign-In successful: \(user.email, privacy: .public)")
+            googleUserId = result.user.userID
+            googleEmail = profile.email
+            googleName = profile.name
+            googleAvatarUrl = profile.imageURL(withDimension: 200)?.absoluteString
             
-            // Call backend OAuth endpoint
+            logger.info("✅ Google Sign-In successful: \(profile.email, privacy: .public)")
+            
+        } catch let googleError as NSError {
+            // Check if GIDSignIn has user data despite the error (keychain errors on simulator)
+            if let currentUser = GIDSignIn.sharedInstance.currentUser,
+               let profile = currentUser.profile {
+                logger.warning("⚠️ GIDSignIn error but user data available: \(googleError.localizedDescription, privacy: .public)")
+                googleUserId = currentUser.userID
+                googleEmail = profile.email
+                googleName = profile.name
+                googleAvatarUrl = profile.imageURL(withDimension: 200)?.absoluteString
+                logger.info("✅ Retrieved user from GIDSignIn.currentUser: \(profile.email, privacy: .public)")
+            } else {
+                logger.error("❌ Google Sign-In failed: \(googleError.localizedDescription, privacy: .public)")
+                self.error = googleError.localizedDescription
+                isLoading = false
+                return
+            }
+        }
+        
+        // Step 2: Authenticate with backend
+        guard let userId = googleUserId, let email = googleEmail else {
+            logger.error("❌ No Google user data available")
+            self.error = "Failed to get Google user information"
+            isLoading = false
+            return
+        }
+        
+        logger.info("📤 Calling backend OAuth with email: \(email, privacy: .public)")
+        
+        do {
             let response = try await APIService.shared.oauthLogin(
                 provider: "google",
-                providerId: result.user.userID ?? "",
-                email: user.email,
-                name: user.name,
-                avatarUrl: user.imageURL(withDimension: 200)?.absoluteString
+                providerId: userId,
+                email: email,
+                name: googleName,
+                avatarUrl: googleAvatarUrl
             )
             
             logger.info("✅ Backend auth successful: \(response.user.email, privacy: .public)")
@@ -73,9 +110,7 @@ class AuthManager: ObservableObject {
             logger.info("✅ Auth state updated - isAuthenticated: \(self.isAuthenticated), needsSetup: \(self.needsSetup)")
             
         } catch {
-            logger.error("❌ Sign-in error: \(String(describing: error), privacy: .public)")
-            logger.error("❌ Error type: \(String(describing: type(of: error)), privacy: .public)")
-            logger.error("❌ Localized: \(error.localizedDescription, privacy: .public)")
+            logger.error("❌ Backend auth failed: \(error.localizedDescription, privacy: .public)")
             self.error = error.localizedDescription
         }
         
