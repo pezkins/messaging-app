@@ -72,6 +72,15 @@ enum MessageStatus: String, Codable {
     case delivered
     case seen
     case failed
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self).lowercased()
+        guard let status = MessageStatus(rawValue: rawValue) else {
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unknown message status: \(rawValue)")
+        }
+        self = status
+    }
 }
 
 enum MessageType: String, Codable {
@@ -81,6 +90,15 @@ enum MessageType: String, Codable {
     case file
     case gif
     case attachment
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self).lowercased()
+        guard let type = MessageType(rawValue: rawValue) else {
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "Unknown message type: \(rawValue)")
+        }
+        self = type
+    }
 }
 
 struct Message: Codable, Identifiable {

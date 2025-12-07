@@ -222,7 +222,7 @@ class WebSocketService: ObservableObject {
         }
     }
     
-    func sendMessage(conversationId: String, content: String, type: String = "TEXT", tempId: String? = nil, attachment: [String: Any]? = nil) {
+    func sendMessage(conversationId: String, content: String, type: String = "text", tempId: String? = nil, attachment: [String: Any]? = nil) {
         var data: [String: Any] = [
             "conversationId": conversationId,
             "content": content,
@@ -271,3 +271,5 @@ class WebSocketService: ObservableObject {
         ])
     }
 }
+
+

@@ -184,7 +184,7 @@ struct MessageBubble: View {
     let message: Message
     let isOwnMessage: Bool
     
-    @State private var showTranslation = false
+    @State private var showTranslation = true  // Show translated content by default
     
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
@@ -221,7 +221,7 @@ struct MessageBubble: View {
                         Button(action: { showTranslation.toggle() }) {
                             HStack(spacing: 4) {
                                 Image(systemName: "globe")
-                                Text(showTranslation ? "Original" : "Translate")
+                                Text(showTranslation ? "Show Original" : "Translate")
                             }
                             .font(.caption2)
                             .foregroundColor(isOwnMessage ? .white.opacity(0.7) : Color(hex: "8B5CF6"))
