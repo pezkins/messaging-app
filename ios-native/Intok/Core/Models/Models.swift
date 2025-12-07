@@ -125,18 +125,4 @@ struct Attachment: Codable {
     let url: String?
 }
 
-// MARK: - API Response Models
-struct ConversationsResponse: Codable {
-    let conversations: [Conversation]
-}
-
-struct MessagesResponse: Codable {
-    let messages: [Message]
-    let hasMore: Bool
-    let nextCursor: String?
-}
-
-struct UsersSearchResponse: Codable {
-    let users: [UserPublic]
-}
 
