@@ -1,6 +1,6 @@
 package com.intokapp.app.ui.screens.auth
 
-import android.app.Activity
+import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -53,25 +53,31 @@ class LoginViewModel @Inject constructor(
         }
     }
     
-    fun signInWithGoogle(activity: Activity) {
-        Log.d("LoginViewModel", "🔘 signInWithGoogle button clicked!")
+    fun getGoogleSignInIntent(): Intent {
+        Log.d("LoginViewModel", "🔘 Getting Google Sign-In Intent")
+        _uiState.update { it.copy(isLoading = true, error = null) }
+        return authRepository.getGoogleSignInIntent()
+    }
+    
+    fun handleGoogleSignInResult(data: Intent?) {
+        Log.d("LoginViewModel", "📥 Handling Google Sign-In result")
         viewModelScope.launch {
-            Log.d("LoginViewModel", "🔄 Starting coroutine for Google Sign-In")
-            _uiState.update { it.copy(isLoading = true, error = null) }
-            
             try {
-                Log.d("LoginViewModel", "📞 Calling authRepository.signInWithGoogle...")
-                val result = authRepository.signInWithGoogle(activity)
+                val result = authRepository.handleGoogleSignInResult(data)
                 Log.d("LoginViewModel", "📥 Got result: $result")
                 result.onFailure { e ->
                     Log.e("LoginViewModel", "❌ Sign-in failed: ${e.message}", e)
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
                 }
             } catch (e: Exception) {
-                Log.e("LoginViewModel", "💥 Exception in signInWithGoogle: ${e.message}", e)
+                Log.e("LoginViewModel", "💥 Exception handling result: ${e.message}", e)
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }
             // Success handled by authState collector
         }
+    }
+    
+    fun cancelLoading() {
+        _uiState.update { it.copy(isLoading = false) }
     }
 }

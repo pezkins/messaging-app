@@ -1,7 +1,8 @@
 package com.intokapp.app.ui.screens.auth
 
-import android.app.Activity
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,7 +11,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -24,7 +24,19 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val context = LocalContext.current
+    
+    // Google Sign-In launcher
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        Log.d("LoginScreen", "📥 Google Sign-In result received: ${result.resultCode}")
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            viewModel.handleGoogleSignInResult(result.data)
+        } else {
+            Log.d("LoginScreen", "⚠️ Google Sign-In cancelled or failed: ${result.resultCode}")
+            viewModel.cancelLoading()
+        }
+    }
     
     LaunchedEffect(uiState.isLoggedIn) {
         if (uiState.isLoggedIn) {
@@ -96,8 +108,8 @@ fun LoginScreen(
             Button(
                 onClick = {
                     Log.d("LoginScreen", "🔘 Google Sign-In button clicked!")
-                    Log.d("LoginScreen", "Context: $context, is Activity: ${context is Activity}")
-                    viewModel.signInWithGoogle(context as Activity)
+                    val intent = viewModel.getGoogleSignInIntent()
+                    googleSignInLauncher.launch(intent)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

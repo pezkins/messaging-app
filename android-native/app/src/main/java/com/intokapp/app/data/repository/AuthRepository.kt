@@ -1,16 +1,17 @@
 package com.intokapp.app.data.repository
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.util.Log
-import androidx.credentials.CredentialManager
-import androidx.credentials.CustomCredential
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.GetCredentialResponse
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import androidx.activity.result.ActivityResultLauncher
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInClient
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.tasks.Task
 import com.intokapp.app.BuildConfig
-import com.intokapp.app.data.models.AuthResponse
 import com.intokapp.app.data.models.User
 import com.intokapp.app.data.network.ApiService
 import com.intokapp.app.data.network.OAuthLoginRequest
@@ -23,7 +24,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -47,6 +47,16 @@ class AuthRepository @Inject constructor(
     val authState: StateFlow<AuthState> = _authState
     
     val currentUser: Flow<User?> = tokenManager.userFlow
+    
+    // Google Sign-In client
+    private val googleSignInClient: GoogleSignInClient by lazy {
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(BuildConfig.GOOGLE_CLIENT_ID)
+            .requestEmail()
+            .requestProfile()
+            .build()
+        GoogleSignIn.getClient(context, gso)
+    }
     
     suspend fun initialize() {
         Log.d(TAG, "🚀 Initializing auth...")
@@ -99,28 +109,56 @@ class AuthRepository @Inject constructor(
         }
     }
     
-    suspend fun signInWithGoogle(activityContext: Context): Result<Boolean> {
-        Log.d(TAG, "🔐 Starting Google Sign-In...")
+    // Returns the Intent to launch Google Sign-In
+    fun getGoogleSignInIntent(): Intent {
+        Log.d(TAG, "🔐 Getting Google Sign-In Intent...")
+        return googleSignInClient.signInIntent
+    }
+    
+    // Handle the result from Google Sign-In activity
+    suspend fun handleGoogleSignInResult(data: Intent?): Result<Boolean> {
+        Log.d(TAG, "📥 Handling Google Sign-In result...")
         
         return try {
-            val credentialManager = CredentialManager.create(activityContext)
+            val task: Task<GoogleSignInAccount> = GoogleSignIn.getSignedInAccountFromIntent(data)
+            val account = task.getResult(ApiException::class.java)
             
-            val googleIdOption = GetGoogleIdOption.Builder()
-                .setFilterByAuthorizedAccounts(false)
-                .setServerClientId(BuildConfig.GOOGLE_CLIENT_ID)
-                .setAutoSelectEnabled(false)
-                .build()
+            Log.d(TAG, "✅ Google Sign-In successful: ${account.email}")
             
-            val request = GetCredentialRequest.Builder()
-                .addCredentialOption(googleIdOption)
-                .build()
-            
-            val result = credentialManager.getCredential(
-                request = request,
-                context = activityContext
+            // Call backend OAuth
+            val response = apiService.oauthLogin(
+                OAuthLoginRequest(
+                    provider = "google",
+                    providerId = account.id ?: account.email ?: "",
+                    email = account.email ?: "",
+                    name = account.displayName,
+                    avatarUrl = account.photoUrl?.toString()
+                )
             )
             
-            handleGoogleSignInResult(result)
+            // Save auth
+            tokenManager.saveAll(
+                response.accessToken,
+                response.refreshToken,
+                response.user
+            )
+            
+            // Connect WebSocket
+            webSocketService.connect()
+            
+            val isNewUser = response.isNewUser || 
+                response.user.username.isEmpty() || 
+                response.user.username == response.user.email
+            
+            _authState.value = AuthState.Authenticated(response.user, isNewUser)
+            
+            Log.d(TAG, "✅ Backend auth successful: ${response.user.email}, isNew: $isNewUser")
+            Result.success(isNewUser)
+            
+        } catch (e: ApiException) {
+            Log.e(TAG, "❌ Google Sign-In failed with code: ${e.statusCode}, message: ${e.message}")
+            _authState.value = AuthState.Error("Google Sign-In failed: ${e.statusCode}")
+            Result.failure(e)
         } catch (e: Exception) {
             Log.e(TAG, "❌ Google Sign-In error: ${e.message}")
             _authState.value = AuthState.Error(e.message ?: "Sign-in failed")
@@ -128,64 +166,12 @@ class AuthRepository @Inject constructor(
         }
     }
     
-    private suspend fun handleGoogleSignInResult(result: GetCredentialResponse): Result<Boolean> {
-        val credential = result.credential
-        
-        return when (credential) {
-            is CustomCredential -> {
-                if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-                    try {
-                        val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
-                        
-                        Log.d(TAG, "✅ Google credential received: ${googleIdTokenCredential.id}")
-                        
-                        // Call backend OAuth
-                        val response = apiService.oauthLogin(
-                            OAuthLoginRequest(
-                                provider = "google",
-                                providerId = googleIdTokenCredential.id,
-                                email = googleIdTokenCredential.id, // Google ID is usually the email
-                                name = googleIdTokenCredential.displayName,
-                                avatarUrl = googleIdTokenCredential.profilePictureUri?.toString()
-                            )
-                        )
-                        
-                        // Save auth
-                        tokenManager.saveAll(
-                            response.accessToken,
-                            response.refreshToken,
-                            response.user
-                        )
-                        
-                        // Connect WebSocket
-                        webSocketService.connect()
-                        
-                        val isNewUser = response.isNewUser || 
-                            response.user.username.isEmpty() || 
-                            response.user.username == response.user.email
-                        
-                        _authState.value = AuthState.Authenticated(response.user, isNewUser)
-                        
-                        Log.d(TAG, "✅ Backend auth successful: ${response.user.email}, isNew: $isNewUser")
-                        Result.success(isNewUser)
-                        
-                    } catch (e: GoogleIdTokenParsingException) {
-                        Log.e(TAG, "❌ Failed to parse Google ID token: ${e.message}")
-                        _authState.value = AuthState.Error("Failed to parse credentials")
-                        Result.failure(e)
-                    }
-                } else {
-                    Log.e(TAG, "❌ Unexpected credential type: ${credential.type}")
-                    _authState.value = AuthState.Error("Unexpected credential type")
-                    Result.failure(Exception("Unexpected credential type"))
-                }
-            }
-            else -> {
-                Log.e(TAG, "❌ Unexpected credential class: ${credential.javaClass}")
-                _authState.value = AuthState.Error("Unexpected credential")
-                Result.failure(Exception("Unexpected credential"))
-            }
-        }
+    fun setLoading() {
+        _authState.value = AuthState.Loading
+    }
+    
+    fun setError(message: String) {
+        _authState.value = AuthState.Error(message)
     }
     
     suspend fun updateUsername(username: String): Result<User> {
