@@ -68,7 +68,9 @@ class AuthManager: ObservableObject {
             saveAuth()
             
         } catch {
-            print("❌ Sign-in error: \(error.localizedDescription)")
+            print("❌ Sign-in error: \(error)")
+            print("❌ Error type: \(type(of: error))")
+            print("❌ Localized: \(error.localizedDescription)")
             self.error = error.localizedDescription
         }
         

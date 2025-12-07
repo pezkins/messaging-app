@@ -62,6 +62,11 @@ class APIService {
         
         print("📥 API Response: \(httpResponse.statusCode)")
         
+        // Log raw response for debugging
+        if let responseString = String(data: data, encoding: .utf8) {
+            print("📦 Raw response: \(responseString)")
+        }
+        
         guard (200...299).contains(httpResponse.statusCode) else {
             if let errorJson = try? JSONDecoder().decode(APIErrorResponse.self, from: data) {
                 throw APIError.serverError(errorJson.message)
@@ -69,7 +74,12 @@ class APIService {
             throw APIError.httpError(httpResponse.statusCode)
         }
         
-        return try JSONDecoder().decode(T.self, from: data)
+        do {
+            return try JSONDecoder().decode(T.self, from: data)
+        } catch {
+            print("❌ JSON Decode Error: \(error)")
+            throw error
+        }
     }
     
     // MARK: - Auth Endpoints
