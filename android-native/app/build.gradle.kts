@@ -40,7 +40,7 @@ android {
         buildConfigField("String", "TENOR_API_KEY", "\"AIzaSyAyimkuYQYF_FXVvIi8ND7S_FLRh1xqLYM\"")
     }
 
-    // Release signing configuration
+    // Signing configuration - use same keystore for debug and release
     signingConfigs {
         create("release") {
             if (keystorePropertiesFile.exists()) {
@@ -60,14 +60,16 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // Use release signing config if available
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
         }
         debug {
             isDebuggable = true
-            applicationIdSuffix = ".debug"
+            // Use release signing for consistent SHA-1 with Google Console
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
     }
 

@@ -153,12 +153,10 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: 🔐 Decode Keystore
-        if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android-native/app/release.keystore
 
       - name: 📝 Create Keystore Properties
-        if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
         run: |
           cat > android-native/keystore.properties << EOF
           storeFile=release.keystore
