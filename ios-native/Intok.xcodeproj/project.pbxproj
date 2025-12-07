@@ -21,6 +21,10 @@
 		B98F38C0A33351099F429F3B /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97FEA229E5E1F138D3CA8CE /* ChatView.swift */; };
 		C7CD3D311E159C1417642C45 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = EA5A736AC3C346F43BBF7EF9 /* GoogleSignIn */; };
 		C9858BF749563A4D1DE527A5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E66B7BEAC0BAC39B5363BEA /* ContentView.swift */; };
+		AA1122334455667788990011 /* WebSocketService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1122334455667788990011 /* WebSocketService.swift */; };
+		AA2233445566778899001122 /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2233445566778899001122 /* ChatStore.swift */; };
+		AA3344556677889900112233 /* Languages.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3344556677889900112233 /* Languages.swift */; };
+		AA4455667788990011223344 /* NewChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4455667788990011223344 /* NewChatView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -39,6 +43,10 @@
 		9D2E2DA7FC82BEE77F0F2738 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		EF4B062A1B8C0B229E1A2F04 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F97FEA229E5E1F138D3CA8CE /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		BB1122334455667788990011 /* WebSocketService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketService.swift; sourceTree = "<group>"; };
+		BB2233445566778899001122 /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
+		BB3344556677889900112233 /* Languages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Languages.swift; sourceTree = "<group>"; };
+		BB4455667788990011223344 /* NewChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChatView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -73,6 +81,7 @@
 		180E7A341716A4BFDA666D28 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
+				BB3344556677889900112233 /* Languages.swift */,
 				12409B09249C3035423A8BCB /* Theme.swift */,
 			);
 			path = Utils;
@@ -113,9 +122,18 @@
 			children = (
 				0B6D625C3BD4C26CCDE90D88 /* Models */,
 				691C26F0DFD2BCD692CA88C9 /* Network */,
+				CC5566778899001122334455 /* Store */,
 				180E7A341716A4BFDA666D28 /* Utils */,
 			);
 			path = Core;
+			sourceTree = "<group>";
+		};
+		CC5566778899001122334455 /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				BB2233445566778899001122 /* ChatStore.swift */,
+			);
+			path = Store;
 			sourceTree = "<group>";
 		};
 		691C26F0DFD2BCD692CA88C9 /* Network */ = {
@@ -123,6 +141,7 @@
 			children = (
 				D4E5F6A7B8C9D0E1F2A3B4C5 /* APIService.swift */,
 				364BF34D67B234294D1DA2E4 /* AuthManager.swift */,
+				BB1122334455667788990011 /* WebSocketService.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -165,18 +184,35 @@
 				F6CEA5F53E9E7E2AD82BBEC3 /* Auth */,
 				A9ACF8DE18A630409695FFD1 /* Chat */,
 				BB38D97E0DAA7C78D3D51A03 /* Conversations */,
+				DD6677889900112233445566 /* NewChat */,
 				16E716C3FDD87A6E402595BC /* Settings */,
+				EE7788990011223344556677 /* Setup */,
 			);
 			path = Features;
+			sourceTree = "<group>";
+		};
+		DD6677889900112233445566 /* NewChat */ = {
+			isa = PBXGroup;
+			children = (
+				BB4455667788990011223344 /* NewChatView.swift */,
+			);
+			path = NewChat;
 			sourceTree = "<group>";
 		};
 		F6CEA5F53E9E7E2AD82BBEC3 /* Auth */ = {
 			isa = PBXGroup;
 			children = (
 				41BA84E3D221AE506BEAEB0E /* LoginView.swift */,
-				19527CB278B7265CD4B6B05D /* SetupView.swift */,
 			);
 			path = Auth;
+			sourceTree = "<group>";
+		};
+		EE7788990011223344556677 /* Setup */ = {
+			isa = PBXGroup;
+			children = (
+				19527CB278B7265CD4B6B05D /* SetupView.swift */,
+			);
+			path = Setup;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -260,14 +296,18 @@
 				A1B2C3D4E5F60718091A2B3C /* APIService.swift in Sources */,
 				17049A5BC0443C70F5DC9EEA /* AuthManager.swift in Sources */,
 				B98F38C0A33351099F429F3B /* ChatView.swift in Sources */,
+				AA2233445566778899001122 /* ChatStore.swift in Sources */,
 				C9858BF749563A4D1DE527A5 /* ContentView.swift in Sources */,
 				40DE0A76B1DA1CE1C8DFD990 /* ConversationsView.swift in Sources */,
 				494574466F14DBD2B0A54797 /* IntokApp.swift in Sources */,
+				AA3344556677889900112233 /* Languages.swift in Sources */,
 				7D45E12CC3607427168D0CAF /* LoginView.swift in Sources */,
 				26B5FFD35D1066A90B174AAB /* Models.swift in Sources */,
+				AA4455667788990011223344 /* NewChatView.swift in Sources */,
 				12B23CCA0F9EA70F3EFB6987 /* SettingsView.swift in Sources */,
 				7A6DAFA2FC03F3840A25097C /* SetupView.swift in Sources */,
 				60A4306F3D4F126CCA543555 /* Theme.swift in Sources */,
+				AA1122334455667788990011 /* WebSocketService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
