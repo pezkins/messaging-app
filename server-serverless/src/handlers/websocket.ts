@@ -158,6 +158,44 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
   // Get all participants
   const participantIds = conversation.participantIds as string[];
 
+  // Update lastMessage for all participants' conversation records
+  for (const participantId of participantIds) {
+    // Find the participant's conversation record
+    const participantConvResult = await dynamodb.send(new QueryCommand({
+      TableName: Tables.CONVERSATIONS,
+      IndexName: 'user-conversations-index',
+      KeyConditionExpression: 'visibleTo = :userId',
+      FilterExpression: 'conversationId = :convId',
+      ExpressionAttributeValues: {
+        ':userId': participantId,
+        ':convId': conversationId,
+      },
+    }));
+
+    const participantConv = participantConvResult.Items?.[0];
+    if (participantConv) {
+      await dynamodb.send(new UpdateCommand({
+        TableName: Tables.CONVERSATIONS,
+        Key: { id: participantConv.id },
+        UpdateExpression: 'SET lastMessage = :lastMessage, updatedAt = :updatedAt',
+        ExpressionAttributeValues: {
+          ':lastMessage': {
+            id: message.id,
+            conversationId: message.conversationId,
+            senderId: message.senderId,
+            sender: message.sender,
+            type: message.type,
+            originalContent: message.originalContent,
+            originalLanguage: message.originalLanguage,
+            status: message.status,
+            createdAt: message.createdAt,
+          },
+          ':updatedAt': timestamp,
+        },
+      }));
+    }
+  }
+
   // Get connections for all participants
   const api = getApiClient(event);
 
