@@ -22,3 +22,5 @@ class NavigationViewModel @Inject constructor(
         }
     }
 }
+
+

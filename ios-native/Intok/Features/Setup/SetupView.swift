@@ -400,3 +400,5 @@ struct SetupView: View {
     SetupView()
         .environmentObject(AuthManager.shared)
 }
+
+

@@ -289,3 +289,5 @@ struct NewChatView: View {
     NewChatView()
         .environmentObject(AuthManager.shared)
 }
+
+
