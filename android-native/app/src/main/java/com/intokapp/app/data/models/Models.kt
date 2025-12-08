@@ -130,17 +130,17 @@ data class Message(
     val conversationId: String,
     @SerializedName("senderId")
     val senderId: String,
-    val sender: UserPublic,
-    val type: MessageType = MessageType.TEXT,
+    val sender: UserPublic? = null,
+    val type: MessageType? = null, // Nullable - backend may not always send this
     @SerializedName("originalContent")
     val originalContent: String,
     @SerializedName("originalLanguage")
-    val originalLanguage: String,
+    val originalLanguage: String? = null,
     @SerializedName("translatedContent")
     val translatedContent: String? = null,
     @SerializedName("targetLanguage")
     val targetLanguage: String? = null,
-    val status: MessageStatus = MessageStatus.SENT,
+    val status: MessageStatus? = null,
     @SerializedName("createdAt")
     val createdAt: String,
     val reactions: Map<String, List<String>>? = null,

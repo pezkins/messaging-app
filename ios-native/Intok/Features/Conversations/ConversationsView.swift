@@ -32,6 +32,8 @@ struct ConversationsView: View {
                     // Content
                     if chatStore.isLoadingConversations && chatStore.conversations.isEmpty {
                         loadingView
+                    } else if let error = chatStore.conversationsError {
+                        errorView(error)
                     } else if chatStore.conversations.isEmpty {
                         emptyView
                     } else {
@@ -113,6 +115,45 @@ struct ConversationsView: View {
             Text("Loading conversations...")
                 .foregroundColor(.gray)
                 .padding(.top)
+            Spacer()
+        }
+    }
+    
+    // MARK: - Error View
+    func errorView(_ message: String) -> some View {
+        VStack(spacing: 16) {
+            Spacer()
+            
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 60))
+                .foregroundColor(.orange.opacity(0.7))
+            
+            Text("Something went wrong")
+                .font(.title2)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+            
+            Text(message)
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal)
+            
+            Button(action: {
+                Task {
+                    await chatStore.loadConversations()
+                }
+            }) {
+                Text("Try Again")
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 12)
+                    .background(Color(hex: "8B5CF6"))
+                    .cornerRadius(25)
+            }
+            .padding(.top)
+            
             Spacer()
         }
     }

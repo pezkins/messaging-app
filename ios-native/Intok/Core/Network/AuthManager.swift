@@ -184,13 +184,66 @@ class AuthManager: ObservableObject {
         
         if let token = accessToken {
             APIService.shared.setAccessToken(token)
+            // Connect WebSocket when restoring auth
+            WebSocketService.shared.connect(token: token)
+            logger.info("🔌 WebSocket connection initiated on auth restore")
         }
         
         if let userData = userDefaults.data(forKey: userKey),
            let user = try? JSONDecoder().decode(User.self, from: userData) {
             currentUser = user
             isAuthenticated = true
-            print("✅ Restored auth for: \(user.email)")
+            logger.info("✅ Restored auth for: \(user.email, privacy: .public)")
+            
+            // Validate token by fetching current user - this will catch expired tokens
+            Task {
+                await validateAndRefreshTokenIfNeeded()
+            }
+        }
+    }
+    
+    // MARK: - Token Validation & Refresh
+    private func validateAndRefreshTokenIfNeeded() async {
+        do {
+            // Try to fetch current user to validate token
+            let response = try await APIService.shared.getMe()
+            currentUser = response.user
+            saveAuth()
+            logger.info("✅ Token validated successfully")
+        } catch APIError.unauthorized {
+            // Token expired, try to refresh
+            logger.warning("⚠️ Access token expired, attempting refresh...")
+            await attemptTokenRefresh()
+        } catch {
+            logger.error("❌ Token validation failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+    
+    private func attemptTokenRefresh() async {
+        guard let refreshTok = refreshToken else {
+            logger.error("❌ No refresh token available, signing out")
+            await signOut()
+            return
+        }
+        
+        do {
+            let response = try await APIService.shared.refreshToken(refreshTok)
+            
+            // Update tokens
+            accessToken = response.accessToken
+            refreshToken = response.refreshToken
+            APIService.shared.setAccessToken(response.accessToken)
+            
+            // Reconnect WebSocket with new token
+            WebSocketService.shared.disconnect()
+            WebSocketService.shared.connect(token: response.accessToken)
+            
+            saveAuth()
+            logger.info("✅ Token refreshed successfully")
+        } catch {
+            logger.error("❌ Token refresh failed: \(error.localizedDescription, privacy: .public)")
+            // Refresh failed, sign out user
+            await signOut()
         }
     }
     

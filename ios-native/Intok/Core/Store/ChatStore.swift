@@ -17,6 +17,8 @@ class ChatStore: ObservableObject {
     @Published var isLoadingConversations = false
     @Published var isLoadingMessages = false
     @Published var hasMoreMessages = false
+    @Published var conversationsError: String?
+    @Published var messagesError: String?
     
     private var nextCursor: String?
     
@@ -113,14 +115,26 @@ class ChatStore: ObservableObject {
         guard !isLoadingConversations else { return }
         
         isLoadingConversations = true
+        conversationsError = nil
         logger.info("📥 Loading conversations...")
         
         do {
             let response = try await APIService.shared.getConversations()
             conversations = response.conversations
+            conversationsError = nil
             logger.info("✅ Loaded \(response.conversations.count) conversations")
+        } catch APIError.unauthorized {
+            logger.error("❌ Unauthorized - token may be expired")
+            conversationsError = "Session expired. Please sign in again."
+        } catch APIError.networkError(let error) {
+            logger.error("❌ Network error: \(error.localizedDescription, privacy: .public)")
+            conversationsError = "Unable to connect. Check your internet connection."
+        } catch APIError.decodingError(let error) {
+            logger.error("❌ Decoding error: \(String(describing: error), privacy: .public)")
+            conversationsError = "Data format error. Please update the app."
         } catch {
-            logger.error("❌ Failed to load conversations: \(error.localizedDescription, privacy: .public)")
+            logger.error("❌ Failed to load conversations: \(String(describing: error), privacy: .public)")
+            conversationsError = "Failed to load conversations. Pull to retry."
         }
         
         isLoadingConversations = false

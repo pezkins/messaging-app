@@ -196,7 +196,7 @@ struct MessageBubble: View {
                     .fill(Color(hex: "8B5CF6"))
                     .frame(width: 28, height: 28)
                     .overlay(
-                        Text(String(message.sender.username.prefix(1).uppercased()))
+                        Text(String((message.sender?.username ?? "?").prefix(1).uppercased()))
                             .font(.caption2)
                             .foregroundColor(.white)
                     )
@@ -204,8 +204,8 @@ struct MessageBubble: View {
             
             VStack(alignment: isOwnMessage ? .trailing : .leading, spacing: 4) {
                 // Sender name for group chats
-                if !isOwnMessage {
-                    Text(message.sender.username)
+                if !isOwnMessage, let senderName = message.sender?.username {
+                    Text(senderName)
                         .font(.caption)
                         .foregroundColor(.gray)
                 }
@@ -281,7 +281,7 @@ struct MessageBubble: View {
         switch message.status {
         case .sending:
             return "clock"
-        case .sent:
+        case .sent, .none:
             return "checkmark"
         case .delivered:
             return "checkmark.circle"
