@@ -1,0 +1,112 @@
+# Android UI Layer Rules
+
+> These rules apply to all Compose UI code in ui/
+
+## Screen Organization
+
+```
+screens/featurename/
+├── FeatureScreen.kt       # Main screen composable
+├── FeatureViewModel.kt    # Screen ViewModel
+└── components/            # Screen-specific components (if needed)
+```
+
+## Compose Best Practices
+
+### State Hoisting
+```kotlin
+// Stateful (knows about ViewModel)
+@Composable
+fun ChatScreen(viewModel: ChatViewModel = hiltViewModel()) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    ChatScreenContent(uiState = uiState, onSend = viewModel::sendMessage)
+}
+
+// Stateless (receives state, emits events)
+@Composable
+private fun ChatScreenContent(
+    uiState: ChatUiState,
+    onSend: (String) -> Unit
+) {
+    // UI implementation
+}
+```
+
+### Composition Locals
+Use sparingly. Prefer explicit parameter passing.
+
+### Remember & Derived State
+```kotlin
+val filteredItems = remember(items, searchQuery) {
+    items.filter { it.name.contains(searchQuery) }
+}
+
+val sortedMessages by remember {
+    derivedStateOf { messages.sortedByDescending { it.timestamp } }
+}
+```
+
+## Navigation
+
+Use Navigation Compose with type-safe routes:
+```kotlin
+@Serializable
+data class ChatRoute(val conversationId: String)
+
+NavHost(navController, startDestination = HomeRoute) {
+    composable<HomeRoute> { HomeScreen(...) }
+    composable<ChatRoute> { backStackEntry ->
+        val route = backStackEntry.toRoute<ChatRoute>()
+        ChatScreen(conversationId = route.conversationId)
+    }
+}
+```
+
+## Theme Usage
+
+Always use theme values:
+```kotlin
+Text(
+    text = "Hello",
+    style = MaterialTheme.typography.titleLarge,
+    color = MaterialTheme.colorScheme.onSurface
+)
+```
+
+## Accessibility
+
+```kotlin
+Image(
+    painter = painterResource(R.drawable.icon),
+    contentDescription = "Send message",  // Never null for actionable
+    modifier = Modifier.semantics {
+        contentDescription = "Send button"
+        role = Role.Button
+    }
+)
+```
+
+## Performance
+
+- Use `key` in LazyColumn/LazyRow for item identity
+- Use `remember` for expensive calculations
+- Avoid unnecessary recompositions
+- Use `Modifier.drawBehind` for custom drawing
+
+## Preview
+
+Always include previews:
+```kotlin
+@Preview(showBackground = true)
+@Preview(showBackground = true, uiMode = UI_MODE_NIGHT_YES)
+@Composable
+private fun FeatureScreenPreview() {
+    IntokTheme {
+        FeatureScreenContent(
+            uiState = FeatureUiState(/* preview data */),
+            onAction = {}
+        )
+    }
+}
+```
+

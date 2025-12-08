@@ -1,0 +1,131 @@
+# Android Native App Rules
+
+> Model: claude-opus-4-20250514
+
+## Project Structure
+
+```
+app/src/main/java/com/intokapp/app/
+├── IntokApp.kt        # Application class
+├── MainActivity.kt    # Main activity
+├── ui/                # UI layer (Compose)
+│   ├── theme/         # Colors, Typography, Theme
+│   ├── navigation/    # Navigation setup
+│   └── screens/       # Feature screens
+├── data/              # Data layer
+│   ├── models/        # Data classes
+│   ├── network/       # API, WebSocket
+│   ├── repository/    # Repositories
+│   └── constants/     # App constants
+└── di/                # Dependency injection
+```
+
+## Jetpack Compose Conventions
+
+### Screen Structure
+```kotlin
+@Composable
+fun FeatureScreen(
+    viewModel: FeatureViewModel = hiltViewModel(),
+    onNavigateBack: () -> Unit,
+    onNavigateToDetail: (String) -> Unit
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    
+    FeatureScreenContent(
+        uiState = uiState,
+        onAction = viewModel::onAction,
+        onNavigateBack = onNavigateBack
+    )
+}
+
+@Composable
+private fun FeatureScreenContent(
+    uiState: FeatureUiState,
+    onAction: (FeatureAction) -> Unit,
+    onNavigateBack: () -> Unit
+) {
+    // Stateless UI implementation
+}
+```
+
+### Naming
+- Screens: `FeatureScreen`
+- ViewModels: `FeatureViewModel`
+- UI State: `FeatureUiState`
+- Actions: `FeatureAction`
+
+## ViewModel Pattern
+
+```kotlin
+@HiltViewModel
+class FeatureViewModel @Inject constructor(
+    private val repository: FeatureRepository
+) : ViewModel() {
+    
+    private val _uiState = MutableStateFlow(FeatureUiState())
+    val uiState: StateFlow<FeatureUiState> = _uiState.asStateFlow()
+    
+    fun onAction(action: FeatureAction) {
+        when (action) {
+            is FeatureAction.Load -> load()
+            is FeatureAction.Submit -> submit(action.data)
+        }
+    }
+    
+    private fun load() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                val data = repository.getData()
+                _uiState.update { it.copy(data = data, isLoading = false) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message, isLoading = false) }
+            }
+        }
+    }
+}
+
+data class FeatureUiState(
+    val data: List<Item> = emptyList(),
+    val isLoading: Boolean = false,
+    val error: String? = null
+)
+
+sealed interface FeatureAction {
+    data object Load : FeatureAction
+    data class Submit(val data: String) : FeatureAction
+}
+```
+
+## Dependency Injection (Hilt)
+
+```kotlin
+@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
+    @Provides
+    @Singleton
+    fun provideApiService(): ApiService = ...
+}
+```
+
+## Coroutines
+
+- Use `viewModelScope` in ViewModels
+- Use `Dispatchers.IO` for network/disk operations
+- Handle exceptions with try-catch
+- Use `Flow` for reactive streams
+
+## Null Safety
+
+- Avoid `!!` operator
+- Use `?.let { }` and elvis `?:`
+- Prefer non-null types where possible
+
+## Testing
+
+- Unit tests in `app/src/test/`
+- Instrumented tests in `app/src/androidTest/`
+- Use Compose testing for UI tests
+

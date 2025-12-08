@@ -1,0 +1,174 @@
+# Serverless Backend Rules
+
+> Model: claude-opus-4-20250514
+
+## Project Structure
+
+```
+server-serverless/
+├── src/
+│   ├── handlers/      # Lambda function handlers
+│   │   ├── auth.ts
+│   │   ├── users.ts
+│   │   ├── conversations.ts
+│   │   ├── messages.ts
+│   │   ├── attachments.ts
+│   │   └── websocket.ts
+│   └── lib/           # Shared utilities
+│       ├── auth.ts    # JWT utilities
+│       ├── dynamo.ts  # DynamoDB client
+│       └── translation.ts  # AI translation
+├── template.yaml      # SAM/CloudFormation template
+├── package.json
+└── tsconfig.json
+```
+
+## TypeScript Standards
+
+### Strict Mode
+Always enable strict TypeScript:
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true
+  }
+}
+```
+
+### Type Definitions
+```typescript
+// Request/Response types
+interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+interface LoginResponse {
+  user: User;
+  accessToken: string;
+  refreshToken: string;
+}
+
+// Use discriminated unions for results
+type Result<T> = 
+  | { success: true; data: T }
+  | { success: false; error: string };
+```
+
+## Lambda Handler Pattern
+
+```typescript
+import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
+
+export const handler: APIGatewayProxyHandler = async (event) => {
+  try {
+    // 1. Parse input
+    const body = parseBody(event.body);
+    
+    // 2. Validate
+    validateInput(body);
+    
+    // 3. Execute business logic
+    const result = await processRequest(body);
+    
+    // 4. Return success
+    return success(result);
+    
+  } catch (error) {
+    return handleError(error);
+  }
+};
+```
+
+## Response Helpers
+
+```typescript
+const success = <T>(data: T, statusCode = 200): APIGatewayProxyResult => ({
+  statusCode,
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+  },
+  body: JSON.stringify(data),
+});
+
+const error = (message: string, statusCode = 500): APIGatewayProxyResult => ({
+  statusCode,
+  headers: {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*',
+  },
+  body: JSON.stringify({ error: { message } }),
+});
+```
+
+## DynamoDB Patterns
+
+### Single Table Design
+Use composite keys and GSIs for access patterns:
+```typescript
+// Primary Key: PK (partition) + SK (sort)
+// GSI1: GSI1PK + GSI1SK
+
+interface DynamoItem {
+  PK: string;      // e.g., "USER#123"
+  SK: string;      // e.g., "PROFILE"
+  GSI1PK?: string; // e.g., "EMAIL#user@example.com"
+  GSI1SK?: string;
+  // ... entity attributes
+}
+```
+
+### Query Examples
+```typescript
+// Get user by ID
+const user = await dynamo.get({
+  TableName: TABLE_NAME,
+  Key: { PK: `USER#${userId}`, SK: 'PROFILE' }
+});
+
+// Get conversations for user
+const conversations = await dynamo.query({
+  TableName: TABLE_NAME,
+  KeyConditionExpression: 'PK = :pk AND begins_with(SK, :sk)',
+  ExpressionAttributeValues: {
+    ':pk': `USER#${userId}`,
+    ':sk': 'CONV#'
+  }
+});
+```
+
+## Error Codes
+
+Use consistent error codes:
+```typescript
+enum ErrorCode {
+  VALIDATION_ERROR = 'VALIDATION_ERROR',
+  UNAUTHORIZED = 'UNAUTHORIZED',
+  FORBIDDEN = 'FORBIDDEN',
+  NOT_FOUND = 'NOT_FOUND',
+  CONFLICT = 'CONFLICT',
+  INTERNAL_ERROR = 'INTERNAL_ERROR'
+}
+```
+
+## Logging
+
+Use structured JSON logging:
+```typescript
+console.log(JSON.stringify({
+  level: 'INFO',
+  message: 'User logged in',
+  userId,
+  timestamp: new Date().toISOString()
+}));
+```
+
+## Testing
+
+- Unit tests with Jest
+- Use `aws-sdk-client-mock` for DynamoDB mocks
+- Test each handler in isolation
+

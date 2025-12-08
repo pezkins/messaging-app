@@ -1,0 +1,150 @@
+# Lambda Handlers Rules
+
+> These rules apply to all Lambda function handlers in handlers/
+
+## Handler Structure
+
+Each handler file should follow this pattern:
+
+```typescript
+import { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
+import { success, error, parseBody, validateAuth } from '../lib/utils';
+
+/**
+ * Handler: [Description]
+ * Endpoint: [METHOD] /api/[path]
+ */
+export const handler: APIGatewayProxyHandler = async (event) => {
+  console.log('Request:', JSON.stringify({ 
+    path: event.path, 
+    method: event.httpMethod 
+  }));
+  
+  try {
+    // Authentication (if required)
+    const userId = validateAuth(event.headers.Authorization);
+    
+    // Parse and validate input
+    const body = parseBody<RequestType>(event.body);
+    
+    // Business logic
+    const result = await businessLogic(body, userId);
+    
+    // Return response
+    return success(result);
+    
+  } catch (err) {
+    console.error('Handler error:', err);
+    return handleError(err);
+  }
+};
+```
+
+## Auth Handler (auth.ts)
+
+Endpoints:
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/refresh`
+- `POST /api/auth/google`
+
+Special considerations:
+- Hash passwords with bcrypt
+- Generate JWT tokens with appropriate expiry
+- Validate email format
+- Check password strength
+
+## Users Handler (users.ts)
+
+Endpoints:
+- `GET /api/users/me`
+- `PATCH /api/users/me/language`
+- `GET /api/users/search`
+
+Special considerations:
+- All endpoints require authentication
+- Sanitize search queries
+- Limit search results
+
+## Conversations Handler (conversations.ts)
+
+Endpoints:
+- `GET /api/conversations`
+- `POST /api/conversations`
+- `GET /api/conversations/:id/messages`
+
+Special considerations:
+- Verify user is participant before access
+- Support pagination with cursor
+- Include unread counts
+
+## Messages Handler (messages.ts)
+
+Endpoints:
+- `POST /api/messages/preview-translation`
+
+Special considerations:
+- Rate limit translation requests
+- Cache translations where possible
+- Handle translation service failures gracefully
+
+## WebSocket Handler (websocket.ts)
+
+Events:
+- `$connect` - Store connection ID
+- `$disconnect` - Remove connection ID
+- `message:send` - Process and broadcast message
+- `message:typing` - Broadcast typing indicator
+- `message:read` - Update read status
+
+Special considerations:
+- Connection management in DynamoDB
+- Broadcast to all conversation participants
+- Handle disconnected clients gracefully
+
+## Error Handling
+
+```typescript
+class AppError extends Error {
+  constructor(
+    message: string,
+    public statusCode: number,
+    public code: string
+  ) {
+    super(message);
+  }
+}
+
+function handleError(err: unknown): APIGatewayProxyResult {
+  if (err instanceof AppError) {
+    return error(err.message, err.statusCode);
+  }
+  
+  console.error('Unexpected error:', err);
+  return error('Internal server error', 500);
+}
+```
+
+## Input Validation
+
+Always validate incoming data:
+```typescript
+function validateLoginInput(body: unknown): LoginRequest {
+  if (!body || typeof body !== 'object') {
+    throw new AppError('Invalid request body', 400, 'VALIDATION_ERROR');
+  }
+  
+  const { email, password } = body as Record<string, unknown>;
+  
+  if (!email || typeof email !== 'string' || !isValidEmail(email)) {
+    throw new AppError('Invalid email', 400, 'VALIDATION_ERROR');
+  }
+  
+  if (!password || typeof password !== 'string' || password.length < 8) {
+    throw new AppError('Password must be at least 8 characters', 400, 'VALIDATION_ERROR');
+  }
+  
+  return { email, password };
+}
+```
+

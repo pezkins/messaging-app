@@ -1,0 +1,108 @@
+# Intok Messaging App - Global Cursor Rules
+
+## Project Overview
+
+Intok is a multilingual mobile messaging app that automatically translates messages into the user's preferred language. This project uses a multi-agent development approach with specialized AI agents for different aspects of development.
+
+## Active Project Structure
+
+```
+messaging-app/
+├── ios-native/          # iOS app (Swift/SwiftUI) - ACTIVE
+├── android-native/      # Android app (Kotlin/Compose) - ACTIVE
+├── server-serverless/   # AWS Lambda backend - ACTIVE
+├── .github/workflows/   # CI/CD pipelines - ACTIVE
+├── docs/                # Public documentation - ACTIVE
+├── team/                # Shared team documentation - ACTIVE
+└── .cursor/             # AI agent configurations
+```
+
+## ⚠️ DEPRECATED FOLDERS - DO NOT MODIFY
+
+The following folders are deprecated and should NEVER be modified:
+- `server/` - Legacy Express server (replaced by server-serverless)
+- `shared/` - Legacy shared types
+- `mobile/` - Legacy React Native/Expo app (replaced by native apps)
+- `infrastructure/` - Legacy infrastructure code
+
+## AI Agent Team
+
+This project uses 5 specialized AI agents:
+
+1. **🍎 iOS Developer** (`@ios-developer`)
+   - Expert in Swift, SwiftUI, iOS SDK
+   - Working directory: `ios-native/`
+   - 20+ years mobile messaging experience
+
+2. **🤖 Android Developer** (`@android-developer`)
+   - Expert in Kotlin, Jetpack Compose, Android SDK
+   - Working directory: `android-native/`
+   - 20+ years mobile messaging experience
+
+3. **☁️ Backend Developer** (`@backend-developer`)
+   - Expert in AWS, Lambda, DynamoDB, TypeScript
+   - Working directory: `server-serverless/`
+   - 20+ years AWS experience
+
+4. **👁️ Architect/Reviewer** (`@architect-reviewer`)
+   - Code review, architecture, SDLC
+   - Read-only access to all code
+   - Write access to docs/ and team/ only
+   - 20+ years mobile development experience
+
+5. **🔧 CI/CD Engineer** (`@cicd-engineer`)
+   - GitHub Actions, mobile deployment
+   - Working directory: `.github/` and `.gitignore`
+   - 20+ years DevOps experience
+
+## Documentation References
+
+All agents should reference shared documentation in `team/`:
+- `team/project-overview.md` - Architecture and project goals
+- `team/api-contracts.md` - API specifications
+- `team/coding-standards.md` - Coding conventions
+- `team/release-process.md` - Release procedures
+- `team/feature-roadmap.md` - Feature planning
+
+## Tech Stack
+
+### iOS
+- Swift 5.9+, SwiftUI
+- MVVM + Combine
+- URLSession, async/await
+- Keychain for secure storage
+
+### Android
+- Kotlin, Jetpack Compose
+- MVVM + Clean Architecture
+- Hilt for DI
+- Retrofit + OkHttp
+
+### Backend
+- AWS Lambda (Node.js 18+, TypeScript)
+- API Gateway (HTTP + WebSocket)
+- DynamoDB
+- DeepSeek/OpenAI for translation
+
+### CI/CD
+- GitHub Actions
+- Fastlane (iOS)
+- Gradle (Android)
+- AWS SAM
+
+## Branch Strategy
+
+```
+dev    → Debug builds (simulators)
+stage  → Internal testing (TestFlight + Play Internal)
+main   → Production (App Store + Play Store)
+```
+
+## Key Rules
+
+1. **Always check deprecated folders** - Never modify server/, shared/, mobile/, or infrastructure/
+2. **Reference team docs** - Always check team/ folder for context
+3. **Maintain parity** - iOS and Android features should stay in sync
+4. **Update API contracts** - Any API changes must be documented
+5. **Follow coding standards** - Consistency across the codebase
+

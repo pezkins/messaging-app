@@ -1,0 +1,88 @@
+# iOS Features Module Rules
+
+> These rules apply to all SwiftUI views in Features/
+
+## Feature Module Structure
+
+Each feature folder should contain:
+```
+FeatureName/
+├── FeatureView.swift       # Main view
+├── FeatureViewModel.swift  # View model (if complex)
+└── Components/             # Feature-specific subviews (if needed)
+```
+
+## View Guidelines
+
+### Required Structure
+```swift
+import SwiftUI
+
+struct FeatureView: View {
+    // MARK: - Environment
+    @Environment(\.dismiss) private var dismiss
+    
+    // MARK: - State
+    @State private var viewModel = FeatureViewModel()
+    
+    // MARK: - Body
+    var body: some View {
+        content
+            .navigationTitle("Title")
+            .toolbar { toolbarContent }
+    }
+    
+    // MARK: - Subviews
+    @ViewBuilder
+    private var content: some View {
+        // Main content
+    }
+    
+    @ToolbarContentBuilder
+    private var toolbarContent: some ToolbarContent {
+        // Toolbar items
+    }
+}
+
+// MARK: - Preview
+#Preview {
+    NavigationStack {
+        FeatureView()
+    }
+}
+```
+
+## Navigation
+
+Use NavigationStack and NavigationLink:
+```swift
+NavigationLink(value: destination) {
+    Label("Go", systemImage: "arrow.right")
+}
+.navigationDestination(for: Destination.self) { dest in
+    DestinationView(destination: dest)
+}
+```
+
+## Accessibility
+
+Always include:
+- `.accessibilityLabel()` for non-text elements
+- `.accessibilityHint()` for interactive elements
+- Support Dynamic Type (avoid fixed font sizes)
+
+## Theme Integration
+
+Use theme colors from `Core/Utils/Theme.swift`:
+```swift
+.foregroundStyle(Theme.primaryColor)
+.background(Theme.backgroundColor)
+```
+
+## Error States
+
+Every view with async data should handle:
+- Loading state
+- Error state with retry
+- Empty state
+
