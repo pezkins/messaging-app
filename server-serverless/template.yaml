@@ -9,6 +9,7 @@ Globals:
     Runtime: nodejs20.x
     Environment:
       Variables:
+        JWT_SECRET: !Ref JwtSecret
         USERS_TABLE: !Ref UsersTable
         MESSAGES_TABLE: !Ref MessagesTable
         CONVERSATIONS_TABLE: !Ref ConversationsTable
@@ -20,6 +21,10 @@ Globals:
         DEEPSEEK_API_KEY: !Ref DeepSeekApiKey
 
 Parameters:
+  JwtSecret:
+    Type: String
+    NoEcho: true
+    Description: Secret key for JWT token signing (required)
   AIProvider:
     Type: String
     Default: openai

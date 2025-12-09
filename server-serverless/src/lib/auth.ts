@@ -1,18 +1,24 @@
 import jwt from 'jsonwebtoken';
 import type { APIGatewayProxyEvent } from 'aws-lambda';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error('JWT_SECRET environment variable is not set. Please configure it in your SAM template.');
+  }
+  return secret;
+}
 
 export interface JwtPayload {
   userId: string;
 }
 
 export function generateToken(userId: string): string {
-  return jwt.sign({ userId }, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ userId }, getJwtSecret(), { expiresIn: '7d' });
 }
 
 export function verifyToken(token: string): JwtPayload {
-  return jwt.verify(token, JWT_SECRET) as JwtPayload;
+  return jwt.verify(token, getJwtSecret()) as JwtPayload;
 }
 
 export function getUserIdFromEvent(event: APIGatewayProxyEvent): string | null {

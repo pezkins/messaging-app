@@ -1,0 +1,39 @@
+# AWS SAM deployment configuration
+# Run: sam deploy --config-env dev
+
+version = 0.1
+
+[default.deploy.parameters]
+stack_name = "intok-api"
+resolve_s3 = true
+s3_prefix = "intok-api"
+region = "us-east-1"
+confirm_changeset = true
+capabilities = "CAPABILITY_IAM"
+
+[dev.deploy.parameters]
+stack_name = "intok-api-dev"
+confirm_changeset = false
+parameter_overrides = [
+    "JwtSecret=${JWT_SECRET}",
+    "AIProvider=openai",
+    "OpenAIApiKey=${OPENAI_API_KEY}",
+]
+
+[stage.deploy.parameters]
+stack_name = "intok-api-stage"
+confirm_changeset = true
+parameter_overrides = [
+    "JwtSecret=${JWT_SECRET}",
+    "AIProvider=openai",
+    "OpenAIApiKey=${OPENAI_API_KEY}",
+]
+
+[prod.deploy.parameters]
+stack_name = "intok-api-prod"
+confirm_changeset = true
+parameter_overrides = [
+    "JwtSecret=${JWT_SECRET}",
+    "AIProvider=openai",
+    "OpenAIApiKey=${OPENAI_API_KEY}",
+]

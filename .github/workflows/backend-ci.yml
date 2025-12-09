@@ -176,13 +176,30 @@ jobs:
         env:
           AI_PROVIDER: ${{ secrets.AI_PROVIDER || 'openai' }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
+          # Validate required secrets
+          if [ -z "${JWT_SECRET}" ]; then
+            echo "❌ Error: JWT_SECRET secret is not set in GitHub repository secrets"
+            echo "Please add JWT_SECRET to your repository secrets before deploying"
+            exit 1
+          fi
+          
           # Build parameter overrides dynamically (skip empty values)
-          PARAMS="AIProvider=${AI_PROVIDER} JwtSecret=${JWT_SECRET}"
+          PARAMS="JwtSecret=${JWT_SECRET} AIProvider=${AI_PROVIDER}"
           
           if [ -n "${OPENAI_API_KEY}" ]; then
             PARAMS="${PARAMS} OpenAIApiKey=${OPENAI_API_KEY}"
+          fi
+          
+          if [ -n "${ANTHROPIC_API_KEY}" ]; then
+            PARAMS="${PARAMS} AnthropicApiKey=${ANTHROPIC_API_KEY}"
+          fi
+          
+          if [ -n "${DEEPSEEK_API_KEY}" ]; then
+            PARAMS="${PARAMS} DeepSeekApiKey=${DEEPSEEK_API_KEY}"
           fi
           
           sam deploy \
