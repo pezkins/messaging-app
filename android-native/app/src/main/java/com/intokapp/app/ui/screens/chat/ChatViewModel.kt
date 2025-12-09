@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.intokapp.app.data.models.Attachment
 import com.intokapp.app.data.models.Conversation
 import com.intokapp.app.data.models.Message
 import com.intokapp.app.data.network.GiphyGif
@@ -36,7 +37,10 @@ data class ChatUiState(
     // GIF state
     val gifs: List<GiphyGif> = emptyList(),
     val isLoadingGifs: Boolean = false,
-    val gifSearchQuery: String = ""
+    val gifSearchQuery: String = "",
+    // Document translation dialog state
+    val showDocumentTranslationDialog: Boolean = false,
+    val pendingDocumentAttachment: Attachment? = null
 )
 
 @HiltViewModel
@@ -208,9 +212,9 @@ class ChatViewModel @Inject constructor(
             _uiState.update { it.copy(isUploading = true, showGifPicker = false) }
             
             try {
-                // For GIFs, we send the URL directly as content with type GIF
+                // For GIFs - backend handles skipping translation by type
                 chatRepository.sendMessage(
-                    content = gif.originalUrl,
+                    content = "GIF",
                     type = "GIF",
                     attachment = mapOf(
                         "id" to "gif-${gif.id}",
@@ -247,6 +251,7 @@ class ChatViewModel @Inject constructor(
                 )
                 
                 if (attachment != null) {
+                    // Images - backend handles skipping translation by type
                     chatRepository.sendMessage(
                         content = attachment.fileName,
                         type = "IMAGE",
@@ -287,27 +292,55 @@ class ChatViewModel @Inject constructor(
                 )
                 
                 if (attachment != null) {
-                    chatRepository.sendMessage(
-                        content = attachment.fileName,
-                        type = "FILE",
-                        attachment = mapOf(
-                            "id" to attachment.id,
-                            "key" to attachment.key,
-                            "fileName" to attachment.fileName,
-                            "contentType" to attachment.contentType,
-                            "fileSize" to attachment.fileSize,
-                            "category" to attachment.category
-                        )
-                    )
+                    // Show translation dialog instead of sending immediately
+                    _uiState.update { it.copy(
+                        isUploading = false,
+                        uploadProgress = 0f,
+                        showDocumentTranslationDialog = true,
+                        pendingDocumentAttachment = attachment
+                    ) }
                 } else {
-                    _uiState.update { it.copy(errorMessage = "Failed to upload document. Please try again.") }
+                    _uiState.update { it.copy(
+                        isUploading = false,
+                        uploadProgress = 0f,
+                        errorMessage = "Failed to upload document. Please try again."
+                    ) }
                 }
             } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = "Failed to send document. Please try again.") }
-            } finally {
-                _uiState.update { it.copy(isUploading = false, uploadProgress = 0f) }
+                _uiState.update { it.copy(
+                    isUploading = false,
+                    uploadProgress = 0f,
+                    errorMessage = "Failed to send document. Please try again."
+                ) }
             }
         }
+    }
+    
+    fun confirmSendDocument(translateDocument: Boolean) {
+        val attachment = _uiState.value.pendingDocumentAttachment ?: return
+        
+        chatRepository.sendMessage(
+            content = attachment.fileName,
+            type = "FILE",
+            attachment = mapOf(
+                "id" to attachment.id,
+                "key" to attachment.key,
+                "fileName" to attachment.fileName,
+                "contentType" to attachment.contentType,
+                "fileSize" to attachment.fileSize,
+                "category" to attachment.category
+            ),
+            translateDocument = translateDocument
+        )
+        
+        dismissDocumentDialog()
+    }
+    
+    fun dismissDocumentDialog() {
+        _uiState.update { it.copy(
+            showDocumentTranslationDialog = false,
+            pendingDocumentAttachment = null
+        ) }
     }
     
     suspend fun getDownloadUrl(key: String): String? {

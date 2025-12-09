@@ -20,6 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Translate
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -176,6 +177,16 @@ fun ChatScreen(
                 }
             }
         }
+    }
+    
+    // Document translation dialog
+    if (uiState.showDocumentTranslationDialog) {
+        DocumentTranslationDialog(
+            fileName = uiState.pendingDocumentAttachment?.fileName ?: "Document",
+            onTranslate = { viewModel.confirmSendDocument(translateDocument = true) },
+            onSendWithoutTranslation = { viewModel.confirmSendDocument(translateDocument = false) },
+            onDismiss = { viewModel.dismissDocumentDialog() }
+        )
     }
     
     Scaffold(
@@ -928,4 +939,63 @@ private fun formatFileSize(bytes: Long): String {
         bytes < 1024 * 1024 -> "${bytes / 1024} KB"
         else -> String.format("%.1f MB", bytes / (1024.0 * 1024.0))
     }
+}
+
+@Composable
+private fun DocumentTranslationDialog(
+    fileName: String,
+    onTranslate: () -> Unit,
+    onSendWithoutTranslation: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                Icons.Default.Translate,
+                contentDescription = null,
+                tint = Purple500,
+                modifier = Modifier.size(40.dp)
+            )
+        },
+        title = {
+            Text(
+                "Translate Document?",
+                color = White,
+                fontWeight = FontWeight.SemiBold
+            )
+        },
+        text = {
+            Column {
+                Text(
+                    "Would you like to translate \"$fileName\" for recipients who speak other languages?",
+                    color = Surface300
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    "Note: Document content will be processed for translation.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Surface500
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onTranslate) {
+                Text("Translate", color = Purple500)
+            }
+        },
+        dismissButton = {
+            Row {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel", color = Surface400)
+                }
+                TextButton(onClick = onSendWithoutTranslation) {
+                    Text("Send Without Translation", color = Surface300)
+                }
+            }
+        },
+        containerColor = Surface800,
+        titleContentColor = White,
+        textContentColor = Surface300
+    )
 }

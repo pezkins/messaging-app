@@ -212,6 +212,52 @@ export async function translate(
   }
 }
 
+/**
+ * Translate document content with appropriate context
+ * Documents may contain different formatting than chat messages
+ */
+export async function translateDocumentContent(
+  text: string,
+  sourceLanguage: string,
+  targetLanguage: string,
+  targetCountry?: string
+): Promise<string> {
+  // Check if same language
+  const sourceBase = sourceLanguage.split('-')[0];
+  const targetBase = targetLanguage.split('-')[0];
+  if (sourceBase === targetBase && !targetCountry) {
+    return text;
+  }
+
+  const sourceName = LANGUAGE_NAMES[sourceLanguage] || LANGUAGE_NAMES[sourceBase] || sourceLanguage;
+  const targetName = LANGUAGE_NAMES[targetLanguage] || LANGUAGE_NAMES[targetBase] || targetLanguage;
+  const countryName = targetCountry ? COUNTRY_NAMES[targetCountry] : null;
+
+  const targetDescription = countryName 
+    ? `${targetName} from ${countryName}`
+    : targetName;
+
+  console.log(`📄 Translating document (${AI_PROVIDER}): ${sourceName} -> ${targetDescription}`);
+
+  try {
+    const result = await chat([
+      {
+        role: 'system',
+        content: `You are translating a document or file description. Translate the following content into ${targetDescription}. Preserve any formatting, file paths, or technical terms. Return only the translated text.`,
+      },
+      {
+        role: 'user',
+        content: text,
+      },
+    ]);
+
+    return result || text;
+  } catch (error) {
+    console.error('Document translation error:', error);
+    return text;
+  }
+}
+
 export async function detectLanguage(text: string): Promise<string> {
   try {
     const result = await chat([

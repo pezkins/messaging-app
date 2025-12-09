@@ -51,7 +51,11 @@ class WebSocketService @Inject constructor(
     private val _isConnected = MutableStateFlow(false)
     val isConnected: StateFlow<Boolean> = _isConnected
     
-    private val _events = MutableSharedFlow<WebSocketEvent>()
+    // Buffer events to prevent loss due to timing between emit and collect
+    private val _events = MutableSharedFlow<WebSocketEvent>(
+        replay = 1,
+        extraBufferCapacity = 64
+    )
     val events: SharedFlow<WebSocketEvent> = _events
     
     private val client = OkHttpClient.Builder()
@@ -208,15 +212,18 @@ class WebSocketService @Inject constructor(
         content: String,
         type: String = "TEXT",
         tempId: String? = null,
-        attachment: Map<String, Any>? = null
+        attachment: Map<String, Any>? = null,
+        translateDocument: Boolean? = null
     ) {
         val data = mutableMapOf<String, Any>(
             "conversationId" to conversationId,
             "content" to content,
-            "type" to type
+            "type" to type.lowercase()
         )
         tempId?.let { data["tempId"] = it }
         attachment?.let { data["attachment"] = it }
+        // Only include for documents
+        translateDocument?.let { data["translateDocument"] = it }
         
         send("message:send", data)
     }

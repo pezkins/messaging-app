@@ -238,7 +238,7 @@ class ChatStore: ObservableObject {
     }
     
     // MARK: - Send Message
-    func sendMessage(_ content: String, type: String = "text", attachment: [String: Any]? = nil) {
+    func sendMessage(_ content: String, type: String = "text", attachment: [String: Any]? = nil, translateDocument: Bool? = nil) {
         guard let conversation = activeConversation,
               !content.trimmingCharacters(in: .whitespaces).isEmpty || attachment != nil else { return }
         
@@ -272,7 +272,8 @@ class ChatStore: ObservableObject {
             content: content,
             type: type,
             tempId: tempId,
-            attachment: attachment
+            attachment: attachment,
+            translateDocument: translateDocument
         )
     }
     

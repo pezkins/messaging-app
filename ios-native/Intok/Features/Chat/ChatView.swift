@@ -57,6 +57,8 @@ struct ChatView: View {
     @State private var previewURL: URL?
     @State private var errorMessage: String?
     @State private var showError = false
+    @State private var showDocumentTranslationAlert = false
+    @State private var pendingDocumentAttachment: UploadedAttachment?
     @FocusState private var isInputFocused: Bool
     
     var displayName: String {
@@ -141,6 +143,19 @@ struct ChatView: View {
             Button("OK") { }
         } message: {
             Text(errorMessage ?? "An unknown error occurred")
+        }
+        .alert("Translate Document?", isPresented: $showDocumentTranslationAlert) {
+            Button("Translate") {
+                sendDocument(translate: true)
+            }
+            Button("Send Without Translation") {
+                sendDocument(translate: false)
+            }
+            Button("Cancel", role: .cancel) {
+                pendingDocumentAttachment = nil
+            }
+        } message: {
+            Text("Would you like to translate \"\(pendingDocumentAttachment?.fileName ?? "this document")\" for recipients who speak other languages?")
         }
     }
     
@@ -357,7 +372,7 @@ struct ChatView: View {
         case .success(let urls):
             guard let url = urls.first,
                   let conversation = chatStore.activeConversation else { return }
-            
+
             // Start accessing security-scoped resource
             guard url.startAccessingSecurityScopedResource() else {
                 errorMessage = "Unable to access the selected file."
@@ -365,11 +380,11 @@ struct ChatView: View {
                 return
             }
             defer { url.stopAccessingSecurityScopedResource() }
-            
+
             Task {
                 isUploading = true
                 uploadProgress = 0
-                
+
                 do {
                     let attachment = try await AttachmentService.shared.uploadDocument(
                         url,
@@ -379,29 +394,44 @@ struct ChatView: View {
                             uploadProgress = progress
                         }
                     }
-                    
-                    chatStore.sendMessage(attachment.fileName, type: "file", attachment: [
-                        "id": attachment.id,
-                        "key": attachment.key,
-                        "fileName": attachment.fileName,
-                        "contentType": attachment.contentType,
-                        "fileSize": attachment.fileSize,
-                        "category": attachment.category
-                    ])
+
+                    // Store attachment and show translation dialog
+                    pendingDocumentAttachment = attachment
+                    showDocumentTranslationAlert = true
                 } catch {
                     logger.error("❌ Document upload failed: \(error.localizedDescription, privacy: .public)")
                     errorMessage = "Failed to upload document. Please try again."
                     showError = true
                 }
-                
+
                 isUploading = false
             }
-            
+
         case .failure(let error):
             logger.error("❌ Document selection failed: \(error.localizedDescription, privacy: .public)")
             errorMessage = "Could not select document."
             showError = true
         }
+    }
+    
+    func sendDocument(translate: Bool) {
+        guard let attachment = pendingDocumentAttachment else { return }
+        
+        chatStore.sendMessage(
+            attachment.fileName,
+            type: "file",
+            attachment: [
+                "id": attachment.id,
+                "key": attachment.key,
+                "fileName": attachment.fileName,
+                "contentType": attachment.contentType,
+                "fileSize": attachment.fileSize,
+                "category": attachment.category
+            ],
+            translateDocument: translate
+        )
+        
+        pendingDocumentAttachment = nil
     }
 }
 

@@ -60,15 +60,25 @@ class ChatRepository @Inject constructor(
     private val pendingMessages = mutableMapOf<String, PendingMessage>()
     
     init {
-        // Subscribe to WebSocket events
+        // Subscribe to WebSocket events - use collect with error handling
         scope.launch {
-            webSocketService.events.collect { event ->
-                when (event) {
-                    is WebSocketEvent.MessageReceived -> handleMessageReceived(event.message, event.tempId)
-                    is WebSocketEvent.Typing -> handleTyping(event.conversationId, event.userId, event.isTyping)
-                    is WebSocketEvent.Reaction -> handleReaction(event)
-                    else -> {}
+            Log.d(TAG, "🎧 Starting WebSocket event collector")
+            try {
+                webSocketService.events.collect { event ->
+                    Log.d(TAG, "📥 Received WebSocket event: ${event::class.simpleName}")
+                    when (event) {
+                        is WebSocketEvent.MessageReceived -> {
+                            Log.d(TAG, "📨 Processing message: ${event.message.id}, tempId: ${event.tempId}")
+                            handleMessageReceived(event.message, event.tempId)
+                        }
+                        is WebSocketEvent.Typing -> handleTyping(event.conversationId, event.userId, event.isTyping)
+                        is WebSocketEvent.Reaction -> handleReaction(event)
+                        is WebSocketEvent.Connected -> Log.d(TAG, "🔌 WebSocket connected event received")
+                        is WebSocketEvent.Disconnected -> Log.d(TAG, "🔌 WebSocket disconnected event received")
+                    }
                 }
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ WebSocket event collector error: ${e.message}", e)
             }
         }
     }
@@ -97,10 +107,23 @@ class ChatRepository @Inject constructor(
                 confirmedMessageIds.add(message.id)
                 pendingMessages.remove(tempId)
                 Log.d(TAG, "✅ Confirmed message: $tempId → ${message.id}")
+            } else {
+                // Temp message not found - maybe race condition or already processed
+                // Add the message anyway if it's for the active conversation
+                if (_activeConversation.value?.id == message.conversationId) {
+                    if (!currentMessages.any { it.id == message.id }) {
+                        currentMessages.add(message)
+                        confirmedMessageIds.add(message.id)
+                        Log.d(TAG, "⚠️ Temp message not found, adding: $tempId → ${message.id}")
+                    }
+                }
+                pendingMessages.remove(tempId)
             }
-        } else if (_activeConversation.value?.id == message.conversationId) {
+        } else {
+            // Message without tempId - could be from another user or our message without tempId echo
+            val activeConvId = _activeConversation.value?.id
+            
             // Check if this might be our own message via fallback matching
-            // (in case server doesn't echo tempId)
             val matchedTempId = findMatchingPendingMessage(message)
             
             if (matchedTempId != null) {
@@ -111,14 +134,28 @@ class ChatRepository @Inject constructor(
                     confirmedMessageIds.add(message.id)
                     pendingMessages.remove(matchedTempId)
                     Log.d(TAG, "✅ Confirmed message via fallback: $matchedTempId → ${message.id}")
+                } else {
+                    // Temp message not found but we matched - add the message
+                    if (activeConvId == message.conversationId) {
+                        if (!currentMessages.any { it.id == message.id }) {
+                            currentMessages.add(message)
+                            confirmedMessageIds.add(message.id)
+                            Log.d(TAG, "⚠️ Fallback temp not found, adding: $matchedTempId → ${message.id}")
+                        }
+                    }
+                    pendingMessages.remove(matchedTempId)
                 }
-            } else if (!currentMessages.any { it.id == message.id }) {
-                // This is a message from someone else - add it
-                currentMessages.add(message)
+            } else if (activeConvId == message.conversationId) {
+                // This is a message from someone else - add it if not already present
+                if (!currentMessages.any { it.id == message.id }) {
+                    currentMessages.add(message)
+                    Log.d(TAG, "📩 New message from other user: ${message.id}")
+                }
             }
         }
         
         _messages.value = currentMessages
+        Log.d(TAG, "📊 Messages count: ${currentMessages.size}, Active conv: ${_activeConversation.value?.id}")
         
         // Update conversation's last message
         val currentConvs = _conversations.value.toMutableList()
@@ -257,7 +294,7 @@ class ChatRepository @Inject constructor(
         _isLoadingMessages.value = false
     }
     
-    fun sendMessage(content: String, type: String = "TEXT", attachment: Map<String, Any>? = null) {
+    fun sendMessage(content: String, type: String = "TEXT", attachment: Map<String, Any>? = null, translateDocument: Boolean? = null) {
         val conversation = _activeConversation.value ?: return
         if (content.isBlank() && attachment == null) return
         
@@ -268,6 +305,29 @@ class ChatRepository @Inject constructor(
         
         // Get current user for accurate optimistic message (matching iOS approach)
         val currentUser = runBlocking { tokenManager.getUser() }
+        
+        // Convert type string to MessageType enum
+        val messageType = when (type.uppercase()) {
+            "IMAGE" -> MessageType.IMAGE
+            "GIF" -> MessageType.GIF
+            "FILE" -> MessageType.FILE
+            "VOICE" -> MessageType.VOICE
+            "ATTACHMENT" -> MessageType.ATTACHMENT
+            else -> MessageType.TEXT
+        }
+        
+        // Create attachment object for optimistic message if provided
+        val optimisticAttachment = attachment?.let {
+            Attachment(
+                id = it["id"] as? String ?: "",
+                key = it["key"] as? String ?: "",
+                fileName = it["fileName"] as? String ?: "",
+                contentType = it["contentType"] as? String ?: "",
+                fileSize = (it["fileSize"] as? Number)?.toLong() ?: 0L,
+                category = it["category"] as? String ?: "",
+                url = it["url"] as? String
+            )
+        }
         
         // Create optimistic message with real user data
         val optimisticMessage = Message(
@@ -280,11 +340,12 @@ class ChatRepository @Inject constructor(
                 preferredLanguage = currentUser?.preferredLanguage ?: "en",
                 avatarUrl = currentUser?.avatarUrl
             ),
-            type = MessageType.TEXT,
+            type = messageType,
             originalContent = content,
             originalLanguage = currentUser?.preferredLanguage ?: "en",
             status = MessageStatus.SENDING,
-            createdAt = dateFormat.format(now)
+            createdAt = dateFormat.format(now),
+            attachment = optimisticAttachment
         )
         
         _messages.value = _messages.value + optimisticMessage
@@ -302,7 +363,8 @@ class ChatRepository @Inject constructor(
             content = content,
             type = type,
             tempId = tempId,
-            attachment = attachment
+            attachment = attachment,
+            translateDocument = translateDocument
         )
     }
     

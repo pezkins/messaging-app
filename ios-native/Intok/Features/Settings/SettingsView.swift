@@ -441,11 +441,30 @@ struct WhatsNewSheet: View {
                 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
+                        // Version 0.1.4
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Version 0.1.4")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                            
+                            Text("Smart Translation Update")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            featureRow(icon: "doc.text.magnifyingglass", title: "Document Translation Control", description: "Choose whether to translate documents when sharing")
+                            featureRow(icon: "photo.badge.checkmark", title: "Optimized Media Sharing", description: "Images and GIFs no longer go through translation")
+                            featureRow(icon: "bolt.fill", title: "Faster Performance", description: "Improved message handling and delivery")
+                        }
+                        
+                        Divider().background(Color.gray.opacity(0.3))
+                        
                         // Version 0.1.3
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Version 0.1.3")
-                                .font(.title2)
-                                .fontWeight(.bold)
+                                .font(.headline)
                                 .foregroundColor(.white)
                             
                             Text("Rich Messaging Update")
@@ -454,30 +473,11 @@ struct WhatsNewSheet: View {
                         }
                         
                         VStack(alignment: .leading, spacing: 12) {
-                            featureRow(icon: "photo.on.rectangle", title: "Image Sharing", description: "Share photos from your library in conversations")
-                            featureRow(icon: "camera.fill", title: "Camera Integration", description: "Capture and send photos directly from the camera")
-                            featureRow(icon: "face.smiling.inverse", title: "GIF Support", description: "Search and send GIFs powered by GIPHY")
-                            featureRow(icon: "doc.fill", title: "Document Sharing", description: "Share PDFs and documents in chats")
-                            featureRow(icon: "hand.thumbsup.fill", title: "Message Reactions", description: "Long-press messages to add emoji reactions")
-                        }
-                        
-                        Divider().background(Color.gray.opacity(0.3))
-                        
-                        // Version 0.1.1
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Version 0.1.1")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            
-                            Text("Initial Release")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            featureRow(icon: "message.fill", title: "Real-time Messaging", description: "Send and receive messages instantly")
-                            featureRow(icon: "globe", title: "Auto Translation", description: "Messages are automatically translated to your preferred language")
-                            featureRow(icon: "person.2.fill", title: "Group Chats", description: "Create group conversations with multiple participants")
+                            featureRow(icon: "photo.on.rectangle", title: "Image Sharing", description: "Share photos from your library")
+                            featureRow(icon: "camera.fill", title: "Camera Integration", description: "Capture and send photos directly")
+                            featureRow(icon: "face.smiling.inverse", title: "GIF Support", description: "Search and send GIFs via GIPHY")
+                            featureRow(icon: "doc.fill", title: "Document Sharing", description: "Share PDFs and documents")
+                            featureRow(icon: "hand.thumbsup.fill", title: "Message Reactions", description: "React to messages with emojis")
                         }
                     }
                     .padding()

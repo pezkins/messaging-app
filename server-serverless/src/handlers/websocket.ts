@@ -3,7 +3,7 @@ import { ApiGatewayManagementApiClient, PostToConnectionCommand } from '@aws-sdk
 import { v4 as uuid } from 'uuid';
 import { dynamodb, Tables, GetCommand, PutCommand, QueryCommand, DeleteCommand, UpdateCommand } from '../lib/dynamo';
 import { verifyToken } from '../lib/auth';
-import { translate, detectLanguage } from '../lib/translation';
+import { translate, translateDocumentContent, detectLanguage } from '../lib/translation';
 
 function getApiClient(event: any) {
   const domain = event.requestContext.domainName;
@@ -111,7 +111,13 @@ interface Attachment {
 }
 
 async function handleSendMessage(event: any, senderId: string, data: any) {
-  const { conversationId, content, type = 'text', attachment } = data;
+  const { 
+    conversationId, 
+    content, 
+    type = 'text', 
+    attachment,
+    translateDocument = false  // Flag for document translation
+  } = data;
 
   // Get sender info
   const senderResult = await dynamodb.send(new GetCommand({
@@ -120,8 +126,14 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
   }));
   const sender = senderResult.Item;
 
-  // Detect language (only for text content)
-  const originalLanguage = content ? await detectLanguage(content) : 'en';
+  // Determine if we should translate this message type
+  // Skip language detection for images, GIFs, and untranslated documents
+  const shouldTranslate = type === 'text' || (type === 'file' && translateDocument);
+  const originalLanguage = shouldTranslate && content 
+    ? await detectLanguage(content) 
+    : 'en';
+  
+  console.log(`📨 Message type: ${type}, shouldTranslate: ${shouldTranslate}, translateDocument: ${translateDocument}`);
 
   // Create message
   const messageId = uuid();
@@ -265,13 +277,48 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
     const targetLanguage = participantResult.Item?.preferredLanguage || 'en';
     const targetCountry = participantResult.Item?.preferredCountry || 'US';
 
-    // Translate if needed
-    let translatedContent = content;
-    if (originalLanguage !== targetLanguage) {
-      translatedContent = await translate(content, originalLanguage, targetLanguage, targetCountry);
-      
-      // Cache translation
-      message.translations[targetLanguage] = translatedContent;
+    // Translate based on message type
+    let translatedContent = content || '';
+    
+    if (originalLanguage !== targetLanguage && content) {
+      switch (type) {
+        case 'text':
+          // Regular text message - always translate
+          console.log(`🌐 Translating text message: ${originalLanguage} -> ${targetLanguage}`);
+          translatedContent = await translate(content, originalLanguage, targetLanguage, targetCountry);
+          message.translations[targetLanguage] = translatedContent;
+          break;
+          
+        case 'file':
+          // Document - translate only if user requested
+          if (translateDocument) {
+            console.log(`📄 Translating document content: ${originalLanguage} -> ${targetLanguage}`);
+            translatedContent = await translateDocumentContent(content, originalLanguage, targetLanguage, targetCountry);
+            message.translations[targetLanguage] = translatedContent;
+          } else {
+            console.log(`📄 Skipping document translation (translateDocument: false)`);
+          }
+          break;
+          
+        case 'image':
+        case 'gif':
+          // Images and GIFs - never translate
+          console.log(`🖼️ Skipping translation for ${type} message`);
+          // translatedContent stays as original content
+          break;
+          
+        case 'video':
+        case 'voice':
+        case 'audio':
+          // Media types - don't translate
+          console.log(`🎬 Skipping translation for ${type} message`);
+          break;
+          
+        default:
+          // Unknown type - don't translate
+          console.log(`❓ Unknown message type: ${type}, skipping translation`);
+          break;
+      }
     }
 
     // Get participant's connections

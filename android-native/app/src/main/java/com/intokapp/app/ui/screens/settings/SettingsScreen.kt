@@ -514,11 +514,11 @@ private fun CountryPickerDialog(
 private fun WhatsNewDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { 
+        title = {
             Column {
-                Text("Version 0.1.3", fontWeight = FontWeight.Bold)
+                Text("Version 0.1.4", fontWeight = FontWeight.Bold)
                 Text(
-                    "Rich Messaging Update",
+                    "Smart Translation Update",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -529,13 +529,20 @@ private fun WhatsNewDialog(onDismiss: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.verticalScroll(rememberScrollState())
             ) {
-                // New in 0.1.3
-                FeatureRow(icon = Icons.Default.PhotoLibrary, title = "Image Sharing", desc = "Share photos from your library")
-                FeatureRow(icon = Icons.Default.CameraAlt, title = "Camera Integration", desc = "Capture and send photos directly")
-                FeatureRow(icon = Icons.Default.Gif, title = "GIF Support", desc = "Search and send GIFs via GIPHY")
-                FeatureRow(icon = Icons.Default.Description, title = "Document Sharing", desc = "Share PDFs and documents")
-                FeatureRow(icon = Icons.Default.ThumbUp, title = "Message Reactions", desc = "Long-press to add emoji reactions")
+                // New in 0.1.4
+                FeatureRow(icon = Icons.Default.Translate, title = "Document Translation Control", desc = "Choose whether to translate documents")
+                FeatureRow(icon = Icons.Default.Image, title = "Optimized Media Sharing", desc = "Images and GIFs skip translation")
+                FeatureRow(icon = Icons.Default.Speed, title = "Faster Performance", desc = "Improved message handling")
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Divider()
+                Spacer(modifier = Modifier.height(8.dp))
                 
+                Text("v0.1.3 - Rich Messaging", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                FeatureRow(icon = Icons.Default.PhotoLibrary, title = "Image Sharing", desc = "Share photos from your library")
+                FeatureRow(icon = Icons.Default.CameraAlt, title = "Camera", desc = "Capture and send photos")
+                FeatureRow(icon = Icons.Default.Gif, title = "GIF Support", desc = "Search and send GIFs")
+
                 Spacer(modifier = Modifier.height(8.dp))
                 Divider()
                 Spacer(modifier = Modifier.height(8.dp))

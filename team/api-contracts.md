@@ -723,7 +723,7 @@ Send a new message to a conversation.
 }
 ```
 
-**Message with Attachment:**
+**Image/GIF Message (never translated):**
 ```json
 {
   "action": "message:send",
@@ -743,12 +743,45 @@ Send a new message to a conversation.
 }
 ```
 
+**Document with Translation:**
+```json
+{
+  "action": "message:send",
+  "data": {
+    "conversationId": "conv_abc123",
+    "content": "Meeting notes from today's standup...",
+    "type": "file",
+    "translateDocument": true,
+    "attachment": {
+      "id": "att_abc123",
+      "key": "conv_abc123/att_abc123.pdf",
+      "fileName": "meeting-notes.pdf",
+      "contentType": "application/pdf",
+      "fileSize": 102400,
+      "category": "document"
+    }
+  }
+}
+```
+
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | conversationId | string | Yes | Target conversation |
 | content | string | No | Message text (can be empty for attachment-only) |
-| type | string | No | "text" (default), "image", "file", "voice", "video" |
+| type | string | No | "text" (default), "image", "gif", "file", "voice", "video" |
 | attachment | object | No | Attachment metadata (from upload-url response) |
+| translateDocument | boolean | No | If true, translate document content (only for type: "file") |
+
+**Translation Behavior by Type:**
+
+| Type | Translation |
+|------|-------------|
+| `text` | Always translated if languages differ |
+| `image` | Never translated |
+| `gif` | Never translated |
+| `file` | Translated only if `translateDocument: true` |
+| `voice` | Never translated |
+| `video` | Never translated |
 
 **Attachment Flow:**
 1. Call `POST /api/attachments/upload-url` to get presigned URL
