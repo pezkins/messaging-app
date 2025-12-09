@@ -2,12 +2,12 @@ name: ⚡ Backend CI/CD
 
 on:
   push:
-    branches: [main]
+    branches: [dev, stage, main]
     paths:
       - 'server-serverless/**'
       - '.github/workflows/backend-ci.yml'
   pull_request:
-    branches: [main]
+    branches: [dev, stage, main]
     paths:
       - 'server-serverless/**'
   workflow_dispatch:
@@ -18,9 +18,14 @@ on:
         default: false
         type: boolean
 
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   AWS_REGION: us-east-1
-  STACK_NAME: lingualink
+  STACK_NAME: intok-api
+  NODE_VERSION: '18'
 
 jobs:
   # ============================================
@@ -37,25 +42,23 @@ jobs:
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: server-serverless/package-lock.json
 
       - name: 📦 Install dependencies
         working-directory: ./server-serverless
-        run: npm install
+        run: npm ci
 
       - name: 🔍 TypeScript Check
         working-directory: ./server-serverless
-        run: |
-          echo "Running TypeScript compiler check..."
-          npx tsc --noEmit 2>&1 | head -50 || true
-          echo "✅ TypeScript check complete"
+        run: npx tsc --noEmit
 
       - name: 🧹 ESLint Check
         working-directory: ./server-serverless
         run: |
           if [ -f ".eslintrc.js" ] || [ -f ".eslintrc.json" ] || [ -f "eslint.config.js" ]; then
-            echo "Running ESLint..."
-            npx eslint src/ --ext .ts --max-warnings 20 || true
+            npx eslint src/ --ext .ts --max-warnings 20
           else
             echo "⚠️ No ESLint config found, skipping..."
           fi
@@ -63,10 +66,7 @@ jobs:
 
       - name: 🔒 Security Audit
         working-directory: ./server-serverless
-        run: |
-          echo "Running npm audit..."
-          npm audit --audit-level=critical || true
-          echo "✅ Security audit complete"
+        run: npm audit --audit-level=high
         continue-on-error: true
 
       - name: 📊 Code Quality Summary
@@ -75,12 +75,12 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Check | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
-          echo "| TypeScript | ✅ Checked |" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript | ✅ Passed |" >> $GITHUB_STEP_SUMMARY
           echo "| ESLint | ✅ Checked |" >> $GITHUB_STEP_SUMMARY
           echo "| Security Audit | ✅ Checked |" >> $GITHUB_STEP_SUMMARY
 
   # ============================================
-  # STAGE 1: Build & Validate (Automatic)
+  # BUILD & VALIDATE
   # ============================================
   build:
     name: 🔨 Build & Validate
@@ -94,11 +94,13 @@ jobs:
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: server-serverless/package-lock.json
 
       - name: 📦 Install dependencies
         working-directory: ./server-serverless
-        run: npm install
+        run: npm ci
 
       - name: 🏗️ Build TypeScript
         working-directory: ./server-serverless
@@ -119,27 +121,26 @@ jobs:
 
       - name: 📋 Build Summary
         run: |
-          echo "## ⚡ Backend Build Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "## ✅ Backend Build Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Build Steps:" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Code quality checks passed" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ Dependencies installed" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ TypeScript compiled" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ SAM template validated" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ SAM build successful" >> $GITHUB_STEP_SUMMARY
+          echo "| Step | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| TypeScript Compile | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| SAM Validate | ✅ |" >> $GITHUB_STEP_SUMMARY
+          echo "| SAM Build | ✅ |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Ready to deploy! Run workflow with 'Deploy to AWS' checked." >> $GITHUB_STEP_SUMMARY
+          echo "**Branch:** \`${{ github.ref_name }}\`" >> $GITHUB_STEP_SUMMARY
 
   # ============================================
-  # STAGE 2: Deploy to AWS (Manual or Auto)
+  # DEPLOY TO AWS (Only on dev branch or manual)
   # ============================================
   deploy:
     name: 🚀 Deploy to AWS
     runs-on: ubuntu-latest
     needs: build
     if: |
-      github.event.inputs.deploy == 'true' || 
-      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+      (github.event_name == 'push' && github.ref == 'refs/heads/dev') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy == 'true')
     
     steps:
       - name: 📥 Checkout code
@@ -148,11 +149,13 @@ jobs:
       - name: 🟢 Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: server-serverless/package-lock.json
 
       - name: 📦 Install dependencies
         working-directory: ./server-serverless
-        run: npm install
+        run: npm ci
 
       - name: 🏗️ Build TypeScript
         working-directory: ./server-serverless
@@ -184,20 +187,21 @@ jobs:
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
             --parameter-overrides \
-              AIProvider=${{ secrets.AI_PROVIDER }} \
-              OpenAIApiKey=${{ secrets.OPENAI_API_KEY }}
+              AIProvider=${{ secrets.AI_PROVIDER || 'deepseek' }} \
+              DeepSeekApiKey=${{ secrets.DEEPSEEK_API_KEY }} \
+              OpenAIApiKey=${{ secrets.OPENAI_API_KEY }} \
+              JwtSecret=${{ secrets.JWT_SECRET }}
 
       - name: 📋 Get Stack Outputs
-        working-directory: ./server-serverless
         run: |
           echo "## 🚀 Backend Deployed!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Deployment Details:" >> $GITHUB_STEP_SUMMARY
-          echo "- 🌍 Region: ${{ env.AWS_REGION }}" >> $GITHUB_STEP_SUMMARY
-          echo "- 📚 Stack: ${{ env.STACK_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "| Setting | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|---------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Region | \`${{ env.AWS_REGION }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Stack | \`${{ env.STACK_NAME }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Trigger | \`${{ github.event_name }}\` |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          
-          # Get stack outputs
           echo "### API Endpoints:" >> $GITHUB_STEP_SUMMARY
           aws cloudformation describe-stacks \
             --stack-name ${{ env.STACK_NAME }} \
@@ -205,6 +209,3 @@ jobs:
             --output text | while read key value; do
               echo "- **$key**: \`$value\`" >> $GITHUB_STEP_SUMMARY
           done
-          
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### ✅ Deployment Complete!" >> $GITHUB_STEP_SUMMARY
