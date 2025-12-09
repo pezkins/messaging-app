@@ -63,20 +63,20 @@ jobs:
           case $ENV in
             production)
               echo "target=app-store" >> $GITHUB_OUTPUT
-              echo "runner=macos-15" >> $GITHUB_OUTPUT
-              echo "xcode=26.1" >> $GITHUB_OUTPUT
-              echo "simulator=iPhone 16 Pro" >> $GITHUB_OUTPUT
+              echo "runner=macos-14" >> $GITHUB_OUTPUT
+              echo "xcode=15.4" >> $GITHUB_OUTPUT
+              echo "simulator=iPhone 15 Pro" >> $GITHUB_OUTPUT
               ;;
             stage)
               echo "target=testflight" >> $GITHUB_OUTPUT
-              echo "runner=macos-15" >> $GITHUB_OUTPUT
-              echo "xcode=26.1" >> $GITHUB_OUTPUT
-              echo "simulator=iPhone 16 Pro" >> $GITHUB_OUTPUT
+              echo "runner=macos-14" >> $GITHUB_OUTPUT
+              echo "xcode=15.4" >> $GITHUB_OUTPUT
+              echo "simulator=iPhone 15 Pro" >> $GITHUB_OUTPUT
               ;;
             *)
               echo "target=simulator" >> $GITHUB_OUTPUT
-              echo "runner=macos-13" >> $GITHUB_OUTPUT
-              echo "xcode=15.2" >> $GITHUB_OUTPUT
+              echo "runner=macos-14" >> $GITHUB_OUTPUT
+              echo "xcode=15.4" >> $GITHUB_OUTPUT
               echo "simulator=iPhone 15" >> $GITHUB_OUTPUT
               ;;
           esac
