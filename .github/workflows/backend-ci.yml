@@ -173,18 +173,25 @@ jobs:
 
       - name: 🚀 SAM Deploy
         working-directory: ./server-serverless
+        env:
+          AI_PROVIDER: ${{ secrets.AI_PROVIDER || 'openai' }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
         run: |
+          # Build parameter overrides dynamically (skip empty values)
+          PARAMS="AIProvider=${AI_PROVIDER} JwtSecret=${JWT_SECRET}"
+          
+          if [ -n "${OPENAI_API_KEY}" ]; then
+            PARAMS="${PARAMS} OpenAIApiKey=${OPENAI_API_KEY}"
+          fi
+          
           sam deploy \
             --stack-name ${{ env.STACK_NAME }} \
             --resolve-s3 \
             --capabilities CAPABILITY_IAM \
             --no-confirm-changeset \
             --no-fail-on-empty-changeset \
-            --parameter-overrides \
-              AIProvider=${{ secrets.AI_PROVIDER || 'deepseek' }} \
-              DeepSeekApiKey=${{ secrets.DEEPSEEK_API_KEY }} \
-              OpenAIApiKey=${{ secrets.OPENAI_API_KEY }} \
-              JwtSecret=${{ secrets.JWT_SECRET }}
+            --parameter-overrides ${PARAMS}
 
       - name: 📋 Get Stack Outputs
         run: |
