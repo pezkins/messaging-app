@@ -86,6 +86,7 @@ android-native/*.aab
 # ============================================
 # Native iOS
 # ============================================
+ios-native/Config.local.xcconfig
 ios-native/build/
 ios-native/DerivedData/
 ios-native/*.xcworkspace/xcuserdata/

@@ -441,10 +441,32 @@ struct WhatsNewSheet: View {
                 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
+                        // Version 0.1.3
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Version 0.1.1")
+                            Text("Version 0.1.3")
                                 .font(.title2)
                                 .fontWeight(.bold)
+                                .foregroundColor(.white)
+                            
+                            Text("Rich Messaging Update")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 12) {
+                            featureRow(icon: "photo.on.rectangle", title: "Image Sharing", description: "Share photos from your library in conversations")
+                            featureRow(icon: "camera.fill", title: "Camera Integration", description: "Capture and send photos directly from the camera")
+                            featureRow(icon: "face.smiling.inverse", title: "GIF Support", description: "Search and send GIFs powered by GIPHY")
+                            featureRow(icon: "doc.fill", title: "Document Sharing", description: "Share PDFs and documents in chats")
+                            featureRow(icon: "hand.thumbsup.fill", title: "Message Reactions", description: "Long-press messages to add emoji reactions")
+                        }
+                        
+                        Divider().background(Color.gray.opacity(0.3))
+                        
+                        // Version 0.1.1
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Version 0.1.1")
+                                .font(.headline)
                                 .foregroundColor(.white)
                             
                             Text("Initial Release")
@@ -456,8 +478,6 @@ struct WhatsNewSheet: View {
                             featureRow(icon: "message.fill", title: "Real-time Messaging", description: "Send and receive messages instantly")
                             featureRow(icon: "globe", title: "Auto Translation", description: "Messages are automatically translated to your preferred language")
                             featureRow(icon: "person.2.fill", title: "Group Chats", description: "Create group conversations with multiple participants")
-                            featureRow(icon: "face.smiling", title: "Reactions", description: "React to messages with emojis")
-                            featureRow(icon: "photo.fill", title: "Media Sharing", description: "Share images and files in conversations")
                         }
                     }
                     .padding()

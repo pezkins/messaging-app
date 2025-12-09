@@ -22,6 +22,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.intokapp.app.data.constants.*
@@ -515,21 +516,34 @@ private fun WhatsNewDialog(onDismiss: () -> Unit) {
         onDismissRequest = onDismiss,
         title = { 
             Column {
-                Text("Version 0.1.1", fontWeight = FontWeight.Bold)
+                Text("Version 0.1.3", fontWeight = FontWeight.Bold)
                 Text(
-                    "Initial Release",
+                    "Rich Messaging Update",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            ) {
+                // New in 0.1.3
+                FeatureRow(icon = Icons.Default.PhotoLibrary, title = "Image Sharing", desc = "Share photos from your library")
+                FeatureRow(icon = Icons.Default.CameraAlt, title = "Camera Integration", desc = "Capture and send photos directly")
+                FeatureRow(icon = Icons.Default.Gif, title = "GIF Support", desc = "Search and send GIFs via GIPHY")
+                FeatureRow(icon = Icons.Default.Description, title = "Document Sharing", desc = "Share PDFs and documents")
+                FeatureRow(icon = Icons.Default.ThumbUp, title = "Message Reactions", desc = "Long-press to add emoji reactions")
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                Divider()
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Text("Previous: v0.1.1", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                 FeatureRow(icon = Icons.Default.Message, title = "Real-time Messaging", desc = "Send and receive messages instantly")
                 FeatureRow(icon = Icons.Default.Public, title = "Auto Translation", desc = "Messages translated to your language")
                 FeatureRow(icon = Icons.Default.Group, title = "Group Chats", desc = "Create group conversations")
-                FeatureRow(icon = Icons.Default.EmojiEmotions, title = "Reactions", desc = "React to messages with emojis")
-                FeatureRow(icon = Icons.Default.Photo, title = "Media Sharing", desc = "Share images and files")
             }
         },
         confirmButton = {

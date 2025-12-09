@@ -43,15 +43,45 @@ class ChatStore: ObservableObject {
     
     private func handleMessageReceive(_ data: MessageReceiveData) {
         let message = data.message
+        let currentUserId = AuthManager.shared.currentUser?.id
         
         // Replace temp message or add new
         if let tempId = data.tempId, let index = messages.firstIndex(where: { $0.id == tempId }) {
+            // Server returned tempId, replace the optimistic message
             messages[index] = message
+            logger.debug("📨 Replaced temp message \(tempId, privacy: .public) with \(message.id, privacy: .public)")
         } else if activeConversation?.id == message.conversationId {
-            // Check for duplicates
-            if !messages.contains(where: { $0.id == message.id }) {
-                messages.append(message)
+            // Check for duplicates by ID first
+            if messages.contains(where: { $0.id == message.id }) {
+                logger.debug("📨 Ignoring duplicate message: \(message.id, privacy: .public)")
+                return
             }
+            
+            // For own messages: check if there's a pending temp message to replace
+            // This handles cases where server doesn't echo back the tempId
+            if message.senderId == currentUserId {
+                if let tempIndex = messages.firstIndex(where: { msg in
+                    guard msg.id.hasPrefix("temp-"),
+                          msg.originalContent == message.originalContent else {
+                        return false
+                    }
+                    
+                    // Only match if the temp message was created recently (within 30 seconds)
+                    // This prevents incorrect matching when user sends identical content rapidly
+                    if let tempDate = ISO8601DateFormatter().date(from: msg.createdAt) {
+                        return abs(tempDate.timeIntervalSinceNow) < 30
+                    }
+                    return false
+                }) {
+                    messages[tempIndex] = message
+                    logger.debug("📨 Replaced optimistic message with server message: \(message.id, privacy: .public)")
+                    return
+                }
+            }
+            
+            // New message from another user - add it
+            messages.append(message)
+            logger.debug("📨 Added new message: \(message.id, privacy: .public)")
         }
         
         // Update conversation's last message
@@ -212,22 +242,29 @@ class ChatStore: ObservableObject {
         guard let conversation = activeConversation,
               !content.trimmingCharacters(in: .whitespaces).isEmpty || attachment != nil else { return }
         
+        let currentUser = AuthManager.shared.currentUser
         let tempId = "temp-\(Date().timeIntervalSince1970)-\(UUID().uuidString.prefix(8))"
         
-        // Create optimistic message
+        // Create optimistic message with actual user info for better tracking
         let optimisticMessage = Message(
             id: tempId,
             conversationId: conversation.id,
-            senderId: "",
-            sender: UserPublic(id: "", username: "You", preferredLanguage: "en", avatarUrl: nil),
+            senderId: currentUser?.id ?? "pending",
+            sender: UserPublic(
+                id: currentUser?.id ?? "pending",
+                username: currentUser?.username ?? "You",
+                preferredLanguage: currentUser?.preferredLanguage ?? "en",
+                avatarUrl: nil
+            ),
             type: .text,
             originalContent: content,
-            originalLanguage: "en",
+            originalLanguage: currentUser?.preferredLanguage ?? "en",
             status: .sending,
             createdAt: ISO8601DateFormatter().string(from: Date())
         )
         
         messages.append(optimisticMessage)
+        logger.debug("📤 Added optimistic message: \(tempId, privacy: .public)")
         
         // Send via WebSocket
         WebSocketService.shared.sendMessage(

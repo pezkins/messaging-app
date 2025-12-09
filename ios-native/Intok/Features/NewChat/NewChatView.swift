@@ -49,9 +49,9 @@ struct NewChatView: View {
                         TextField("Search users...", text: $searchText)
                             .textFieldStyle(.plain)
                             .foregroundColor(.white)
-                            .onChange(of: searchText) { text in
+                            .onChange(of: searchText) { oldValue, newValue in
                                 Task {
-                                    await performSearch(text)
+                                    await performSearch(newValue)
                                 }
                             }
                         

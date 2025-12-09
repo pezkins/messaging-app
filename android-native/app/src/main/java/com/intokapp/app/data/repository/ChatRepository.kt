@@ -3,6 +3,7 @@ package com.intokapp.app.data.repository
 import android.util.Log
 import com.intokapp.app.data.models.*
 import com.intokapp.app.data.network.ApiService
+import com.intokapp.app.data.network.TokenManager
 import com.intokapp.app.data.network.WebSocketEvent
 import com.intokapp.app.data.network.WebSocketService
 import kotlinx.coroutines.CoroutineScope
@@ -10,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
@@ -18,7 +20,8 @@ import javax.inject.Singleton
 @Singleton
 class ChatRepository @Inject constructor(
     private val apiService: ApiService,
-    private val webSocketService: WebSocketService
+    private val webSocketService: WebSocketService,
+    private val tokenManager: TokenManager
 ) {
     private val TAG = "ChatRepository"
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -46,6 +49,16 @@ class ChatRepository @Inject constructor(
     
     private var nextCursor: String? = null
     
+    // Track message IDs we've already confirmed to prevent duplicates
+    // Limit size to prevent memory leak during long sessions
+    private val confirmedMessageIds = mutableSetOf<String>()
+    private val MAX_CONFIRMED_IDS = 500
+    
+    // Track pending optimistic messages for fallback matching
+    // Maps tempId to (senderId, content, timestamp) for matching when server doesn't echo tempId
+    private data class PendingMessage(val senderId: String, val content: String, val timestamp: Long)
+    private val pendingMessages = mutableMapOf<String, PendingMessage>()
+    
     init {
         // Subscribe to WebSocket events
         scope.launch {
@@ -61,15 +74,46 @@ class ChatRepository @Inject constructor(
     }
     
     private fun handleMessageReceived(message: Message, tempId: String?) {
+        // Prevent memory leak: clear cache if it grows too large
+        if (confirmedMessageIds.size > MAX_CONFIRMED_IDS) {
+            Log.d(TAG, "🧹 Clearing confirmed IDs cache (exceeded $MAX_CONFIRMED_IDS)")
+            confirmedMessageIds.clear()
+        }
+        
         val currentMessages = _messages.value.toMutableList()
         
+        // Skip if we've already confirmed this message ID (prevents duplicates)
+        if (confirmedMessageIds.contains(message.id)) {
+            Log.d(TAG, "⏭️ Skipping duplicate message: ${message.id}")
+            return
+        }
+        
         if (tempId != null) {
+            // This is our own message being confirmed via tempId
             val index = currentMessages.indexOfFirst { it.id == tempId }
             if (index >= 0) {
                 currentMessages[index] = message
+                // Mark as confirmed so we skip the broadcast version
+                confirmedMessageIds.add(message.id)
+                pendingMessages.remove(tempId)
+                Log.d(TAG, "✅ Confirmed message: $tempId → ${message.id}")
             }
         } else if (_activeConversation.value?.id == message.conversationId) {
-            if (!currentMessages.any { it.id == message.id }) {
+            // Check if this might be our own message via fallback matching
+            // (in case server doesn't echo tempId)
+            val matchedTempId = findMatchingPendingMessage(message)
+            
+            if (matchedTempId != null) {
+                // This is our message - replace the optimistic one
+                val index = currentMessages.indexOfFirst { it.id == matchedTempId }
+                if (index >= 0) {
+                    currentMessages[index] = message
+                    confirmedMessageIds.add(message.id)
+                    pendingMessages.remove(matchedTempId)
+                    Log.d(TAG, "✅ Confirmed message via fallback: $matchedTempId → ${message.id}")
+                }
+            } else if (!currentMessages.any { it.id == message.id }) {
+                // This is a message from someone else - add it
                 currentMessages.add(message)
             }
         }
@@ -111,6 +155,30 @@ class ChatRepository @Inject constructor(
             currentMessages[index] = message.copy(reactions = event.reactions)
             _messages.value = currentMessages
         }
+    }
+    
+    /**
+     * Fallback matching: find a pending optimistic message that matches the received message
+     * by sender ID and content (for when server doesn't echo tempId)
+     */
+    private fun findMatchingPendingMessage(message: Message): String? {
+        val now = System.currentTimeMillis()
+        val maxAge = 30_000L // 30 seconds - messages older than this are stale
+        
+        for ((tempId, pending) in pendingMessages) {
+            // Match by sender and content, within time window
+            if (pending.senderId == message.senderId &&
+                pending.content == message.originalContent &&
+                now - pending.timestamp < maxAge) {
+                return tempId
+            }
+        }
+        
+        // Clean up stale pending messages
+        val staleIds = pendingMessages.filter { now - it.value.timestamp > maxAge }.keys
+        staleIds.forEach { pendingMessages.remove(it) }
+        
+        return null
     }
     
     suspend fun loadConversations() {
@@ -167,6 +235,8 @@ class ChatRepository @Inject constructor(
         _messages.value = emptyList()
         _hasMoreMessages.value = false
         nextCursor = null
+        confirmedMessageIds.clear()
+        pendingMessages.clear()
     }
     
     suspend fun loadMoreMessages() {
@@ -194,21 +264,37 @@ class ChatRepository @Inject constructor(
         val tempId = "temp-${System.currentTimeMillis()}-${UUID.randomUUID().toString().take(8)}"
         val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
         dateFormat.timeZone = TimeZone.getTimeZone("UTC")
+        val now = Date()
         
-        // Create optimistic message
+        // Get current user for accurate optimistic message (matching iOS approach)
+        val currentUser = runBlocking { tokenManager.getUser() }
+        
+        // Create optimistic message with real user data
         val optimisticMessage = Message(
             id = tempId,
             conversationId = conversation.id,
-            senderId = "",
-            sender = UserPublic("", "You", "en", null),
+            senderId = currentUser?.id ?: "pending",
+            sender = UserPublic(
+                id = currentUser?.id ?: "pending",
+                username = currentUser?.username ?: "You",
+                preferredLanguage = currentUser?.preferredLanguage ?: "en",
+                avatarUrl = currentUser?.avatarUrl
+            ),
             type = MessageType.TEXT,
             originalContent = content,
-            originalLanguage = "en",
+            originalLanguage = currentUser?.preferredLanguage ?: "en",
             status = MessageStatus.SENDING,
-            createdAt = dateFormat.format(Date())
+            createdAt = dateFormat.format(now)
         )
         
         _messages.value = _messages.value + optimisticMessage
+        
+        // Track pending message for fallback matching
+        pendingMessages[tempId] = PendingMessage(
+            senderId = currentUser?.id ?: "pending",
+            content = content,
+            timestamp = now.time
+        )
         
         // Send via WebSocket
         webSocketService.sendMessage(

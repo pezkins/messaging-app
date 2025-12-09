@@ -100,8 +100,18 @@ export const message: APIGatewayProxyHandler = async (event) => {
   }
 };
 
+// Attachment interface for type safety
+interface Attachment {
+  id: string;
+  key: string;
+  fileName: string;
+  contentType: string;
+  fileSize: number;
+  category: string;
+}
+
 async function handleSendMessage(event: any, senderId: string, data: any) {
-  const { conversationId, content, type = 'text' } = data;
+  const { conversationId, content, type = 'text', attachment } = data;
 
   // Get sender info
   const senderResult = await dynamodb.send(new GetCommand({
@@ -110,12 +120,44 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
   }));
   const sender = senderResult.Item;
 
-  // Detect language
-  const originalLanguage = await detectLanguage(content);
+  // Detect language (only for text content)
+  const originalLanguage = content ? await detectLanguage(content) : 'en';
 
   // Create message
   const messageId = uuid();
   const timestamp = new Date().toISOString();
+
+  // Validate and sanitize attachment data if provided
+  let sanitizedAttachment: Attachment | null = null;
+  
+  if (attachment) {
+    const validCategories = ['image', 'video', 'document', 'audio'];
+    const maxFileSize = 25 * 1024 * 1024; // 25MB
+    
+    // Validate category
+    if (!validCategories.includes(attachment.category)) {
+      console.warn(`Invalid attachment category: ${attachment.category}`);
+    }
+    
+    // Validate file size
+    if (attachment.fileSize > maxFileSize) {
+      console.warn(`Attachment exceeds max size: ${attachment.fileSize} bytes (max: ${maxFileSize})`);
+    }
+    
+    // Validate required fields
+    if (!attachment.id || !attachment.key || !attachment.fileName) {
+      console.error('Attachment missing required fields:', { id: attachment.id, key: attachment.key, fileName: attachment.fileName });
+    } else {
+      sanitizedAttachment = {
+        id: attachment.id,
+        key: attachment.key,
+        fileName: attachment.fileName,
+        contentType: attachment.contentType || 'application/octet-stream',
+        fileSize: attachment.fileSize || 0,
+        category: attachment.category || 'document',
+      };
+    }
+  }
 
   const message: {
     id: string;
@@ -129,6 +171,7 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
     timestamp: string;
     createdAt: string;
     translations: Record<string, string>;
+    attachment: Attachment | null;
   } = {
     id: messageId,
     conversationId,
@@ -139,12 +182,13 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
       preferredLanguage: sender?.preferredLanguage,
     },
     type,
-    originalContent: content,
+    originalContent: content || '',
     originalLanguage,
     status: 'sent',
     timestamp,
     createdAt: timestamp, // Frontend expects createdAt
     translations: {}, // Cache translations here
+    attachment: sanitizedAttachment,
   };
 
   await dynamodb.send(new PutCommand({
@@ -201,6 +245,7 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
             originalLanguage: message.originalLanguage,
             status: message.status,
             createdAt: message.createdAt,
+            attachment: message.attachment,
           },
           ':updatedAt': timestamp,
         },

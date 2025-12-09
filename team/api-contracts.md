@@ -711,6 +711,7 @@ All messages sent to the server follow this format:
 
 Send a new message to a conversation.
 
+**Text Message:**
 ```json
 {
   "action": "message:send",
@@ -722,11 +723,37 @@ Send a new message to a conversation.
 }
 ```
 
+**Message with Attachment:**
+```json
+{
+  "action": "message:send",
+  "data": {
+    "conversationId": "conv_abc123",
+    "content": "Check out this photo!",
+    "type": "image",
+    "attachment": {
+      "id": "att_abc123",
+      "key": "conv_abc123/att_abc123.jpg",
+      "fileName": "photo.jpg",
+      "contentType": "image/jpeg",
+      "fileSize": 1024000,
+      "category": "image"
+    }
+  }
+}
+```
+
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | conversationId | string | Yes | Target conversation |
-| content | string | Yes | Message content |
-| type | string | No | "text" (default), "image", "file", "voice" |
+| content | string | No | Message text (can be empty for attachment-only) |
+| type | string | No | "text" (default), "image", "file", "voice", "video" |
+| attachment | object | No | Attachment metadata (from upload-url response) |
+
+**Attachment Flow:**
+1. Call `POST /api/attachments/upload-url` to get presigned URL
+2. Upload file to the presigned URL using HTTP PUT
+3. Send message via WebSocket with attachment metadata
 
 ---
 
@@ -786,6 +813,7 @@ Add or remove a reaction to a message.
 
 Received when a new message is sent to a conversation.
 
+**Text Message:**
 ```json
 {
   "action": "message:receive",
@@ -804,6 +832,40 @@ Received when a new message is sent to a conversation.
     "translatedContent": "¡Hola! ¿Cómo estás?",
     "targetLanguage": "es",
     "status": "sent",
+    "attachment": null,
+    "timestamp": "2024-12-08T12:00:00.000Z",
+    "createdAt": "2024-12-08T12:00:00.000Z"
+  }
+}
+```
+
+**Message with Attachment:**
+```json
+{
+  "action": "message:receive",
+  "message": {
+    "id": "msg_abc123",
+    "conversationId": "conv_abc123",
+    "senderId": "user_xyz789",
+    "sender": {
+      "id": "user_xyz789",
+      "username": "janesmith",
+      "preferredLanguage": "es"
+    },
+    "type": "image",
+    "originalContent": "Check out this photo!",
+    "originalLanguage": "en",
+    "translatedContent": "¡Mira esta foto!",
+    "targetLanguage": "es",
+    "status": "sent",
+    "attachment": {
+      "id": "att_abc123",
+      "key": "conv_abc123/att_abc123.jpg",
+      "fileName": "photo.jpg",
+      "contentType": "image/jpeg",
+      "fileSize": 1024000,
+      "category": "image"
+    },
     "timestamp": "2024-12-08T12:00:00.000Z",
     "createdAt": "2024-12-08T12:00:00.000Z"
   }
@@ -814,6 +876,8 @@ Received when a new message is sent to a conversation.
 - `translatedContent` is automatically translated to receiver's preferred language
 - `targetLanguage` matches receiver's `preferredLanguage`
 - Translations are cached for future retrieval
+- `attachment` is null for text-only messages
+- Use `GET /api/attachments/download-url?key={attachment.key}` to get download URL
 
 ---
 
@@ -900,13 +964,14 @@ interface Message {
   conversationId: string;
   senderId: string;
   sender: Participant;
-  type: 'text' | 'image' | 'file' | 'gif' | 'voice';
+  type: 'text' | 'image' | 'file' | 'gif' | 'voice' | 'video';
   originalContent: string;
   originalLanguage: LanguageCode;
   translatedContent: string | null;
   targetLanguage: LanguageCode | null;
   status: 'sent' | 'delivered' | 'read';
   reactions: Record<string, string[]>; // emoji -> userIds
+  attachment: Attachment | null; // null for text-only messages
   createdAt: string; // ISO 8601
 }
 ```

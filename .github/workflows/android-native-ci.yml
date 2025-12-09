@@ -108,6 +108,7 @@ jobs:
         env:
           GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
           TENOR_API_KEY: ${{ secrets.TENOR_API_KEY }}
+          GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
         run: ./gradlew lint
 
   test:
@@ -133,6 +134,7 @@ jobs:
         env:
           GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
           TENOR_API_KEY: ${{ secrets.TENOR_API_KEY }}
+          GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
         run: ./gradlew test
 
   # ============================================
@@ -177,6 +179,7 @@ jobs:
         env:
           GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
           TENOR_API_KEY: ${{ secrets.TENOR_API_KEY }}
+          GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
         run: ./gradlew assembleDebug
 
       - name: 🏗️ Build Release AAB
@@ -185,6 +188,7 @@ jobs:
         env:
           GOOGLE_WEB_CLIENT_ID: ${{ secrets.GOOGLE_WEB_CLIENT_ID }}
           TENOR_API_KEY: ${{ secrets.TENOR_API_KEY }}
+          GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
         run: ./gradlew bundleRelease
 
       - name: 📦 Set Artifact Name

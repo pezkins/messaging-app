@@ -13,10 +13,13 @@
 		15C342AD2BE063F592274C8B /* WebSocketService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FC0FD61CD1299ADD5DFE44 /* WebSocketService.swift */; };
 		17049A5BC0443C70F5DC9EEA /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364BF34D67B234294D1DA2E4 /* AuthManager.swift */; };
 		26B5FFD35D1066A90B174AAB /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2E2DA7FC82BEE77F0F2738 /* Models.swift */; };
+		2D5EEE0393AE57A66D2B8D00 /* GifPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 20C10BF53BE53831AD3F6F5E /* GifPickerView.swift */; };
 		40DE0A76B1DA1CE1C8DFD990 /* ConversationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08CAB9E74F4A67184DFF5A2A /* ConversationsView.swift */; };
 		45C7FD107061FED125ED0AE0 /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6434847F516B1907B567A98 /* ChatStore.swift */; };
 		494574466F14DBD2B0A54797 /* IntokApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 209CBB20DB64B3411A313918 /* IntokApp.swift */; };
+		5D675B632A07A97689E00610 /* AttachmentService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 076EF702F1B803CBB1DCCD5B /* AttachmentService.swift */; };
 		60A4306F3D4F126CCA543555 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12409B09249C3035423A8BCB /* Theme.swift */; };
+		660031C94712ED0BF21C6D9A /* CameraCaptureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A522ECCDFD7ADD30120CD01 /* CameraCaptureView.swift */; };
 		728AFB49D128CF8EF534C782 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F86C60FB71AD30EBBFE247E1 /* SetupView.swift */; };
 		7D45E12CC3607427168D0CAF /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41BA84E3D221AE506BEAEB0E /* LoginView.swift */; };
 		83BF5C33236C3B64DB13D461 /* NewChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CC88A0FBFB5A9E9B13C4D8C /* NewChatView.swift */; };
@@ -29,12 +32,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		076EF702F1B803CBB1DCCD5B /* AttachmentService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttachmentService.swift; sourceTree = "<group>"; };
 		08CAB9E74F4A67184DFF5A2A /* ConversationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationsView.swift; sourceTree = "<group>"; };
 		10C3ED3AF3D21BB00F9BA1EE /* .cursorrules */ = {isa = PBXFileReference; path = .cursorrules; sourceTree = "<group>"; };
 		12409B09249C3035423A8BCB /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		196D3B5805F957A909DAD1F2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		1FABA2603C1DFDD12AEABA9D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		209CBB20DB64B3411A313918 /* IntokApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntokApp.swift; sourceTree = "<group>"; };
+		20C10BF53BE53831AD3F6F5E /* GifPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GifPickerView.swift; sourceTree = "<group>"; };
 		25FC0FD61CD1299ADD5DFE44 /* WebSocketService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketService.swift; sourceTree = "<group>"; };
 		2914665731456D97AF2A0E15 /* Intok.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intok.entitlements; sourceTree = "<group>"; };
 		2E66B7BEAC0BAC39B5363BEA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -46,6 +51,7 @@
 		72213156D4F6C402554165E6 /* .cursorrules */ = {isa = PBXFileReference; path = .cursorrules; sourceTree = "<group>"; };
 		73B0FEF31E6B420EE397F67C /* Intok.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Intok.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8CFDA1A8F3BE2B1CA9ED2914 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
+		9A522ECCDFD7ADD30120CD01 /* CameraCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureView.swift; sourceTree = "<group>"; };
 		9D2E2DA7FC82BEE77F0F2738 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
 		D6434847F516B1907B567A98 /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
 		EF4B062A1B8C0B229E1A2F04 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -134,6 +140,7 @@
 			children = (
 				0B6D625C3BD4C26CCDE90D88 /* Models */,
 				691C26F0DFD2BCD692CA88C9 /* Network */,
+				AE12E0B98434EB69C6F0F84C /* Services */,
 				D1F23B5F52A4D329F5DC10EF /* Store */,
 				180E7A341716A4BFDA666D28 /* Utils */,
 			);
@@ -162,9 +169,19 @@
 		A9ACF8DE18A630409695FFD1 /* Chat */ = {
 			isa = PBXGroup;
 			children = (
+				9A522ECCDFD7ADD30120CD01 /* CameraCaptureView.swift */,
 				F97FEA229E5E1F138D3CA8CE /* ChatView.swift */,
+				20C10BF53BE53831AD3F6F5E /* GifPickerView.swift */,
 			);
 			path = Chat;
+			sourceTree = "<group>";
+		};
+		AE12E0B98434EB69C6F0F84C /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				076EF702F1B803CBB1DCCD5B /* AttachmentService.swift */,
+			);
+			path = Services;
 			sourceTree = "<group>";
 		};
 		BB38D97E0DAA7C78D3D51A03 /* Conversations */ = {
@@ -301,12 +318,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				D80DBE10FEA9DBBE5C16807B /* APIService.swift in Sources */,
+				5D675B632A07A97689E00610 /* AttachmentService.swift in Sources */,
 				17049A5BC0443C70F5DC9EEA /* AuthManager.swift in Sources */,
+				660031C94712ED0BF21C6D9A /* CameraCaptureView.swift in Sources */,
 				45C7FD107061FED125ED0AE0 /* ChatStore.swift in Sources */,
 				B98F38C0A33351099F429F3B /* ChatView.swift in Sources */,
 				C9858BF749563A4D1DE527A5 /* ContentView.swift in Sources */,
 				40DE0A76B1DA1CE1C8DFD990 /* ConversationsView.swift in Sources */,
 				89CFFD6541446392F138C33A /* EmailAuthView.swift in Sources */,
+				2D5EEE0393AE57A66D2B8D00 /* GifPickerView.swift in Sources */,
 				494574466F14DBD2B0A54797 /* IntokApp.swift in Sources */,
 				0A4B0E687695C677BB093AC1 /* Languages.swift in Sources */,
 				7D45E12CC3607427168D0CAF /* LoginView.swift in Sources */,
@@ -376,7 +396,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -396,7 +416,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 0.1.1;
+				MARKETING_VERSION = 0.1.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -461,7 +481,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 3;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -487,7 +507,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 0.1.1;
+				MARKETING_VERSION = 0.1.3;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
