@@ -218,19 +218,44 @@ gh release create v1.2.0 --title "v1.2.0" --notes "Release notes here"
 
 ## Backend Releases
 
-### Development
+The backend (`server-serverless/`) deploys automatically when changes are merged to `dev`.
 
-Backend changes on `dev` branch are deployed to development environment automatically.
+### CI/CD Behavior by Branch
 
-### Production
+| Branch | Code Quality | Build | Deploy to AWS |
+|--------|--------------|-------|---------------|
+| `dev` | ✅ | ✅ | ✅ Auto-deploy |
+| `stage` | ✅ | ✅ | ❌ Build only |
+| `main` | ✅ | ✅ | ❌ Build only |
 
-1. **Test on dev environment**
-2. **Create PR to main**
-3. **After merge:**
-   ```bash
-   cd server-serverless
-   sam deploy --config-env prod
-   ```
+**Path Filter:** Only triggers when `server-serverless/**` changes.
+
+### Deploy Backend to Production
+
+**Option 1: Merge to dev (Recommended)**
+```bash
+# Backend deploys automatically when merged to dev
+git checkout dev
+git merge feature/backend-fix
+git push origin dev
+# → Triggers build + deploy to AWS
+```
+
+**Option 2: Manual workflow dispatch**
+1. Go to **GitHub Actions** → **Backend CI/CD**
+2. Click **"Run workflow"**
+3. Select branch, check **"Deploy to AWS"**
+4. Click **"Run workflow"**
+
+### Manual Deployment (Local)
+
+```bash
+cd server-serverless
+npm run build
+sam build
+sam deploy --guided  # First time
+sam deploy           # Subsequent deploys
+```
 
 ### Rollback
 
