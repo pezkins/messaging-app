@@ -43,12 +43,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: server-serverless/package-lock.json
 
       - name: 📦 Install dependencies
         working-directory: ./server-serverless
-        run: npm ci
+        run: npm install
 
       - name: 🔍 TypeScript Check
         working-directory: ./server-serverless
@@ -95,12 +93,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: server-serverless/package-lock.json
 
       - name: 📦 Install dependencies
         working-directory: ./server-serverless
-        run: npm ci
+        run: npm install
 
       - name: 🏗️ Build TypeScript
         working-directory: ./server-serverless
@@ -150,12 +146,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: server-serverless/package-lock.json
 
       - name: 📦 Install dependencies
         working-directory: ./server-serverless
-        run: npm ci
+        run: npm install
 
       - name: 🏗️ Build TypeScript
         working-directory: ./server-serverless
