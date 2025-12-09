@@ -253,6 +253,8 @@ jobs:
       - name: 🏗️ Build Debug
         if: needs.setup.outputs.environment == 'dev'
         working-directory: ./ios-native
+        env:
+          GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
         run: |
           xcodebuild build \
             -project Intok.xcodeproj \
@@ -262,7 +264,8 @@ jobs:
             -derivedDataPath build \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_ALLOWED=NO \
+            GIPHY_API_KEY="$GIPHY_API_KEY"
 
       - name: 🔐 Setup App Store Connect API Key
         if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
@@ -280,6 +283,7 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
         run: |
           echo "📦 Building with Team: $APPLE_TEAM_ID"
           
@@ -293,7 +297,8 @@ jobs:
             -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8 \
             -authenticationKeyID "$APP_STORE_CONNECT_API_KEY_ID" \
             -authenticationKeyIssuerID "$APP_STORE_CONNECT_API_ISSUER_ID" \
-            DEVELOPMENT_TEAM="$APPLE_TEAM_ID"
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            GIPHY_API_KEY="$GIPHY_API_KEY"
 
           if [ ! -d "build/Intok.xcarchive" ]; then
             echo "❌ Archive failed"

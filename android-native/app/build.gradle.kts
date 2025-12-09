@@ -36,8 +36,8 @@ android {
         applicationId = "com.intokapp.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 2
-        versionName = "0.1.1"
+        versionCode = 3
+        versionName = "0.1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -50,6 +50,7 @@ android {
         buildConfigField("String", "WS_URL", "\"${getConfig("WS_URL", "wss://ksupcb7ucf.execute-api.us-east-1.amazonaws.com/prod")}\"")
         buildConfigField("String", "GOOGLE_CLIENT_ID", "\"${getConfig("GOOGLE_WEB_CLIENT_ID")}\"")
         buildConfigField("String", "TENOR_API_KEY", "\"${getConfig("TENOR_API_KEY")}\"")
+        buildConfigField("String", "GIPHY_API_KEY", "\"${getConfig("GIPHY_API_KEY")}\"")
     }
 
     // Signing configuration - use same keystore for debug and release

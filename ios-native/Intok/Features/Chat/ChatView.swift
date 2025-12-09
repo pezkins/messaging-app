@@ -1,4 +1,44 @@
 import SwiftUI
+import PhotosUI
+import QuickLook
+import UniformTypeIdentifiers
+import os.log
+
+private let logger = Logger(subsystem: "com.pezkins.intok", category: "ChatView")
+
+// MARK: - Download URL Cache
+actor DownloadURLCache {
+    static let shared = DownloadURLCache()
+    
+    private var cache: [String: (url: String, timestamp: Date)] = [:]
+    private let cacheDuration: TimeInterval = 30 * 60 // 30 minutes
+    
+    func getURL(for key: String) async throws -> URL {
+        // Check cache first
+        if let cached = cache[key],
+           Date().timeIntervalSince(cached.timestamp) < cacheDuration,
+           let url = URL(string: cached.url) {
+            logger.debug("📦 Cache hit for key: \(key, privacy: .public)")
+            return url
+        }
+        
+        // Fetch new URL
+        let response = try await APIService.shared.getDownloadUrl(key: key)
+        cache[key] = (response.downloadUrl, Date())
+        
+        guard let url = URL(string: response.downloadUrl) else {
+            throw AttachmentError.invalidURL
+        }
+        
+        logger.debug("📦 Cached new URL for key: \(key, privacy: .public)")
+        return url
+    }
+    
+    func clearExpired() {
+        let now = Date()
+        cache = cache.filter { now.timeIntervalSince($0.value.timestamp) < cacheDuration }
+    }
+}
 
 struct ChatView: View {
     let conversation: Conversation
@@ -8,6 +48,15 @@ struct ChatView: View {
     
     @State private var messageText = ""
     @State private var showingAttachmentOptions = false
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var showingCamera = false
+    @State private var showingGifPicker = false
+    @State private var showingDocumentPicker = false
+    @State private var isUploading = false
+    @State private var uploadProgress: Double = 0
+    @State private var previewURL: URL?
+    @State private var errorMessage: String?
+    @State private var showError = false
     @FocusState private var isInputFocused: Bool
     
     var displayName: String {
@@ -33,6 +82,11 @@ struct ChatView: View {
                 // Typing Indicator
                 if let typingUsers = chatStore.typingUsers[conversation.id], !typingUsers.isEmpty {
                     typingIndicator
+                }
+                
+                // Upload Progress
+                if isUploading {
+                    uploadProgressView
                 }
                 
                 // Input
@@ -62,6 +116,32 @@ struct ChatView: View {
         .onDisappear {
             chatStore.clearActiveConversation()
         }
+        .sheet(isPresented: $showingCamera) {
+            CameraCaptureView { image in
+                Task { await uploadImage(image) }
+            }
+        }
+        .sheet(isPresented: $showingGifPicker) {
+            GifPickerView { gifUrl in
+                sendGif(gifUrl)
+            }
+        }
+        .fileImporter(
+            isPresented: $showingDocumentPicker,
+            allowedContentTypes: [.pdf, .plainText, .data],
+            allowsMultipleSelection: false
+        ) { result in
+            handleDocumentSelection(result)
+        }
+        .quickLookPreview($previewURL)
+        .onChange(of: selectedPhotoItem) { oldValue, newValue in
+            Task { await handlePhotoSelection(newValue) }
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK") { }
+        } message: {
+            Text(errorMessage ?? "An unknown error occurred")
+        }
     }
     
     // MARK: - Messages View
@@ -80,14 +160,24 @@ struct ChatView: View {
                     ForEach(chatStore.messages) { message in
                         MessageBubble(
                             message: message,
-                            isOwnMessage: message.senderId == authManager.currentUser?.id || message.id.hasPrefix("temp-")
+                            isOwnMessage: message.senderId == authManager.currentUser?.id || message.id.hasPrefix("temp-"),
+                            onReaction: { emoji in
+                                chatStore.sendReaction(
+                                    messageId: message.id,
+                                    messageTimestamp: message.createdAt,
+                                    emoji: emoji
+                                )
+                            },
+                            onImageTap: { url in
+                                previewURL = url
+                            }
                         )
                         .id(message.id)
                     }
                 }
                 .padding()
             }
-            .onChange(of: chatStore.messages.count) { _ in
+            .onChange(of: chatStore.messages.count) { oldCount, newCount in
                 if let lastId = chatStore.messages.last?.id {
                     withAnimation {
                         proxy.scrollTo(lastId, anchor: .bottom)
@@ -125,6 +215,19 @@ struct ChatView: View {
         .padding(.vertical, 8)
     }
     
+    // MARK: - Upload Progress
+    var uploadProgressView: some View {
+        HStack {
+            ProgressView(value: uploadProgress)
+                .tint(Color(hex: "8B5CF6"))
+            Text("Uploading...")
+                .font(.caption)
+                .foregroundColor(.gray)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+    }
+    
     // MARK: - Input Bar
     var inputBar: some View {
         VStack(spacing: 0) {
@@ -132,8 +235,33 @@ struct ChatView: View {
                 .background(Color.white.opacity(0.1))
             
             HStack(spacing: 12) {
-                // Attachment Button
-                Button(action: { showingAttachmentOptions = true }) {
+                // Attachment Menu Button
+                Menu {
+                    // Photo Library
+                    Button(action: {}) {
+                        Label("Photo Library", systemImage: "photo.on.rectangle")
+                    }
+                    .background(
+                        PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                            Color.clear
+                        }
+                    )
+                    
+                    // Camera
+                    Button(action: { showingCamera = true }) {
+                        Label("Camera", systemImage: "camera")
+                    }
+                    
+                    // GIF
+                    Button(action: { showingGifPicker = true }) {
+                        Label("GIF", systemImage: "face.smiling")
+                    }
+                    
+                    // Document
+                    Button(action: { showingDocumentPicker = true }) {
+                        Label("Document", systemImage: "doc")
+                    }
+                } label: {
                     Image(systemName: "plus.circle.fill")
                         .font(.title2)
                         .foregroundColor(Color(hex: "8B5CF6"))
@@ -148,8 +276,8 @@ struct ChatView: View {
                     .foregroundColor(.white)
                     .lineLimit(5)
                     .focused($isInputFocused)
-                    .onChange(of: messageText) { text in
-                        chatStore.setTyping(!text.isEmpty)
+                    .onChange(of: messageText) { oldValue, newValue in
+                        chatStore.setTyping(!newValue.isEmpty)
                     }
                 
                 // Send Button
@@ -177,14 +305,118 @@ struct ChatView: View {
         messageText = ""
         chatStore.setTyping(false)
     }
+    
+    func handlePhotoSelection(_ item: PhotosPickerItem?) async {
+        guard let item = item,
+              let data = try? await item.loadTransferable(type: Data.self),
+              let image = UIImage(data: data) else { return }
+        
+        await uploadImage(image)
+        selectedPhotoItem = nil
+    }
+    
+    func uploadImage(_ image: UIImage) async {
+        guard let conversation = chatStore.activeConversation else { return }
+        
+        isUploading = true
+        uploadProgress = 0
+        
+        do {
+            let attachment = try await AttachmentService.shared.uploadImage(
+                image,
+                conversationId: conversation.id
+            ) { progress in
+                Task { @MainActor in
+                    uploadProgress = progress
+                }
+            }
+            
+            chatStore.sendMessage("", type: "image", attachment: [
+                "id": attachment.id,
+                "key": attachment.key,
+                "fileName": attachment.fileName,
+                "contentType": attachment.contentType,
+                "fileSize": attachment.fileSize,
+                "category": attachment.category
+            ])
+        } catch {
+            logger.error("❌ Image upload failed: \(error.localizedDescription, privacy: .public)")
+            errorMessage = "Failed to upload image. Please try again."
+            showError = true
+        }
+        
+        isUploading = false
+    }
+    
+    func sendGif(_ url: String) {
+        chatStore.sendMessage(url, type: "gif")
+    }
+    
+    func handleDocumentSelection(_ result: Result<[URL], Error>) {
+        switch result {
+        case .success(let urls):
+            guard let url = urls.first,
+                  let conversation = chatStore.activeConversation else { return }
+            
+            // Start accessing security-scoped resource
+            guard url.startAccessingSecurityScopedResource() else {
+                errorMessage = "Unable to access the selected file."
+                showError = true
+                return
+            }
+            defer { url.stopAccessingSecurityScopedResource() }
+            
+            Task {
+                isUploading = true
+                uploadProgress = 0
+                
+                do {
+                    let attachment = try await AttachmentService.shared.uploadDocument(
+                        url,
+                        conversationId: conversation.id
+                    ) { progress in
+                        Task { @MainActor in
+                            uploadProgress = progress
+                        }
+                    }
+                    
+                    chatStore.sendMessage(attachment.fileName, type: "file", attachment: [
+                        "id": attachment.id,
+                        "key": attachment.key,
+                        "fileName": attachment.fileName,
+                        "contentType": attachment.contentType,
+                        "fileSize": attachment.fileSize,
+                        "category": attachment.category
+                    ])
+                } catch {
+                    logger.error("❌ Document upload failed: \(error.localizedDescription, privacy: .public)")
+                    errorMessage = "Failed to upload document. Please try again."
+                    showError = true
+                }
+                
+                isUploading = false
+            }
+            
+        case .failure(let error):
+            logger.error("❌ Document selection failed: \(error.localizedDescription, privacy: .public)")
+            errorMessage = "Could not select document."
+            showError = true
+        }
+    }
 }
 
 // MARK: - Message Bubble
 struct MessageBubble: View {
     let message: Message
     let isOwnMessage: Bool
+    let onReaction: (String) -> Void
+    let onImageTap: (URL) -> Void
     
-    @State private var showTranslation = true  // Show translated content by default
+    @State private var showTranslation = true
+    @State private var showReactionPicker = false
+    @State private var downloadedImageURL: URL?
+    
+    private let reactionEmojis = ["👍", "❤️", "😂", "😮", "😢", "🔥"]
     
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
@@ -210,31 +442,20 @@ struct MessageBubble: View {
                         .foregroundColor(.gray)
                 }
                 
-                // Message Content
-                VStack(alignment: .leading, spacing: 4) {
-                    // Original or Translated Content
-                    Text(showTranslation ? (message.translatedContent ?? message.originalContent) : message.originalContent)
-                        .foregroundColor(isOwnMessage ? .white : .white)
-                    
-                    // Translation toggle if available
-                    if message.translatedContent != nil {
-                        Button(action: { showTranslation.toggle() }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "globe")
-                                Text(showTranslation ? "Show Original" : "Translate")
-                            }
-                            .font(.caption2)
-                            .foregroundColor(isOwnMessage ? .white.opacity(0.7) : Color(hex: "8B5CF6"))
+                // Message Content with long-press for reactions
+                ZStack(alignment: .topTrailing) {
+                    messageContent
+                        .onLongPressGesture {
+                            showReactionPicker = true
                         }
+                    
+                    // Reaction Picker Popup
+                    if showReactionPicker {
+                        reactionPicker
+                            .offset(y: -50)
+                            .transition(.scale.combined(with: .opacity))
                     }
                 }
-                .padding(12)
-                .background(
-                    isOwnMessage ?
-                    Color(hex: "8B5CF6") :
-                    Color.white.opacity(0.1)
-                )
-                .cornerRadius(16, corners: isOwnMessage ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight])
                 
                 // Status and Time
                 HStack(spacing: 4) {
@@ -249,24 +470,9 @@ struct MessageBubble: View {
                     }
                 }
                 
-                // Reactions
+                // Reactions Display
                 if let reactions = message.reactions, !reactions.isEmpty {
-                    HStack(spacing: 4) {
-                        ForEach(Array(reactions.keys), id: \.self) { emoji in
-                            if let users = reactions[emoji], !users.isEmpty {
-                                HStack(spacing: 2) {
-                                    Text(emoji)
-                                    Text("\(users.count)")
-                                        .font(.caption2)
-                                        .foregroundColor(.gray)
-                                }
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(Color.white.opacity(0.1))
-                                .cornerRadius(12)
-                            }
-                        }
-                    }
+                    reactionsView(reactions)
                 }
             }
             
@@ -275,8 +481,174 @@ struct MessageBubble: View {
             }
         }
         .padding(.vertical, 2)
+        .animation(.spring(response: 0.3), value: showReactionPicker)
     }
     
+    // MARK: - Message Content
+    @ViewBuilder
+    var messageContent: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            // Image/GIF Attachment
+            if message.type == .image || message.type == .gif {
+                imageContent
+            }
+            // Document Attachment
+            else if message.type == .file, let attachment = message.attachment {
+                documentContent(attachment)
+            }
+            // Text Content
+            else {
+                textContent
+            }
+        }
+        .padding(12)
+        .background(
+            isOwnMessage ?
+            Color(hex: "8B5CF6") :
+            Color.white.opacity(0.1)
+        )
+        .cornerRadius(16, corners: isOwnMessage ? [.topLeft, .topRight, .bottomLeft] : [.topLeft, .topRight, .bottomRight])
+    }
+    
+    // MARK: - Text Content
+    @ViewBuilder
+    var textContent: some View {
+        Text(showTranslation ? (message.translatedContent ?? message.originalContent) : message.originalContent)
+            .foregroundColor(.white)
+        
+        // Translation toggle if available
+        if message.translatedContent != nil {
+            Button(action: { showTranslation.toggle() }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "globe")
+                    Text(showTranslation ? "Show Original" : "Translate")
+                }
+                .font(.caption2)
+                .foregroundColor(isOwnMessage ? .white.opacity(0.7) : Color(hex: "8B5CF6"))
+            }
+        }
+    }
+    
+    // MARK: - Image Content
+    @ViewBuilder
+    var imageContent: some View {
+        Group {
+            if message.type == .gif {
+                // GIF - use URL directly from originalContent
+                AsyncImage(url: URL(string: message.originalContent)) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: 200, maxHeight: 200)
+                    case .failure:
+                        imageErrorView
+                    case .empty:
+                        ProgressView()
+                            .frame(width: 100, height: 100)
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+            } else if let attachment = message.attachment {
+                // Image from attachment
+                AttachmentImageView(attachment: attachment, onTap: onImageTap)
+            }
+        }
+        .cornerRadius(8)
+    }
+    
+    var imageErrorView: some View {
+        VStack {
+            Image(systemName: "photo")
+                .font(.title)
+                .foregroundColor(.gray)
+            Text("Failed to load")
+                .font(.caption)
+                .foregroundColor(.gray)
+        }
+        .frame(width: 100, height: 100)
+        .background(Color.white.opacity(0.1))
+    }
+    
+    // MARK: - Document Content
+    func documentContent(_ attachment: Attachment) -> some View {
+        HStack {
+            Image(systemName: documentIcon(for: attachment.contentType))
+                .font(.title2)
+                .foregroundColor(isOwnMessage ? .white : Color(hex: "8B5CF6"))
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(attachment.fileName)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(.white)
+                    .lineLimit(1)
+                
+                Text(formatFileSize(attachment.fileSize))
+                    .font(.caption)
+                    .foregroundColor(.white.opacity(0.7))
+            }
+        }
+        .padding(4)
+    }
+    
+    // MARK: - Reaction Picker
+    var reactionPicker: some View {
+        HStack(spacing: 8) {
+            ForEach(reactionEmojis, id: \.self) { emoji in
+                Button(action: {
+                    onReaction(emoji)
+                    showReactionPicker = false
+                }) {
+                    Text(emoji)
+                        .font(.title2)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color(hex: "2A2A2A"))
+        .cornerRadius(20)
+        .shadow(color: .black.opacity(0.3), radius: 10)
+        .onTapGesture {} // Capture taps on the picker itself
+        .background(
+            Color.clear
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    showReactionPicker = false
+                }
+        )
+    }
+    
+    // MARK: - Reactions Display
+    func reactionsView(_ reactions: [String: [String]]) -> some View {
+        HStack(spacing: 4) {
+            ForEach(Array(reactions.keys.sorted()), id: \.self) { emoji in
+                if let users = reactions[emoji], !users.isEmpty {
+                    Button(action: { onReaction(emoji) }) {
+                        HStack(spacing: 2) {
+                            Text(emoji)
+                            if users.count > 1 {
+                                Text("\(users.count)")
+                                    .font(.caption2)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(12)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+    }
+    
+    // MARK: - Helper Functions
     var statusIcon: String {
         switch message.status {
         case .sending:
@@ -322,6 +694,110 @@ struct MessageBubble: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "h:mm a"
         return formatter.string(from: date)
+    }
+    
+    func documentIcon(for contentType: String) -> String {
+        switch contentType {
+        case let type where type.contains("pdf"):
+            return "doc.fill"
+        case let type where type.contains("word"):
+            return "doc.text.fill"
+        case let type where type.contains("excel"), let type where type.contains("spreadsheet"):
+            return "tablecells.fill"
+        case let type where type.contains("text"):
+            return "doc.plaintext.fill"
+        default:
+            return "doc.fill"
+        }
+    }
+    
+    func formatFileSize(_ bytes: Int64) -> String {
+        let formatter = ByteCountFormatter()
+        formatter.countStyle = .file
+        return formatter.string(fromByteCount: bytes)
+    }
+}
+
+// MARK: - Attachment Image View
+struct AttachmentImageView: View {
+    let attachment: Attachment
+    let onTap: (URL) -> Void
+    
+    @State private var imageURL: URL?
+    @State private var isLoading = true
+    @State private var loadError = false
+    
+    var body: some View {
+        Group {
+            if let url = imageURL {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(maxWidth: 200, maxHeight: 200)
+                            .onTapGesture {
+                                onTap(url)
+                            }
+                    case .failure:
+                        errorView
+                    case .empty:
+                        loadingView
+                    @unknown default:
+                        EmptyView()
+                    }
+                }
+            } else if isLoading {
+                loadingView
+            } else {
+                errorView
+            }
+        }
+        .task {
+            await loadImageURL()
+        }
+    }
+    
+    var loadingView: some View {
+        ProgressView()
+            .frame(width: 100, height: 100)
+    }
+    
+    var errorView: some View {
+        VStack {
+            Image(systemName: "photo")
+                .font(.title)
+                .foregroundColor(.gray)
+            Text("Failed to load")
+                .font(.caption)
+                .foregroundColor(.gray)
+            
+            if loadError {
+                Button("Retry") {
+                    Task { await loadImageURL() }
+                }
+                .font(.caption)
+                .foregroundColor(Color(hex: "8B5CF6"))
+            }
+        }
+        .frame(width: 100, height: 100)
+        .background(Color.white.opacity(0.1))
+    }
+    
+    func loadImageURL() async {
+        isLoading = true
+        loadError = false
+        
+        do {
+            // Use cached URL when available (30-minute cache)
+            imageURL = try await DownloadURLCache.shared.getURL(for: attachment.key)
+        } catch {
+            logger.error("❌ Failed to get download URL: \(error.localizedDescription, privacy: .public)")
+            loadError = true
+        }
+        
+        isLoading = false
     }
 }
 
