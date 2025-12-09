@@ -147,6 +147,98 @@ class AuthManager: ObservableObject {
         isLoading = false
     }
     
+    // MARK: - Email Authentication
+    func signInWithEmail(email: String, password: String) async {
+        isLoading = true
+        error = nil
+        
+        do {
+            let response = try await APIService.shared.loginWithEmail(email: email, password: password)
+            
+            logger.info("✅ Email login successful: \(response.user.email, privacy: .public)")
+            
+            // Store tokens
+            accessToken = response.accessToken
+            refreshToken = response.refreshToken
+            APIService.shared.setAccessToken(response.accessToken)
+            
+            // Connect WebSocket
+            WebSocketService.shared.connect(token: response.accessToken)
+            
+            // Update state
+            currentUser = response.user
+            isAuthenticated = true
+            needsSetup = false
+            
+            saveAuth()
+            logger.info("✅ Auth state updated - isAuthenticated: \(self.isAuthenticated)")
+            
+        } catch APIError.unauthorized {
+            logger.error("❌ Invalid credentials")
+            self.error = "Invalid email or password"
+        } catch APIError.serverError(let message) {
+            logger.error("❌ Server error: \(message, privacy: .public)")
+            self.error = message
+        } catch {
+            logger.error("❌ Email login failed: \(error.localizedDescription, privacy: .public)")
+            self.error = "Login failed. Please try again."
+        }
+        
+        isLoading = false
+    }
+    
+    func registerWithEmail(
+        email: String,
+        password: String,
+        username: String,
+        preferredLanguage: String,
+        preferredCountry: String
+    ) async {
+        isLoading = true
+        error = nil
+        
+        do {
+            let response = try await APIService.shared.registerWithEmail(
+                email: email,
+                password: password,
+                username: username,
+                preferredLanguage: preferredLanguage,
+                preferredCountry: preferredCountry
+            )
+            
+            logger.info("✅ Registration successful: \(response.user.email, privacy: .public)")
+            
+            // Store tokens
+            accessToken = response.accessToken
+            refreshToken = response.refreshToken
+            APIService.shared.setAccessToken(response.accessToken)
+            
+            // Connect WebSocket
+            WebSocketService.shared.connect(token: response.accessToken)
+            
+            // Update state
+            currentUser = response.user
+            isAuthenticated = true
+            needsSetup = false  // Profile already set during registration
+            
+            saveAuth()
+            logger.info("✅ Auth state updated - isAuthenticated: \(self.isAuthenticated)")
+            
+        } catch APIError.serverError(let message) {
+            logger.error("❌ Registration error: \(message, privacy: .public)")
+            if message.contains("already registered") {
+                self.error = "This email is already registered"
+            } else {
+                self.error = message
+            }
+        } catch {
+            logger.error("❌ Registration failed: \(error.localizedDescription, privacy: .public)")
+            self.error = "Registration failed. Please try again."
+        }
+        
+        isLoading = false
+    }
+    
     func signOut() async {
         // Disconnect WebSocket
         WebSocketService.shared.disconnect()

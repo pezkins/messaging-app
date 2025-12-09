@@ -246,4 +246,91 @@ class AuthRepository @Inject constructor(
         
         Log.d(TAG, "✅ Logged out")
     }
+    
+    // Email Auth Methods
+    suspend fun checkEmail(email: String): Result<Boolean> {
+        Log.d(TAG, "📧 Checking if email exists: $email")
+        return try {
+            val response = apiService.checkEmail(
+                com.intokapp.app.data.network.CheckEmailRequest(email)
+            )
+            Log.d(TAG, "📧 Email check result: exists=${response.exists}")
+            Result.success(response.exists)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Email check failed: ${e.message}")
+            Result.failure(e)
+        }
+    }
+    
+    suspend fun loginWithEmail(email: String, password: String): Result<Boolean> {
+        Log.d(TAG, "🔐 Logging in with email: $email")
+        _authState.value = AuthState.Loading
+        
+        return try {
+            val response = apiService.login(
+                com.intokapp.app.data.models.LoginRequest(email, password)
+            )
+            
+            // Save auth
+            tokenManager.saveAll(
+                response.accessToken,
+                response.refreshToken,
+                response.user
+            )
+            
+            // Connect WebSocket
+            webSocketService.connect()
+            
+            _authState.value = AuthState.Authenticated(response.user, false)
+            Log.d(TAG, "✅ Email login successful: ${response.user.email}")
+            Result.success(false) // Not a new user
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Email login failed: ${e.message}")
+            _authState.value = AuthState.Error(e.message ?: "Login failed")
+            Result.failure(e)
+        }
+    }
+    
+    suspend fun registerWithEmail(
+        email: String,
+        password: String,
+        username: String,
+        preferredLanguage: String,
+        preferredCountry: String
+    ): Result<Boolean> {
+        Log.d(TAG, "📝 Registering with email: $email")
+        _authState.value = AuthState.Loading
+        
+        return try {
+            val response = apiService.register(
+                com.intokapp.app.data.models.RegisterRequest(
+                    email = email,
+                    password = password,
+                    username = username,
+                    preferredLanguage = preferredLanguage,
+                    preferredCountry = preferredCountry
+                )
+            )
+            
+            // Save auth
+            tokenManager.saveAll(
+                response.accessToken,
+                response.refreshToken,
+                response.user
+            )
+            
+            // Connect WebSocket
+            webSocketService.connect()
+            
+            _authState.value = AuthState.Authenticated(response.user, false)
+            Log.d(TAG, "✅ Registration successful: ${response.user.email}")
+            Result.success(true) // Is a new user
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Registration failed: ${e.message}")
+            _authState.value = AuthState.Error(e.message ?: "Registration failed")
+            Result.failure(e)
+        }
+    }
 }

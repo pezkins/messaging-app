@@ -14,6 +14,11 @@ This document defines all API endpoints and data schemas used by Intok.
 
 ## Authentication
 
+All authenticated endpoints require the following header:
+```
+Authorization: Bearer <accessToken>
+```
+
 ### POST /api/auth/register
 
 Create a new user account.
@@ -23,9 +28,19 @@ Create a new user account.
 {
   "email": "user@example.com",
   "password": "securePassword123",
-  "name": "John Doe"
+  "username": "johndoe",
+  "preferredLanguage": "en",
+  "preferredCountry": "US"
 }
 ```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| email | string | Yes | Valid email address |
+| password | string | Yes | Minimum 6 characters |
+| username | string | Yes | 3-30 characters |
+| preferredLanguage | string | No | Language code (default: "en") |
+| preferredCountry | string | No | 2-letter country code (default: "US") |
 
 **Response (201 Created):**
 ```json
@@ -33,9 +48,9 @@ Create a new user account.
   "user": {
     "id": "user_abc123",
     "email": "user@example.com",
-    "name": "John Doe",
+    "username": "johndoe",
     "preferredLanguage": "en",
-    "avatarUrl": null,
+    "preferredCountry": "US",
     "createdAt": "2024-12-08T00:00:00.000Z"
   },
   "accessToken": "eyJhbGciOiJIUzI1NiIs...",
@@ -44,14 +59,14 @@ Create a new user account.
 ```
 
 **Errors:**
-- `400` - Invalid email format or weak password
-- `409` - Email already registered
+- `400` - Validation error (invalid email, weak password, username too short/long)
+- `400` - `EMAIL_EXISTS` - Email already registered
 
 ---
 
 ### POST /api/auth/login
 
-Authenticate user and get tokens.
+Authenticate user with email and password.
 
 **Request:**
 ```json
@@ -67,9 +82,10 @@ Authenticate user and get tokens.
   "user": {
     "id": "user_abc123",
     "email": "user@example.com",
-    "name": "John Doe",
+    "username": "johndoe",
     "preferredLanguage": "en",
-    "avatarUrl": "https://..."
+    "preferredCountry": "US",
+    "createdAt": "2024-12-08T00:00:00.000Z"
   },
   "accessToken": "eyJhbGciOiJIUzI1NiIs...",
   "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
@@ -77,113 +93,123 @@ Authenticate user and get tokens.
 ```
 
 **Errors:**
-- `401` - Invalid credentials
+- `400` - Validation error
+- `401` - `INVALID_CREDENTIALS` - Invalid email or password
 
 ---
 
-### POST /api/auth/refresh
+### POST /api/auth/oauth
 
-Refresh access token using refresh token.
+Authenticate with OAuth provider (Google or Apple).
 
 **Request:**
 ```json
 {
-  "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
+  "provider": "google",
+  "providerId": "oauth_provider_user_id",
+  "email": "user@example.com",
+  "name": "John Doe",
+  "avatarUrl": "https://example.com/avatar.jpg"
 }
 ```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| provider | string | Yes | Either "google" or "apple" |
+| providerId | string | Yes | Unique user ID from the OAuth provider |
+| email | string | Yes | Email from OAuth provider |
+| name | string | No | Display name (nullable) |
+| avatarUrl | string | No | Profile photo URL (nullable) |
 
 **Response (200 OK):**
 ```json
 {
+  "user": {
+    "id": "user_abc123",
+    "email": "user@example.com",
+    "username": "johndoe123",
+    "preferredLanguage": "en",
+    "preferredCountry": "US",
+    "avatarUrl": "https://example.com/avatar.jpg",
+    "createdAt": "2024-12-08T00:00:00.000Z"
+  },
   "accessToken": "eyJhbGciOiJIUzI1NiIs...",
   "refreshToken": "eyJhbGciOiJIUzI1NiIs..."
 }
 ```
 
+**Notes:**
+- If user doesn't exist, a new account is created automatically
+- Username is auto-generated from name or email prefix
+- If user exists with email but no OAuth, their account is linked
+
 **Errors:**
-- `401` - Invalid or expired refresh token
+- `400` - Validation error
 
 ---
 
-### POST /api/auth/google
+### POST /api/auth/check-email
 
-Authenticate with Google OAuth.
+Check if an email is already registered.
 
 **Request:**
 ```json
 {
-  "idToken": "google_id_token_here"
+  "email": "user@example.com"
 }
 ```
 
 **Response (200 OK):**
 ```json
 {
-  "user": { ... },
-  "accessToken": "...",
-  "refreshToken": "...",
-  "isNewUser": false
+  "exists": true,
+  "email": "user@example.com"
 }
 ```
+
+**Use Case:** 
+- Check email availability before registration
+- Determine if user should login vs register
+
+**Errors:**
+- `400` - Invalid email format
+
+---
+
+### GET /api/auth/me
+
+Get current authenticated user's profile.
+
+**Headers:**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK):**
+```json
+{
+  "user": {
+    "id": "user_abc123",
+    "email": "user@example.com",
+    "username": "johndoe",
+    "preferredLanguage": "en",
+    "preferredCountry": "US",
+    "createdAt": "2024-12-08T00:00:00.000Z"
+  }
+}
+```
+
+**Errors:**
+- `401` - Authentication required
+- `404` - User not found
 
 ---
 
 ## Users
 
-### GET /api/users/me
-
-Get current user profile.
-
-**Headers:**
-```
-Authorization: Bearer <accessToken>
-```
-
-**Response (200 OK):**
-```json
-{
-  "id": "user_abc123",
-  "email": "user@example.com",
-  "name": "John Doe",
-  "preferredLanguage": "en",
-  "avatarUrl": "https://...",
-  "createdAt": "2024-12-08T00:00:00.000Z"
-}
-```
-
----
-
-### PATCH /api/users/me/language
-
-Update user's preferred language.
-
-**Headers:**
-```
-Authorization: Bearer <accessToken>
-```
-
-**Request:**
-```json
-{
-  "language": "es"
-}
-```
-
-**Response (200 OK):**
-```json
-{
-  "id": "user_abc123",
-  "preferredLanguage": "es"
-}
-```
-
-**Valid Languages:** `en`, `es`, `fr`, `de`, `it`, `zh`, `ja`, `ko`, `ar`, `hi`, `pt`, `ru`, `nl`, `pl`, `tr`, `vi`
-
----
-
 ### GET /api/users/search
 
-Search for users by name or email.
+Search for users by username or email.
 
 **Headers:**
 ```
@@ -191,10 +217,11 @@ Authorization: Bearer <accessToken>
 ```
 
 **Query Parameters:**
-- `q` (required) - Search query (min 2 characters)
-- `limit` (optional) - Max results (default: 20)
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| q | string | Yes | Search query (minimum 2 characters) |
 
-**Example:** `GET /api/users/search?q=john&limit=10`
+**Example:** `GET /api/users/search?q=john`
 
 **Response (200 OK):**
 ```json
@@ -202,13 +229,146 @@ Authorization: Bearer <accessToken>
   "users": [
     {
       "id": "user_xyz789",
-      "name": "John Smith",
+      "username": "johnsmith",
       "email": "john.smith@example.com",
-      "avatarUrl": "https://..."
+      "avatarUrl": "https://...",
+      "preferredLanguage": "es"
     }
   ]
 }
 ```
+
+**Notes:**
+- Searches both username and email fields
+- Results limited to 20 users
+- Current user is excluded from results
+
+**Errors:**
+- `401` - Unauthorized
+
+---
+
+### PATCH /api/users/me
+
+Update current user's profile.
+
+**Headers:**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request:**
+```json
+{
+  "username": "newusername",
+  "avatarUrl": "https://example.com/new-avatar.jpg"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| username | string | No | 3-30 characters |
+| avatarUrl | string | No | Valid URL |
+
+**Response (200 OK):**
+```json
+{
+  "user": {
+    "id": "user_abc123",
+    "email": "user@example.com",
+    "username": "newusername",
+    "preferredLanguage": "en",
+    "preferredCountry": "US",
+    "avatarUrl": "https://example.com/new-avatar.jpg",
+    "createdAt": "2024-12-08T00:00:00.000Z"
+  }
+}
+```
+
+**Errors:**
+- `400` - Validation error
+- `401` - Unauthorized
+
+---
+
+### PATCH /api/users/me/language
+
+Update user's preferred language for message translations.
+
+**Headers:**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request:**
+```json
+{
+  "preferredLanguage": "es"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "user": {
+    "id": "user_abc123",
+    "email": "user@example.com",
+    "username": "johndoe",
+    "preferredLanguage": "es",
+    "preferredCountry": "US",
+    "createdAt": "2024-12-08T00:00:00.000Z"
+  }
+}
+```
+
+**Valid Languages:** `en`, `es`, `fr`, `de`, `it`, `zh`, `ja`, `ko`, `ar`, `hi`, `pt`, `ru`, `nl`, `pl`, `tr`, `vi`
+
+**Errors:**
+- `400` - Validation error
+- `401` - Unauthorized
+
+---
+
+### PATCH /api/users/me/country
+
+Update user's preferred country (used for regional translation context).
+
+**Headers:**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request:**
+```json
+{
+  "preferredCountry": "MX"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| preferredCountry | string | Yes | 2-letter ISO country code |
+
+**Response (200 OK):**
+```json
+{
+  "user": {
+    "id": "user_abc123",
+    "email": "user@example.com",
+    "username": "johndoe",
+    "preferredLanguage": "es",
+    "preferredCountry": "MX",
+    "createdAt": "2024-12-08T00:00:00.000Z"
+  }
+}
+```
+
+**Use Case:**
+- Helps translation service use regional variations (e.g., Spanish for Mexico vs Spain)
+
+**Errors:**
+- `400` - Validation error (must be exactly 2 characters)
+- `401` - Unauthorized
 
 ---
 
@@ -223,10 +383,6 @@ List user's conversations.
 Authorization: Bearer <accessToken>
 ```
 
-**Query Parameters:**
-- `limit` (optional) - Max results (default: 50)
-- `cursor` (optional) - Pagination cursor
-
 **Response (200 OK):**
 ```json
 {
@@ -237,30 +393,44 @@ Authorization: Bearer <accessToken>
       "name": null,
       "participants": [
         {
-          "userId": "user_abc123",
-          "name": "John Doe",
-          "avatarUrl": "https://..."
+          "id": "user_abc123",
+          "username": "johndoe",
+          "preferredLanguage": "en"
         },
         {
-          "userId": "user_xyz789",
-          "name": "Jane Smith",
-          "avatarUrl": "https://..."
+          "id": "user_xyz789",
+          "username": "janesmith",
+          "preferredLanguage": "es"
         }
       ],
       "lastMessage": {
         "id": "msg_123",
-        "content": "Hello!",
-        "translatedContent": "¡Hola!",
+        "conversationId": "conv_abc123",
         "senderId": "user_xyz789",
+        "sender": {
+          "id": "user_xyz789",
+          "username": "janesmith",
+          "preferredLanguage": "es"
+        },
+        "type": "text",
+        "originalContent": "Hello!",
+        "originalLanguage": "en",
+        "status": "sent",
         "createdAt": "2024-12-08T12:00:00.000Z"
       },
-      "unreadCount": 3,
+      "createdAt": "2024-12-08T00:00:00.000Z",
       "updatedAt": "2024-12-08T12:00:00.000Z"
     }
-  ],
-  "nextCursor": "cursor_value"
+  ]
 }
 ```
+
+**Notes:**
+- Conversations are sorted by `updatedAt` (most recent first)
+- `lastMessage` is null for new conversations without messages
+
+**Errors:**
+- `401` - Authentication required
 
 ---
 
@@ -273,7 +443,7 @@ Create a new conversation.
 Authorization: Bearer <accessToken>
 ```
 
-**Request (Direct):**
+**Request (Direct Message):**
 ```json
 {
   "type": "direct",
@@ -281,7 +451,7 @@ Authorization: Bearer <accessToken>
 }
 ```
 
-**Request (Group):**
+**Request (Group Chat):**
 ```json
 {
   "type": "group",
@@ -290,20 +460,48 @@ Authorization: Bearer <accessToken>
 }
 ```
 
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| type | string | Yes | "direct" or "group" |
+| participantIds | string[] | Yes | Array of user IDs to add (min 1) |
+| name | string | No | Group name (recommended for groups) |
+
 **Response (201 Created):**
 ```json
 {
-  "id": "conv_abc123",
-  "type": "direct",
-  "name": null,
-  "participants": [...],
-  "createdAt": "2024-12-08T00:00:00.000Z"
+  "conversation": {
+    "id": "conv_abc123",
+    "type": "direct",
+    "name": null,
+    "participants": [
+      {
+        "id": "user_abc123",
+        "username": "johndoe",
+        "preferredLanguage": "en"
+      },
+      {
+        "id": "user_xyz789",
+        "username": "janesmith",
+        "preferredLanguage": "es"
+      }
+    ],
+    "createdAt": "2024-12-08T00:00:00.000Z",
+    "updatedAt": "2024-12-08T00:00:00.000Z"
+  }
 }
 ```
 
+**Notes:**
+- For `direct` type with same participants, returns existing conversation (200 OK)
+- Current user is automatically added to participants
+
+**Errors:**
+- `400` - Validation error
+- `401` - Authentication required
+
 ---
 
-### GET /api/conversations/:id/messages
+### GET /api/conversations/{conversationId}/messages
 
 Get messages for a conversation.
 
@@ -312,10 +510,18 @@ Get messages for a conversation.
 Authorization: Bearer <accessToken>
 ```
 
+**Path Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| conversationId | string | The conversation ID |
+
 **Query Parameters:**
-- `limit` (optional) - Max results (default: 50)
-- `before` (optional) - Get messages before this message ID
-- `after` (optional) - Get messages after this message ID
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| limit | number | No | 50 | Max messages to return |
+| cursor | string | No | - | Pagination cursor (message timestamp) |
+
+**Example:** `GET /api/conversations/conv_abc123/messages?limit=50`
 
 **Response (200 OK):**
 ```json
@@ -325,28 +531,47 @@ Authorization: Bearer <accessToken>
       "id": "msg_abc123",
       "conversationId": "conv_abc123",
       "senderId": "user_xyz789",
-      "content": "Hello, how are you?",
-      "translatedContent": "¡Hola! ¿Cómo estás?",
-      "originalLanguage": "en",
-      "targetLanguage": "es",
+      "sender": {
+        "id": "user_xyz789",
+        "username": "janesmith",
+        "preferredLanguage": "es"
+      },
       "type": "text",
-      "attachments": [],
-      "reactions": [],
-      "readBy": ["user_abc123"],
+      "originalContent": "Hello, how are you?",
+      "originalLanguage": "en",
+      "translatedContent": "¡Hola! ¿Cómo estás?",
+      "targetLanguage": "es",
+      "status": "sent",
+      "reactions": {
+        "👍": ["user_abc123"],
+        "❤️": ["user_abc123", "user_xyz789"]
+      },
       "createdAt": "2024-12-08T12:00:00.000Z"
     }
   ],
-  "hasMore": true
+  "hasMore": true,
+  "nextCursor": "2024-12-08T11:00:00.000Z"
 }
 ```
 
+**Notes:**
+- Messages are returned in chronological order (oldest first)
+- `translatedContent` is in the requesting user's preferred language
+- If no cached translation exists, `translatedContent` equals `originalContent`
+- Use `nextCursor` for pagination
+
+**Errors:**
+- `400` - Conversation ID required
+- `401` - Authentication required
+- `404` - Conversation not found
+
 ---
 
-## Messages
+## Attachments
 
-### POST /api/messages/preview-translation
+### POST /api/attachments/upload-url
 
-Preview translation before sending.
+Get a presigned URL to upload an attachment to S3.
 
 **Headers:**
 ```
@@ -356,20 +581,103 @@ Authorization: Bearer <accessToken>
 **Request:**
 ```json
 {
-  "content": "Hello, how are you?",
-  "targetLanguage": "es"
+  "fileName": "photo.jpg",
+  "contentType": "image/jpeg",
+  "fileSize": 1024000,
+  "conversationId": "conv_abc123"
 }
 ```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| fileName | string | Yes | Original file name with extension |
+| contentType | string | Yes | MIME type of the file |
+| fileSize | number | Yes | File size in bytes |
+| conversationId | string | Yes | Target conversation ID |
+
+**Allowed File Types:**
+
+| Category | MIME Types |
+|----------|------------|
+| image | `image/jpeg`, `image/png`, `image/gif`, `image/webp` |
+| video | `video/mp4`, `video/quicktime`, `video/webm` |
+| audio | `audio/mpeg`, `audio/wav`, `audio/ogg`, `audio/webm` |
+| document | `application/pdf`, `application/msword`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, `application/vnd.ms-excel`, `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`, `text/plain` |
+
+**Max File Size:** 25 MB
 
 **Response (200 OK):**
 ```json
 {
-  "originalContent": "Hello, how are you?",
-  "translatedContent": "¡Hola! ¿Cómo estás?",
-  "detectedLanguage": "en",
-  "targetLanguage": "es"
+  "attachmentId": "att_abc123",
+  "uploadUrl": "https://s3.amazonaws.com/bucket/...",
+  "key": "conv_abc123/att_abc123.jpg",
+  "category": "image",
+  "expiresIn": 300
 }
 ```
+
+| Field | Description |
+|-------|-------------|
+| attachmentId | Unique ID for the attachment |
+| uploadUrl | Presigned S3 PUT URL |
+| key | S3 object key (use for download URL) |
+| category | File category (image, video, audio, document) |
+| expiresIn | URL expiry in seconds (5 minutes) |
+
+**Upload Instructions:**
+```javascript
+// Use HTTP PUT to upload the file
+await fetch(uploadUrl, {
+  method: 'PUT',
+  body: fileData,
+  headers: {
+    'Content-Type': contentType
+  }
+});
+```
+
+**Errors:**
+- `400` - Missing required fields
+- `400` - File type not allowed
+- `400` - File too large
+- `401` - Authentication required
+
+---
+
+### GET /api/attachments/download-url
+
+Get a presigned URL to download an attachment.
+
+**Headers:**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Query Parameters:**
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| key | string | Yes | S3 object key from upload response |
+
+**Example:** `GET /api/attachments/download-url?key=conv_abc123/att_abc123.jpg`
+
+**Response (200 OK):**
+```json
+{
+  "downloadUrl": "https://s3.amazonaws.com/bucket/...",
+  "expiresIn": 3600
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| downloadUrl | Presigned S3 GET URL |
+| expiresIn | URL expiry in seconds (1 hour) |
+
+**Errors:**
+- `400` - Missing key parameter
+- `400` - Invalid key format
+- `401` - Authentication required
 
 ---
 
@@ -377,93 +685,177 @@ Authorization: Bearer <accessToken>
 
 ### Connection
 
-Connect with authentication:
+Connect to WebSocket with authentication token:
+
 ```javascript
-const ws = new WebSocket('wss://api.intokapp.com?token=<accessToken>');
+const ws = new WebSocket('wss://ws.intokapp.com?token=<accessToken>');
 ```
+
+**Connection Events:**
+- `$connect` - Validates token and stores connection
+- `$disconnect` - Removes connection from database
+
+---
 
 ### Client → Server Events
 
-#### message:send
+All messages sent to the server follow this format:
 ```json
 {
-  "type": "message:send",
-  "payload": {
+  "action": "event_name",
+  "data": { ... }
+}
+```
+
+#### message:send
+
+Send a new message to a conversation.
+
+```json
+{
+  "action": "message:send",
+  "data": {
     "conversationId": "conv_abc123",
     "content": "Hello!",
-    "type": "text",
-    "attachments": []
+    "type": "text"
   }
 }
 ```
 
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| conversationId | string | Yes | Target conversation |
+| content | string | Yes | Message content |
+| type | string | No | "text" (default), "image", "file", "voice" |
+
+---
+
 #### message:typing
+
+Send typing indicator.
+
 ```json
 {
-  "type": "message:typing",
-  "payload": {
+  "action": "message:typing",
+  "data": {
     "conversationId": "conv_abc123",
     "isTyping": true
   }
 }
 ```
 
-#### message:read
+| Field | Type | Description |
+|-------|------|-------------|
+| conversationId | string | Target conversation |
+| isTyping | boolean | true when typing, false when stopped |
+
+---
+
+#### message:reaction
+
+Add or remove a reaction to a message.
+
 ```json
 {
-  "type": "message:read",
-  "payload": {
+  "action": "message:reaction",
+  "data": {
     "conversationId": "conv_abc123",
-    "messageId": "msg_abc123"
+    "messageId": "msg_abc123",
+    "messageTimestamp": "2024-12-08T12:00:00.000Z",
+    "emoji": "👍"
   }
 }
 ```
 
+| Field | Type | Description |
+|-------|------|-------------|
+| conversationId | string | Conversation containing the message |
+| messageId | string | Message ID to react to |
+| messageTimestamp | string | Message timestamp (ISO 8601) |
+| emoji | string | Emoji character |
+
+**Notes:**
+- Toggles reaction: if user already reacted with emoji, removes it; otherwise adds it
+- Both `messageId` and `messageTimestamp` are required due to DynamoDB key structure
+
+---
+
 ### Server → Client Events
 
 #### message:receive
+
+Received when a new message is sent to a conversation.
+
 ```json
 {
-  "type": "message:receive",
-  "payload": {
+  "action": "message:receive",
+  "message": {
     "id": "msg_abc123",
     "conversationId": "conv_abc123",
     "senderId": "user_xyz789",
-    "senderName": "Jane Smith",
-    "content": "Hello, how are you?",
-    "translatedContent": "¡Hola! ¿Cómo estás?",
-    "originalLanguage": "en",
-    "targetLanguage": "es",
+    "sender": {
+      "id": "user_xyz789",
+      "username": "janesmith",
+      "preferredLanguage": "es"
+    },
     "type": "text",
+    "originalContent": "Hello, how are you?",
+    "originalLanguage": "en",
+    "translatedContent": "¡Hola! ¿Cómo estás?",
+    "targetLanguage": "es",
+    "status": "sent",
+    "timestamp": "2024-12-08T12:00:00.000Z",
     "createdAt": "2024-12-08T12:00:00.000Z"
   }
 }
 ```
 
+**Notes:**
+- `translatedContent` is automatically translated to receiver's preferred language
+- `targetLanguage` matches receiver's `preferredLanguage`
+- Translations are cached for future retrieval
+
+---
+
 #### message:typing
+
+Received when another user is typing.
+
 ```json
 {
-  "type": "message:typing",
-  "payload": {
-    "conversationId": "conv_abc123",
-    "userId": "user_xyz789",
-    "userName": "Jane Smith",
-    "isTyping": true
-  }
+  "action": "message:typing",
+  "conversationId": "conv_abc123",
+  "userId": "user_xyz789",
+  "isTyping": true
 }
 ```
 
-#### message:read
+---
+
+#### message:reaction
+
+Received when a reaction is added or removed.
+
 ```json
 {
-  "type": "message:read",
-  "payload": {
-    "conversationId": "conv_abc123",
-    "messageId": "msg_abc123",
-    "userId": "user_xyz789"
-  }
+  "action": "message:reaction",
+  "conversationId": "conv_abc123",
+  "messageId": "msg_abc123",
+  "messageTimestamp": "2024-12-08T12:00:00.000Z",
+  "reactions": {
+    "👍": ["user_abc123"],
+    "❤️": ["user_abc123", "user_xyz789"]
+  },
+  "userId": "user_xyz789",
+  "emoji": "👍"
 }
 ```
+
+| Field | Description |
+|-------|-------------|
+| reactions | Complete reactions map after update |
+| userId | User who added/removed the reaction |
+| emoji | The emoji that was added/removed |
 
 ---
 
@@ -474,8 +866,9 @@ const ws = new WebSocket('wss://api.intokapp.com?token=<accessToken>');
 interface User {
   id: string;
   email: string;
-  name: string;
+  username: string;
   preferredLanguage: LanguageCode;
+  preferredCountry: string; // 2-letter ISO code
   avatarUrl: string | null;
   createdAt: string; // ISO 8601
 }
@@ -486,12 +879,17 @@ interface User {
 interface Conversation {
   id: string;
   type: 'direct' | 'group';
-  name: string | null; // null for direct, required for group
+  name: string | null; // null for direct, name for group
   participants: Participant[];
   lastMessage: Message | null;
-  unreadCount: number;
   createdAt: string;
   updatedAt: string;
+}
+
+interface Participant {
+  id: string;
+  username: string;
+  preferredLanguage: LanguageCode;
 }
 ```
 
@@ -501,14 +899,28 @@ interface Message {
   id: string;
   conversationId: string;
   senderId: string;
-  content: string;
-  translatedContent: string | null;
-  originalLanguage: LanguageCode;
-  targetLanguage: LanguageCode | null;
+  sender: Participant;
   type: 'text' | 'image' | 'file' | 'gif' | 'voice';
-  attachments: Attachment[];
-  reactions: Reaction[];
-  readBy: string[];
+  originalContent: string;
+  originalLanguage: LanguageCode;
+  translatedContent: string | null;
+  targetLanguage: LanguageCode | null;
+  status: 'sent' | 'delivered' | 'read';
+  reactions: Record<string, string[]>; // emoji -> userIds
+  createdAt: string; // ISO 8601
+}
+```
+
+### Attachment
+```typescript
+interface Attachment {
+  id: string;
+  key: string; // S3 object key
+  fileName: string;
+  contentType: string;
+  fileSize: number;
+  category: 'image' | 'video' | 'audio' | 'document';
+  uploadedBy: string;
   createdAt: string;
 }
 ```
@@ -529,11 +941,9 @@ All errors follow this format:
 
 ```json
 {
-  "error": {
-    "code": "INVALID_TOKEN",
-    "message": "The provided token is invalid or expired",
-    "details": {}
-  }
+  "message": "Human readable error message",
+  "code": "ERROR_CODE",
+  "details": {}
 }
 ```
 
@@ -542,14 +952,57 @@ All errors follow this format:
 | Code | HTTP Status | Description |
 |------|-------------|-------------|
 | `VALIDATION_ERROR` | 400 | Invalid request data |
-| `UNAUTHORIZED` | 401 | Missing or invalid auth |
-| `FORBIDDEN` | 403 | No permission |
+| `EMAIL_EXISTS` | 400 | Email already registered |
+| `INVALID_CREDENTIALS` | 401 | Wrong email or password |
+| `UNAUTHORIZED` | 401 | Missing or invalid auth token |
+| `FORBIDDEN` | 403 | No permission for resource |
 | `NOT_FOUND` | 404 | Resource not found |
-| `CONFLICT` | 409 | Resource already exists |
-| `RATE_LIMITED` | 429 | Too many requests |
 | `INTERNAL_ERROR` | 500 | Server error |
 
 ---
 
-*Last Updated: December 2024*
+## Quick Reference
 
+### Authentication Endpoints
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/auth/register` | No | Create account |
+| POST | `/api/auth/login` | No | Login with email/password |
+| POST | `/api/auth/oauth` | No | Login with Google/Apple |
+| POST | `/api/auth/check-email` | No | Check if email exists |
+| GET | `/api/auth/me` | Yes | Get current user |
+
+### User Endpoints
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/users/search?q=` | Yes | Search users |
+| PATCH | `/api/users/me` | Yes | Update profile |
+| PATCH | `/api/users/me/language` | Yes | Update language |
+| PATCH | `/api/users/me/country` | Yes | Update country |
+
+### Conversation Endpoints
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/conversations` | Yes | List conversations |
+| POST | `/api/conversations` | Yes | Create conversation |
+| GET | `/api/conversations/{id}/messages` | Yes | Get messages |
+
+### Attachment Endpoints
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/attachments/upload-url` | Yes | Get upload URL |
+| GET | `/api/attachments/download-url?key=` | Yes | Get download URL |
+
+### WebSocket Actions
+| Direction | Action | Description |
+|-----------|--------|-------------|
+| → Server | `message:send` | Send message |
+| → Server | `message:typing` | Typing indicator |
+| → Server | `message:reaction` | Add/remove reaction |
+| ← Client | `message:receive` | New message |
+| ← Client | `message:typing` | Someone typing |
+| ← Client | `message:reaction` | Reaction updated |
+
+---
+
+*Last Updated: December 2024*

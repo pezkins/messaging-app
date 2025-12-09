@@ -261,6 +261,22 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
 
+  CheckEmailFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/auth.checkEmail
+      CodeUri: .
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/auth/check-email
+            Method: POST
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
   GetMeFunction:
     Type: AWS::Serverless::Function
     Properties:
