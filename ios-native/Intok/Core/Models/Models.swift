@@ -105,18 +105,77 @@ struct Message: Codable, Identifiable {
     let id: String
     let conversationId: String
     let senderId: String
-    let sender: UserPublic
+    let sender: UserPublic?  // Made optional - may not always be present
     let type: MessageType
     let originalContent: String
-    let originalLanguage: String
+    let originalLanguage: String?  // Made optional - backend may not always return
     let translatedContent: String?
     let targetLanguage: String?
-    let status: MessageStatus
+    let status: MessageStatus?  // Made optional - backend may return different status
     let createdAt: String
     let reactions: [String: [String]]?
     let attachment: Attachment?
     
-    init(id: String, conversationId: String, senderId: String, sender: UserPublic, type: MessageType = .text, originalContent: String, originalLanguage: String, translatedContent: String? = nil, targetLanguage: String? = nil, status: MessageStatus = .sent, createdAt: String, reactions: [String: [String]]? = nil, attachment: Attachment? = nil) {
+    // Custom decoding to handle backend variations
+    enum CodingKeys: String, CodingKey {
+        case id, conversationId, senderId, sender, type
+        case originalContent, originalLanguage
+        case translatedContent, targetLanguage
+        case status, createdAt, reactions, attachment
+        case content  // Backend might use 'content' instead of 'originalContent'
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        
+        id = try container.decode(String.self, forKey: .id)
+        conversationId = try container.decode(String.self, forKey: .conversationId)
+        senderId = try container.decode(String.self, forKey: .senderId)
+        sender = try container.decodeIfPresent(UserPublic.self, forKey: .sender)
+        
+        // Handle type - default to .text if missing or invalid
+        if let typeValue = try? container.decode(MessageType.self, forKey: .type) {
+            type = typeValue
+        } else {
+            type = .text
+        }
+        
+        // Try originalContent first, then fall back to content
+        if let original = try? container.decode(String.self, forKey: .originalContent) {
+            originalContent = original
+        } else if let content = try? container.decode(String.self, forKey: .content) {
+            originalContent = content
+        } else {
+            originalContent = ""
+        }
+        
+        originalLanguage = try container.decodeIfPresent(String.self, forKey: .originalLanguage)
+        translatedContent = try container.decodeIfPresent(String.self, forKey: .translatedContent)
+        targetLanguage = try container.decodeIfPresent(String.self, forKey: .targetLanguage)
+        status = try container.decodeIfPresent(MessageStatus.self, forKey: .status)
+        createdAt = try container.decode(String.self, forKey: .createdAt)
+        reactions = try container.decodeIfPresent([String: [String]].self, forKey: .reactions)
+        attachment = try container.decodeIfPresent(Attachment.self, forKey: .attachment)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(conversationId, forKey: .conversationId)
+        try container.encode(senderId, forKey: .senderId)
+        try container.encodeIfPresent(sender, forKey: .sender)
+        try container.encode(type, forKey: .type)
+        try container.encode(originalContent, forKey: .originalContent)
+        try container.encodeIfPresent(originalLanguage, forKey: .originalLanguage)
+        try container.encodeIfPresent(translatedContent, forKey: .translatedContent)
+        try container.encodeIfPresent(targetLanguage, forKey: .targetLanguage)
+        try container.encodeIfPresent(status, forKey: .status)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(reactions, forKey: .reactions)
+        try container.encodeIfPresent(attachment, forKey: .attachment)
+    }
+    
+    init(id: String, conversationId: String, senderId: String, sender: UserPublic?, type: MessageType = .text, originalContent: String, originalLanguage: String?, translatedContent: String? = nil, targetLanguage: String? = nil, status: MessageStatus? = .sent, createdAt: String, reactions: [String: [String]]? = nil, attachment: Attachment? = nil) {
         self.id = id
         self.conversationId = conversationId
         self.senderId = senderId

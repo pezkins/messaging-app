@@ -1,0 +1,164 @@
+# Shared Library Rules
+
+> These rules apply to all shared utilities in lib/
+
+## auth.ts - Authentication Utilities
+
+### JWT Functions
+```typescript
+import jwt from 'jsonwebtoken';
+
+const JWT_SECRET = process.env.JWT_SECRET!;
+const JWT_EXPIRES_IN = '15m';
+const REFRESH_EXPIRES_IN = '7d';
+
+export function generateTokens(userId: string): TokenPair {
+  const accessToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  const refreshToken = jwt.sign({ userId, type: 'refresh' }, JWT_SECRET, { expiresIn: REFRESH_EXPIRES_IN });
+  return { accessToken, refreshToken };
+}
+
+export function verifyToken(token: string): { userId: string } {
+  try {
+    return jwt.verify(token, JWT_SECRET) as { userId: string };
+  } catch {
+    throw new AuthError('Invalid token');
+  }
+}
+
+export function validateAuth(authHeader?: string): string {
+  if (!authHeader?.startsWith('Bearer ')) {
+    throw new AuthError('Missing authorization header');
+  }
+  const token = authHeader.slice(7);
+  const { userId } = verifyToken(token);
+  return userId;
+}
+```
+
+### Password Hashing
+```typescript
+import bcrypt from 'bcryptjs';
+
+const SALT_ROUNDS = 12;
+
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, SALT_ROUNDS);
+}
+
+export async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash);
+}
+```
+
+## dynamo.ts - DynamoDB Client
+
+### Client Setup
+```typescript
+import { DynamoDBClient } from '@aws-sdk/client-dynamodb';
+import { DynamoDBDocumentClient, GetCommand, PutCommand, QueryCommand } from '@aws-sdk/lib-dynamodb';
+
+const client = new DynamoDBClient({});
+export const dynamo = DynamoDBDocumentClient.from(client, {
+  marshallOptions: { removeUndefinedValues: true }
+});
+
+export const TABLE_NAME = process.env.TABLE_NAME!;
+```
+
+### Helper Functions
+```typescript
+export async function getItem<T>(pk: string, sk: string): Promise<T | null> {
+  const result = await dynamo.send(new GetCommand({
+    TableName: TABLE_NAME,
+    Key: { PK: pk, SK: sk }
+  }));
+  return result.Item as T | null;
+}
+
+export async function putItem(item: Record<string, unknown>): Promise<void> {
+  await dynamo.send(new PutCommand({
+    TableName: TABLE_NAME,
+    Item: item
+  }));
+}
+
+export async function queryItems<T>(params: QueryParams): Promise<T[]> {
+  const result = await dynamo.send(new QueryCommand({
+    TableName: TABLE_NAME,
+    ...params
+  }));
+  return (result.Items || []) as T[];
+}
+```
+
+## translation.ts - AI Translation Service
+
+### Translation Interface
+```typescript
+interface TranslationResult {
+  translatedContent: string;
+  detectedLanguage: string;
+  targetLanguage: string;
+}
+
+export async function translateMessage(
+  content: string,
+  targetLanguage: string
+): Promise<TranslationResult> {
+  // Check cache first
+  const cached = await getCachedTranslation(content, targetLanguage);
+  if (cached) return cached;
+  
+  // Call AI provider
+  const result = await callTranslationAPI(content, targetLanguage);
+  
+  // Cache result
+  await cacheTranslation(content, targetLanguage, result);
+  
+  return result;
+}
+```
+
+### Provider Abstraction
+```typescript
+type TranslationProvider = 'deepseek' | 'openai' | 'ollama';
+
+async function callTranslationAPI(
+  content: string,
+  targetLanguage: string
+): Promise<TranslationResult> {
+  const provider = process.env.TRANSLATION_PROVIDER as TranslationProvider;
+  
+  switch (provider) {
+    case 'deepseek':
+      return callDeepSeek(content, targetLanguage);
+    case 'openai':
+      return callOpenAI(content, targetLanguage);
+    case 'ollama':
+      return callOllama(content, targetLanguage);
+    default:
+      throw new Error(`Unknown provider: ${provider}`);
+  }
+}
+```
+
+### Prompt Template
+```typescript
+const TRANSLATION_PROMPT = `
+Translate the following message to ${targetLanguage}.
+Only return the translated text, no explanations.
+If the text is already in ${targetLanguage}, return it unchanged.
+
+Message: ${content}
+`;
+```
+
+## General Guidelines
+
+1. **No side effects** - Functions should be pure where possible
+2. **Error handling** - Always throw typed errors
+3. **Logging** - Log inputs and outputs for debugging
+4. **Environment variables** - Validate they exist at startup
+5. **Types** - Export all types used by handlers
+

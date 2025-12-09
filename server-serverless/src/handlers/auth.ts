@@ -18,6 +18,10 @@ const loginSchema = z.object({
   password: z.string(),
 });
 
+const checkEmailSchema = z.object({
+  email: z.string().email(),
+});
+
 const oauthSchema = z.object({
   provider: z.enum(['google', 'apple']),
   providerId: z.string().min(1),
@@ -215,6 +219,34 @@ export const oauth: APIGatewayProxyHandler = async (event) => {
       return response(400, { message: 'Validation error', details: error.errors });
     }
     console.error('OAuth error:', error);
+    return response(500, { message: 'Internal server error' });
+  }
+};
+
+export const checkEmail: APIGatewayProxyHandler = async (event) => {
+  try {
+    const body = JSON.parse(event.body || '{}');
+    const data = checkEmailSchema.parse(body);
+
+    // Check if email exists
+    const emailCheck = await dynamodb.send(new QueryCommand({
+      TableName: Tables.USERS,
+      IndexName: 'email-index',
+      KeyConditionExpression: 'email = :email',
+      ExpressionAttributeValues: { ':email': data.email },
+    }));
+
+    const exists = emailCheck.Items && emailCheck.Items.length > 0;
+
+    return response(200, {
+      exists,
+      email: data.email,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return response(400, { message: 'Validation error', details: error.errors });
+    }
+    console.error('CheckEmail error:', error);
     return response(500, { message: 'Internal server error' });
   }
 };

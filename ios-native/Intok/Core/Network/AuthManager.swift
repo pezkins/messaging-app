@@ -147,6 +147,98 @@ class AuthManager: ObservableObject {
         isLoading = false
     }
     
+    // MARK: - Email Authentication
+    func signInWithEmail(email: String, password: String) async {
+        isLoading = true
+        error = nil
+        
+        do {
+            let response = try await APIService.shared.loginWithEmail(email: email, password: password)
+            
+            logger.info("✅ Email login successful: \(response.user.email, privacy: .public)")
+            
+            // Store tokens
+            accessToken = response.accessToken
+            refreshToken = response.refreshToken
+            APIService.shared.setAccessToken(response.accessToken)
+            
+            // Connect WebSocket
+            WebSocketService.shared.connect(token: response.accessToken)
+            
+            // Update state
+            currentUser = response.user
+            isAuthenticated = true
+            needsSetup = false
+            
+            saveAuth()
+            logger.info("✅ Auth state updated - isAuthenticated: \(self.isAuthenticated)")
+            
+        } catch APIError.unauthorized {
+            logger.error("❌ Invalid credentials")
+            self.error = "Invalid email or password"
+        } catch APIError.serverError(let message) {
+            logger.error("❌ Server error: \(message, privacy: .public)")
+            self.error = message
+        } catch {
+            logger.error("❌ Email login failed: \(error.localizedDescription, privacy: .public)")
+            self.error = "Login failed. Please try again."
+        }
+        
+        isLoading = false
+    }
+    
+    func registerWithEmail(
+        email: String,
+        password: String,
+        username: String,
+        preferredLanguage: String,
+        preferredCountry: String
+    ) async {
+        isLoading = true
+        error = nil
+        
+        do {
+            let response = try await APIService.shared.registerWithEmail(
+                email: email,
+                password: password,
+                username: username,
+                preferredLanguage: preferredLanguage,
+                preferredCountry: preferredCountry
+            )
+            
+            logger.info("✅ Registration successful: \(response.user.email, privacy: .public)")
+            
+            // Store tokens
+            accessToken = response.accessToken
+            refreshToken = response.refreshToken
+            APIService.shared.setAccessToken(response.accessToken)
+            
+            // Connect WebSocket
+            WebSocketService.shared.connect(token: response.accessToken)
+            
+            // Update state
+            currentUser = response.user
+            isAuthenticated = true
+            needsSetup = false  // Profile already set during registration
+            
+            saveAuth()
+            logger.info("✅ Auth state updated - isAuthenticated: \(self.isAuthenticated)")
+            
+        } catch APIError.serverError(let message) {
+            logger.error("❌ Registration error: \(message, privacy: .public)")
+            if message.contains("already registered") {
+                self.error = "This email is already registered"
+            } else {
+                self.error = message
+            }
+        } catch {
+            logger.error("❌ Registration failed: \(error.localizedDescription, privacy: .public)")
+            self.error = "Registration failed. Please try again."
+        }
+        
+        isLoading = false
+    }
+    
     func signOut() async {
         // Disconnect WebSocket
         WebSocketService.shared.disconnect()
@@ -184,13 +276,66 @@ class AuthManager: ObservableObject {
         
         if let token = accessToken {
             APIService.shared.setAccessToken(token)
+            // Connect WebSocket when restoring auth
+            WebSocketService.shared.connect(token: token)
+            logger.info("🔌 WebSocket connection initiated on auth restore")
         }
         
         if let userData = userDefaults.data(forKey: userKey),
            let user = try? JSONDecoder().decode(User.self, from: userData) {
             currentUser = user
             isAuthenticated = true
-            print("✅ Restored auth for: \(user.email)")
+            logger.info("✅ Restored auth for: \(user.email, privacy: .public)")
+            
+            // Validate token by fetching current user - this will catch expired tokens
+            Task {
+                await validateAndRefreshTokenIfNeeded()
+            }
+        }
+    }
+    
+    // MARK: - Token Validation & Refresh
+    private func validateAndRefreshTokenIfNeeded() async {
+        do {
+            // Try to fetch current user to validate token
+            let response = try await APIService.shared.getMe()
+            currentUser = response.user
+            saveAuth()
+            logger.info("✅ Token validated successfully")
+        } catch APIError.unauthorized {
+            // Token expired, try to refresh
+            logger.warning("⚠️ Access token expired, attempting refresh...")
+            await attemptTokenRefresh()
+        } catch {
+            logger.error("❌ Token validation failed: \(error.localizedDescription, privacy: .public)")
+        }
+    }
+    
+    private func attemptTokenRefresh() async {
+        guard let refreshTok = refreshToken else {
+            logger.error("❌ No refresh token available, signing out")
+            await signOut()
+            return
+        }
+        
+        do {
+            let response = try await APIService.shared.refreshToken(refreshTok)
+            
+            // Update tokens
+            accessToken = response.accessToken
+            refreshToken = response.refreshToken
+            APIService.shared.setAccessToken(response.accessToken)
+            
+            // Reconnect WebSocket with new token
+            WebSocketService.shared.disconnect()
+            WebSocketService.shared.connect(token: response.accessToken)
+            
+            saveAuth()
+            logger.info("✅ Token refreshed successfully")
+        } catch {
+            logger.error("❌ Token refresh failed: \(error.localizedDescription, privacy: .public)")
+            // Refresh failed, sign out user
+            await signOut()
         }
     }
     

@@ -1,0 +1,175 @@
+# Android Data Layer Rules
+
+> These rules apply to all data layer code in data/
+
+## Package Structure
+
+```
+data/
+├── models/        # Data classes and DTOs
+├── network/       # API service, WebSocket, interceptors
+├── repository/    # Repository implementations
+├── local/         # Room database, DataStore (if needed)
+└── constants/     # App constants, enums
+```
+
+## Models
+
+### Data Classes
+```kotlin
+data class Message(
+    val id: String,
+    val content: String,
+    val translatedContent: String?,
+    val senderId: String,
+    val conversationId: String,
+    val createdAt: Instant
+)
+
+// For API responses, use separate DTOs
+data class MessageDto(
+    @SerializedName("id") val id: String,
+    @SerializedName("content") val content: String,
+    @SerializedName("translated_content") val translatedContent: String?,
+    @SerializedName("sender_id") val senderId: String,
+    @SerializedName("conversation_id") val conversationId: String,
+    @SerializedName("created_at") val createdAt: String
+) {
+    fun toDomain(): Message = Message(
+        id = id,
+        content = content,
+        translatedContent = translatedContent,
+        senderId = senderId,
+        conversationId = conversationId,
+        createdAt = Instant.parse(createdAt)
+    )
+}
+```
+
+## Network (Retrofit)
+
+### API Service Interface
+```kotlin
+interface ApiService {
+    @POST("api/auth/login")
+    suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
+    
+    @GET("api/conversations")
+    suspend fun getConversations(): Response<List<ConversationDto>>
+    
+    @GET("api/conversations/{id}/messages")
+    suspend fun getMessages(
+        @Path("id") conversationId: String,
+        @Query("limit") limit: Int = 50
+    ): Response<MessagesResponse>
+}
+```
+
+### Network Module
+```kotlin
+@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(tokenManager: TokenManager): OkHttpClient {
+        return OkHttpClient.Builder()
+            .addInterceptor(AuthInterceptor(tokenManager))
+            .addInterceptor(HttpLoggingInterceptor().apply {
+                level = if (BuildConfig.DEBUG) BODY else NONE
+            })
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
+}
+```
+
+## Repository Pattern
+
+```kotlin
+interface ChatRepository {
+    fun getMessages(conversationId: String): Flow<List<Message>>
+    suspend fun sendMessage(conversationId: String, content: String): Result<Message>
+}
+
+class ChatRepositoryImpl @Inject constructor(
+    private val apiService: ApiService,
+    private val webSocketService: WebSocketService
+) : ChatRepository {
+    
+    override fun getMessages(conversationId: String): Flow<List<Message>> {
+        return flow {
+            val response = apiService.getMessages(conversationId)
+            if (response.isSuccessful) {
+                emit(response.body()!!.messages.map { it.toDomain() })
+            } else {
+                throw ApiException(response.code(), response.message())
+            }
+        }.flowOn(Dispatchers.IO)
+    }
+}
+```
+
+## Token Management
+
+```kotlin
+@Singleton
+class TokenManager @Inject constructor(
+    private val dataStore: DataStore<Preferences>
+) {
+    val accessToken: Flow<String?> = dataStore.data.map { it[ACCESS_TOKEN_KEY] }
+    
+    suspend fun saveTokens(access: String, refresh: String) {
+        dataStore.edit { prefs ->
+            prefs[ACCESS_TOKEN_KEY] = access
+            prefs[REFRESH_TOKEN_KEY] = refresh
+        }
+    }
+    
+    suspend fun clearTokens() {
+        dataStore.edit { it.clear() }
+    }
+}
+```
+
+## WebSocket
+
+```kotlin
+class WebSocketService @Inject constructor(
+    private val okHttpClient: OkHttpClient,
+    private val tokenManager: TokenManager
+) {
+    private var webSocket: WebSocket? = null
+    private val _messages = MutableSharedFlow<WebSocketMessage>()
+    val messages: SharedFlow<WebSocketMessage> = _messages.asSharedFlow()
+    
+    fun connect() { ... }
+    fun disconnect() { ... }
+    fun send(message: WebSocketMessage) { ... }
+}
+```
+
+## Error Handling
+
+```kotlin
+sealed class ApiResult<out T> {
+    data class Success<T>(val data: T) : ApiResult<T>()
+    data class Error(val code: Int, val message: String) : ApiResult<Nothing>()
+    data class Exception(val e: Throwable) : ApiResult<Nothing>()
+}
+
+suspend fun <T> safeApiCall(apiCall: suspend () -> Response<T>): ApiResult<T> {
+    return try {
+        val response = apiCall()
+        if (response.isSuccessful) {
+            ApiResult.Success(response.body()!!)
+        } else {
+            ApiResult.Error(response.code(), response.message())
+        }
+    } catch (e: Exception) {
+        ApiResult.Exception(e)
+    }
+}
+```
+

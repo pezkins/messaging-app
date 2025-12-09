@@ -246,9 +246,9 @@ private fun ConversationRow(
             when (message.type) {
                 MessageType.IMAGE -> "📷 Photo"
                 MessageType.VOICE -> "🎤 Voice message"
-                MessageType.FILE -> "📎 File"
+                MessageType.FILE, MessageType.ATTACHMENT -> "📎 File"
                 MessageType.GIF -> "GIF"
-                else -> message.translatedContent ?: message.originalContent
+                MessageType.TEXT, null -> message.translatedContent ?: message.originalContent
             }
         } ?: "No messages yet"
     }

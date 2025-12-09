@@ -1,0 +1,102 @@
+# iOS Native App Rules
+
+> Model: claude-opus-4-20250514
+
+## Project Structure
+
+```
+Intok/
+├── App/           # App entry point (IntokApp.swift, ContentView.swift)
+├── Features/      # Feature modules (each screen/flow)
+├── Core/          # Shared code (Models, Network, Store, Utils)
+└── Resources/     # Assets, configurations
+```
+
+## SwiftUI Conventions
+
+### View Structure
+```swift
+struct FeatureView: View {
+    // 1. Environment
+    @Environment(\.dismiss) private var dismiss
+    
+    // 2. State
+    @State private var isLoading = false
+    @StateObject private var viewModel = FeatureViewModel()
+    
+    // 3. Properties
+    let item: Item
+    
+    // 4. Body
+    var body: some View {
+        content
+            .navigationTitle("Feature")
+            .task { await viewModel.load() }
+    }
+    
+    // 5. Subviews (private)
+    @ViewBuilder
+    private var content: some View { ... }
+}
+```
+
+### Naming
+- Views: `FeatureView`, `ItemRow`, `CustomButton`
+- ViewModels: `FeatureViewModel`
+- Models: `User`, `Message`, `Conversation`
+
+## Network Layer (Core/Network/)
+
+### APIService Pattern
+```swift
+actor APIService {
+    static let shared = APIService()
+    
+    func request<T: Decodable>(_ endpoint: Endpoint) async throws -> T
+}
+```
+
+### Error Handling
+```swift
+enum APIError: LocalizedError {
+    case unauthorized
+    case networkError(Error)
+    case decodingError
+    
+    var errorDescription: String? { ... }
+}
+```
+
+## State Management (Core/Store/)
+
+Use `@Observable` (iOS 17+) or `ObservableObject`:
+```swift
+@Observable
+final class ChatStore {
+    var messages: [Message] = []
+    var isLoading = false
+    
+    func sendMessage(_ content: String) async { ... }
+}
+```
+
+## Async/Await Patterns
+
+- Use `Task { }` for launching async work from sync context
+- Use `.task { }` modifier for view lifecycle
+- Handle cancellation appropriately
+- Use `@MainActor` for UI updates
+
+## File Organization
+
+One type per file. Name file after the primary type:
+- `LoginView.swift` contains `LoginView`
+- `AuthManager.swift` contains `AuthManager`
+- `Models.swift` can contain related small models
+
+## Testing
+
+- Unit tests in `IntokTests/`
+- UI tests in `IntokUITests/`
+- Use dependency injection for testability
+

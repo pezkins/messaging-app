@@ -1,0 +1,121 @@
+# iOS Network Layer Rules
+
+> These rules apply to all networking code in Core/Network/
+
+## API Service
+
+### Endpoint Definition
+```swift
+enum Endpoint {
+    case login(email: String, password: String)
+    case getConversations
+    case getMessages(conversationId: String)
+    
+    var path: String { ... }
+    var method: HTTPMethod { ... }
+    var body: Data? { ... }
+}
+```
+
+### Request Pattern
+```swift
+func request<T: Decodable>(_ endpoint: Endpoint) async throws -> T {
+    var request = URLRequest(url: baseURL.appendingPathComponent(endpoint.path))
+    request.httpMethod = endpoint.method.rawValue
+    request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    
+    if let token = AuthManager.shared.accessToken {
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    }
+    
+    let (data, response) = try await URLSession.shared.data(for: request)
+    
+    guard let httpResponse = response as? HTTPURLResponse else {
+        throw APIError.invalidResponse
+    }
+    
+    switch httpResponse.statusCode {
+    case 200...299:
+        return try JSONDecoder().decode(T.self, from: data)
+    case 401:
+        throw APIError.unauthorized
+    default:
+        throw APIError.serverError(httpResponse.statusCode)
+    }
+}
+```
+
+## Authentication (AuthManager)
+
+### Token Management
+- Store tokens in Keychain (not UserDefaults)
+- Implement automatic token refresh
+- Clear tokens on logout
+
+```swift
+actor AuthManager {
+    static let shared = AuthManager()
+    
+    private(set) var accessToken: String?
+    private(set) var refreshToken: String?
+    
+    func login(email: String, password: String) async throws -> User
+    func refreshTokenIfNeeded() async throws
+    func logout()
+}
+```
+
+## WebSocket (WebSocketService)
+
+### Connection Lifecycle
+```swift
+actor WebSocketService {
+    private var webSocketTask: URLSessionWebSocketTask?
+    
+    func connect() async throws
+    func disconnect()
+    func send(_ message: WebSocketMessage) async throws
+    
+    // Use AsyncStream for receiving
+    var messages: AsyncStream<WebSocketMessage> { ... }
+}
+```
+
+### Reconnection Strategy
+- Implement exponential backoff
+- Max retry attempts: 5
+- Handle network changes
+
+## Error Handling
+
+All network errors should be:
+1. Logged appropriately
+2. Converted to user-friendly messages
+3. Reported to analytics (if applicable)
+
+```swift
+enum APIError: LocalizedError {
+    case networkError(Error)
+    case unauthorized
+    case serverError(Int)
+    case decodingError(Error)
+    case invalidResponse
+    
+    var errorDescription: String? {
+        switch self {
+        case .networkError:
+            return "Network connection failed"
+        case .unauthorized:
+            return "Please log in again"
+        // ...
+        }
+    }
+}
+```
+
+## Caching
+
+- Use URLCache for GET requests
+- Consider offline-first for messages
+- Cache user preferences locally
+

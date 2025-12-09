@@ -233,7 +233,7 @@ private fun MessageBubble(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = message.sender.username.take(1).uppercase(),
+                    text = (message.sender?.username ?: "?").take(1).uppercase(),
                     color = White,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.SemiBold
@@ -248,7 +248,7 @@ private fun MessageBubble(
             // Sender name
             if (!isOwnMessage) {
                 Text(
-                    text = message.sender.username,
+                    text = message.sender?.username ?: "Unknown",
                     style = MaterialTheme.typography.labelSmall,
                     color = Surface400,
                     modifier = Modifier.padding(start = 4.dp, bottom = 2.dp)
@@ -314,7 +314,7 @@ private fun MessageBubble(
                     Icon(
                         imageVector = when (message.status) {
                             MessageStatus.SENDING -> Icons.Default.Schedule
-                            MessageStatus.SENT -> Icons.Default.Check
+                            MessageStatus.SENT, null -> Icons.Default.Check
                             MessageStatus.DELIVERED -> Icons.Default.DoneAll
                             MessageStatus.SEEN -> Icons.Default.DoneAll
                             MessageStatus.FAILED -> Icons.Default.Error

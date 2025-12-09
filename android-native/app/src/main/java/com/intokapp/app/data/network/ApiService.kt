@@ -12,51 +12,54 @@ interface ApiService {
     // Auth Endpoints
     // ============================================
     
-    @POST("/api/auth/oauth")
+    @POST("api/auth/oauth")
     suspend fun oauthLogin(@Body request: OAuthLoginRequest): AuthResponse
     
-    @GET("/api/auth/me")
+    @GET("api/auth/me")
     suspend fun getMe(): UserResponse
     
-    @POST("/api/auth/refresh")
+    @POST("api/auth/refresh")
     suspend fun refreshToken(@Body request: RefreshTokenRequest): RefreshTokenResponse
     
-    @POST("/api/auth/logout")
+    @POST("api/auth/logout")
     suspend fun logout(@Body request: LogoutRequest)
     
-    @POST("/api/auth/login")
+    @POST("api/auth/login")
     suspend fun login(@Body request: LoginRequest): AuthResponse
     
-    @POST("/api/auth/register")
+    @POST("api/auth/register")
     suspend fun register(@Body request: RegisterRequest): AuthResponse
+    
+    @POST("api/auth/check-email")
+    suspend fun checkEmail(@Body request: CheckEmailRequest): CheckEmailResponse
     
     // ============================================
     // User Endpoints
     // ============================================
     
-    @PATCH("/api/users/me")
+    @PATCH("api/users/me")
     suspend fun updateProfile(@Body request: UpdateProfileRequest): UserResponse
     
-    @PATCH("/api/users/me/language")
+    @PATCH("api/users/me/language")
     suspend fun updateLanguage(@Body request: UpdateLanguageRequest): UserResponse
     
-    @PATCH("/api/users/me/country")
+    @PATCH("api/users/me/country")
     suspend fun updateCountry(@Body request: UpdateCountryRequest): UserResponse
     
-    @GET("/api/users/search")
+    @GET("api/users/search")
     suspend fun searchUsers(@Query("q") query: String): UsersSearchResponse
     
     // ============================================
     // Conversation Endpoints
     // ============================================
     
-    @GET("/api/conversations")
+    @GET("api/conversations")
     suspend fun getConversations(): ConversationsResponse
     
-    @POST("/api/conversations")
+    @POST("api/conversations")
     suspend fun createConversation(@Body request: CreateConversationRequest): ConversationResponse
     
-    @GET("/api/conversations/{conversationId}/messages")
+    @GET("api/conversations/{conversationId}/messages")
     suspend fun getMessages(
         @Path("conversationId") conversationId: String,
         @Query("limit") limit: Int? = null,
@@ -67,10 +70,10 @@ interface ApiService {
     // Attachment Endpoints
     // ============================================
     
-    @POST("/api/attachments/upload-url")
+    @POST("api/attachments/upload-url")
     suspend fun getUploadUrl(@Body request: UploadUrlRequest): UploadUrlResponse
     
-    @GET("/api/attachments/download-url")
+    @GET("api/attachments/download-url")
     suspend fun getDownloadUrl(@Query("key") key: String): DownloadUrlResponse
 }
 
@@ -106,6 +109,10 @@ data class UpdateCountryRequest(
     val preferredCountry: String
 )
 
+data class CheckEmailRequest(
+    val email: String
+)
+
 data class UploadUrlRequest(
     val fileName: String,
     val contentType: String,
@@ -119,6 +126,11 @@ data class UploadUrlRequest(
 
 data class UserResponse(
     val user: User
+)
+
+data class CheckEmailResponse(
+    val exists: Boolean,
+    val email: String
 )
 
 data class RefreshTokenResponse(
