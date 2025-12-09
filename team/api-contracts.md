@@ -372,6 +372,84 @@ Authorization: Bearer <accessToken>
 
 ---
 
+## Devices (Push Notifications)
+
+### POST /api/devices/register
+
+Register a device token for push notifications.
+
+**Headers:**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request:**
+```json
+{
+  "token": "device_push_token_here",
+  "platform": "ios"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| token | string | Yes | Device push notification token |
+| platform | string | Yes | Either "ios" or "android" |
+
+**Response (200 OK):**
+```json
+{
+  "success": true
+}
+```
+
+**Notes:**
+- If the token was previously registered to another user, it will be reassigned
+- Users can have multiple devices registered
+
+**Errors:**
+- `400` - token and platform required
+- `401` - Unauthorized
+
+---
+
+### POST /api/devices/unregister
+
+Unregister a device token (on logout or token refresh).
+
+**Headers:**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request (specific token):**
+```json
+{
+  "token": "device_push_token_here"
+}
+```
+
+**Request (all tokens - logout):**
+```json
+{}
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true
+}
+```
+
+**Notes:**
+- If no token is provided, all tokens for the user are removed (useful for logout)
+- If a specific token is provided, only that token is removed
+
+**Errors:**
+- `401` - Unauthorized
+
+---
+
 ## Conversations
 
 ### GET /api/conversations
@@ -559,6 +637,40 @@ Authorization: Bearer <accessToken>
 - `translatedContent` is in the requesting user's preferred language
 - If no cached translation exists, `translatedContent` equals `originalContent`
 - Use `nextCursor` for pagination
+
+**Errors:**
+- `400` - Conversation ID required
+- `401` - Authentication required
+- `404` - Conversation not found
+
+---
+
+### POST /api/conversations/{conversationId}/read
+
+Mark a conversation as read for the current user.
+
+**Headers:**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Path Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| conversationId | string | The conversation ID to mark as read |
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "conversationId": "conv_abc123",
+  "lastReadAt": "2024-12-08T12:00:00.000Z"
+}
+```
+
+**Notes:**
+- Resets unread count to 0 for this conversation
+- Updates `lastReadAt` timestamp for the user
 
 **Errors:**
 - `400` - Conversation ID required
@@ -840,6 +952,33 @@ Add or remove a reaction to a message.
 
 ---
 
+#### message:read
+
+Mark a message as read (send read receipt).
+
+```json
+{
+  "action": "message:read",
+  "data": {
+    "conversationId": "conv_abc123",
+    "messageId": "msg_abc123",
+    "messageTimestamp": "2024-12-08T12:00:00.000Z"
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| conversationId | string | Conversation containing the message |
+| messageId | string | Message ID that was read |
+| messageTimestamp | string | Message timestamp (ISO 8601) |
+
+**Notes:**
+- Adds user to message's `readBy` array
+- Broadcasts read receipt to message sender
+
+---
+
 ### Server → Client Events
 
 #### message:receive
@@ -953,6 +1092,31 @@ Received when a reaction is added or removed.
 | reactions | Complete reactions map after update |
 | userId | User who added/removed the reaction |
 | emoji | The emoji that was added/removed |
+
+---
+
+#### message:read
+
+Received when someone reads your message.
+
+```json
+{
+  "action": "message:read",
+  "conversationId": "conv_abc123",
+  "messageId": "msg_abc123",
+  "messageTimestamp": "2024-12-08T12:00:00.000Z",
+  "readBy": "user_xyz789",
+  "readAt": "2024-12-08T12:05:00.000Z"
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| conversationId | Conversation containing the message |
+| messageId | Message that was read |
+| messageTimestamp | Original message timestamp |
+| readBy | User ID who read the message |
+| readAt | When the message was read |
 
 ---
 
@@ -1084,6 +1248,7 @@ All errors follow this format:
 | GET | `/api/conversations` | Yes | List conversations |
 | POST | `/api/conversations` | Yes | Create conversation |
 | GET | `/api/conversations/{id}/messages` | Yes | Get messages |
+| POST | `/api/conversations/{id}/read` | Yes | Mark as read |
 
 ### Attachment Endpoints
 | Method | Endpoint | Auth | Description |
@@ -1091,15 +1256,23 @@ All errors follow this format:
 | POST | `/api/attachments/upload-url` | Yes | Get upload URL |
 | GET | `/api/attachments/download-url?key=` | Yes | Get download URL |
 
+### Device Endpoints
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | `/api/devices/register` | Yes | Register push token |
+| POST | `/api/devices/unregister` | Yes | Unregister push token |
+
 ### WebSocket Actions
 | Direction | Action | Description |
 |-----------|--------|-------------|
 | → Server | `message:send` | Send message |
 | → Server | `message:typing` | Typing indicator |
 | → Server | `message:reaction` | Add/remove reaction |
+| → Server | `message:read` | Mark message as read |
 | ← Client | `message:receive` | New message |
 | ← Client | `message:typing` | Someone typing |
 | ← Client | `message:reaction` | Reaction updated |
+| ← Client | `message:read` | Read receipt |
 
 ---
 

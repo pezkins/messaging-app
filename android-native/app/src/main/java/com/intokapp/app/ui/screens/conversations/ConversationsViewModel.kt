@@ -6,7 +6,9 @@ import com.intokapp.app.data.models.Conversation
 import com.intokapp.app.data.models.User
 import com.intokapp.app.data.repository.AuthRepository
 import com.intokapp.app.data.repository.AuthState
+import com.intokapp.app.data.repository.ChangelogEntry
 import com.intokapp.app.data.repository.ChatRepository
+import com.intokapp.app.data.repository.WhatsNewManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,13 +20,16 @@ data class ConversationsUiState(
     val conversations: List<Conversation> = emptyList(),
     val user: User? = null,
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val showWhatsNew: Boolean = false,
+    val whatsNewEntries: List<ChangelogEntry> = emptyList()
 )
 
 @HiltViewModel
 class ConversationsViewModel @Inject constructor(
     private val chatRepository: ChatRepository,
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val whatsNewManager: WhatsNewManager
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(ConversationsUiState())
@@ -50,6 +55,23 @@ class ConversationsViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoading = isLoading) }
             }
         }
+        
+        // Check if we should show What's New dialog
+        checkWhatsNew()
+    }
+    
+    private fun checkWhatsNew() {
+        if (whatsNewManager.shouldShowWhatsNew()) {
+            _uiState.update { it.copy(
+                showWhatsNew = true,
+                whatsNewEntries = whatsNewManager.getNewEntries()
+            ) }
+        }
+    }
+    
+    fun dismissWhatsNew() {
+        whatsNewManager.markAsSeen()
+        _uiState.update { it.copy(showWhatsNew = false, whatsNewEntries = emptyList()) }
     }
     
     fun loadConversations() {

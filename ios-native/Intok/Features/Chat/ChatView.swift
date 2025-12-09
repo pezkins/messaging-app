@@ -680,6 +680,11 @@ struct MessageBubble: View {
     
     // MARK: - Helper Functions
     var statusIcon: String {
+        // Check readBy first for read receipts
+        if let readBy = message.readBy, !readBy.isEmpty {
+            return "checkmark.circle.fill"
+        }
+        
         switch message.status {
         case .sending:
             return "clock"
@@ -695,6 +700,11 @@ struct MessageBubble: View {
     }
     
     var statusColor: Color {
+        // Check readBy first for read receipts
+        if let readBy = message.readBy, !readBy.isEmpty {
+            return Color(hex: "8B5CF6")
+        }
+        
         switch message.status {
         case .failed:
             return .red

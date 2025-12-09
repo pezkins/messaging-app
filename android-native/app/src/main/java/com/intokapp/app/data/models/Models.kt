@@ -79,6 +79,8 @@ data class Conversation(
     val participants: List<UserPublic>,
     @SerializedName("lastMessage")
     val lastMessage: Message? = null,
+    @SerializedName("unreadCount")
+    val unreadCount: Int = 0,
     @SerializedName("createdAt")
     val createdAt: String,
     @SerializedName("updatedAt")
@@ -144,7 +146,11 @@ data class Message(
     @SerializedName("createdAt")
     val createdAt: String,
     val reactions: Map<String, List<String>>? = null,
-    val attachment: Attachment? = null
+    val attachment: Attachment? = null,
+    @SerializedName("readBy")
+    val readBy: List<String>? = null,
+    @SerializedName("readAt")
+    val readAt: String? = null
 )
 
 data class Attachment(

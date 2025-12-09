@@ -1,4 +1,5 @@
 import SwiftUI
+import AuthenticationServices
 
 struct LoginView: View {
     @EnvironmentObject var authManager: AuthManager
@@ -39,6 +40,27 @@ struct LoginView: View {
                         .multilineTextAlignment(.center)
                     
                     Spacer()
+                    
+                    // Apple Sign In Button
+                    Button(action: {
+                        AppleAuthManager.shared.signIn()
+                    }) {
+                        HStack {
+                            Image(systemName: "apple.logo")
+                            Text("Continue with Apple")
+                        }
+                    }
+                    .font(.titleMedium)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(Color.black)
+                    .cornerRadius(16)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    )
+                    .disabled(authManager.isLoading)
                     
                     // Google Sign In Button
                     Button(action: {

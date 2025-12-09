@@ -9,6 +9,7 @@ export const Tables = {
   MESSAGES: process.env.MESSAGES_TABLE || 'lingualink-messages',
   CONVERSATIONS: process.env.CONVERSATIONS_TABLE || 'lingualink-conversations',
   CONNECTIONS: process.env.CONNECTIONS_TABLE || 'lingualink-connections',
+  DEVICE_TOKENS: process.env.DEVICE_TOKENS_TABLE || 'lingualink-device-tokens',
 };
 
 export { GetCommand, PutCommand, QueryCommand, DeleteCommand, UpdateCommand };

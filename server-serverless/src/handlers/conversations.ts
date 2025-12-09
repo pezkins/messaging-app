@@ -1,7 +1,7 @@
 import type { APIGatewayProxyHandler } from 'aws-lambda';
 import { v4 as uuid } from 'uuid';
 import { z } from 'zod';
-import { dynamodb, Tables, GetCommand, PutCommand, QueryCommand } from '../lib/dynamo';
+import { dynamodb, Tables, GetCommand, PutCommand, QueryCommand, UpdateCommand } from '../lib/dynamo';
 import { getUserIdFromEvent, response } from '../lib/auth';
 
 const createSchema = z.object({
@@ -156,6 +156,62 @@ export const create: APIGatewayProxyHandler = async (event) => {
       return response(400, { message: 'Validation error', details: error.errors });
     }
     console.error('Create conversation error:', error);
+    return response(500, { message: 'Internal server error' });
+  }
+};
+
+/**
+ * Mark a conversation as read for the current user
+ */
+export const markAsRead: APIGatewayProxyHandler = async (event) => {
+  try {
+    const userId = getUserIdFromEvent(event);
+    if (!userId) {
+      return response(401, { message: 'Authentication required' });
+    }
+
+    const conversationId = event.pathParameters?.conversationId;
+    if (!conversationId) {
+      return response(400, { message: 'Conversation ID required' });
+    }
+
+    // Find user's conversation record
+    const convResult = await dynamodb.send(new QueryCommand({
+      TableName: Tables.CONVERSATIONS,
+      IndexName: 'user-conversations-index',
+      KeyConditionExpression: 'visibleTo = :userId',
+      FilterExpression: 'conversationId = :convId',
+      ExpressionAttributeValues: {
+        ':userId': userId,
+        ':convId': conversationId,
+      },
+    }));
+
+    const conversation = convResult.Items?.[0];
+    if (!conversation) {
+      return response(404, { message: 'Conversation not found' });
+    }
+
+    // Update user's conversation record with read timestamp
+    await dynamodb.send(new UpdateCommand({
+      TableName: Tables.CONVERSATIONS,
+      Key: { id: conversation.id },
+      UpdateExpression: 'SET unreadCount = :zero, lastReadAt = :now',
+      ExpressionAttributeValues: {
+        ':zero': 0,
+        ':now': new Date().toISOString(),
+      },
+    }));
+
+    console.log(`✅ Marked conversation ${conversationId} as read for user ${userId}`);
+
+    return response(200, { 
+      success: true,
+      conversationId,
+      lastReadAt: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error('Mark as read error:', error);
     return response(500, { message: 'Internal server error' });
   }
 };

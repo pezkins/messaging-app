@@ -857,19 +857,27 @@ private fun MessageBubble(
                 
                 if (isOwnMessage) {
                     Spacer(modifier = Modifier.width(4.dp))
+                    // Determine read status - prefer readBy list over status field
+                    val isRead = !message.readBy.isNullOrEmpty()
                     Icon(
-                        imageVector = when (message.status) {
-                            MessageStatus.SENDING -> Icons.Default.Schedule
-                            MessageStatus.SENT, null -> Icons.Default.Check
-                            MessageStatus.DELIVERED -> Icons.Default.DoneAll
-                            MessageStatus.SEEN -> Icons.Default.DoneAll
-                            MessageStatus.FAILED -> Icons.Default.Error
+                        imageVector = when {
+                            message.status == MessageStatus.SENDING -> Icons.Default.Schedule
+                            message.status == MessageStatus.FAILED -> Icons.Default.Error
+                            isRead || message.status == MessageStatus.SEEN -> Icons.Default.DoneAll
+                            message.status == MessageStatus.DELIVERED -> Icons.Default.DoneAll
+                            else -> Icons.Default.Check
                         },
-                        contentDescription = null,
+                        contentDescription = when {
+                            message.status == MessageStatus.SENDING -> "Sending"
+                            message.status == MessageStatus.FAILED -> "Failed"
+                            isRead || message.status == MessageStatus.SEEN -> "Read"
+                            message.status == MessageStatus.DELIVERED -> "Delivered"
+                            else -> "Sent"
+                        },
                         modifier = Modifier.size(14.dp),
-                        tint = when (message.status) {
-                            MessageStatus.FAILED -> MaterialTheme.colorScheme.error
-                            MessageStatus.SEEN -> Purple500
+                        tint = when {
+                            message.status == MessageStatus.FAILED -> MaterialTheme.colorScheme.error
+                            isRead || message.status == MessageStatus.SEEN -> Purple500
                             else -> Surface500
                         }
                     )

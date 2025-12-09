@@ -19,10 +19,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.intokapp.app.data.models.Conversation
 import com.intokapp.app.data.models.MessageType
+import com.intokapp.app.ui.components.WhatsNewAutoDialog
 import com.intokapp.app.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -48,6 +50,14 @@ fun ConversationsScreen(
     
     LaunchedEffect(Unit) {
         viewModel.loadConversations()
+    }
+    
+    // What's New Dialog
+    if (uiState.showWhatsNew && uiState.whatsNewEntries.isNotEmpty()) {
+        WhatsNewAutoDialog(
+            entries = uiState.whatsNewEntries,
+            onDismiss = { viewModel.dismissWhatsNew() }
+        )
     }
     
     Scaffold(
@@ -307,24 +317,47 @@ private fun ConversationRow(
                 Text(
                     text = displayName,
                     style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.SemiBold,
+                    fontWeight = if (conversation.unreadCount > 0) FontWeight.Bold else FontWeight.SemiBold,
                     color = White,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
                 )
                 
-                Text(
-                    text = timeString,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Surface400
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = timeString,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (conversation.unreadCount > 0) Purple500 else Surface400
+                    )
+                    
+                    // Unread badge
+                    if (conversation.unreadCount > 0) {
+                        Box(
+                            modifier = Modifier
+                                .background(Purple500, CircleShape)
+                                .padding(horizontal = 6.dp, vertical = 2.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = if (conversation.unreadCount > 99) "99+" else conversation.unreadCount.toString(),
+                                color = White,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
             }
             
             Text(
                 text = lastMessagePreview,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Surface400,
+                color = if (conversation.unreadCount > 0) White else Surface400,
+                fontWeight = if (conversation.unreadCount > 0) FontWeight.Medium else FontWeight.Normal,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.padding(top = 4.dp)

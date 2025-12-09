@@ -4,6 +4,7 @@ import { v4 as uuid } from 'uuid';
 import { dynamodb, Tables, GetCommand, PutCommand, QueryCommand, DeleteCommand, UpdateCommand } from '../lib/dynamo';
 import { verifyToken } from '../lib/auth';
 import { translate, translateDocumentContent, detectLanguage } from '../lib/translation';
+import { sendPushNotification, truncateForNotification } from '../lib/notifications';
 
 function getApiClient(event: any) {
   const domain = event.requestContext.domainName;
@@ -91,6 +92,8 @@ export const message: APIGatewayProxyHandler = async (event) => {
       await handleTyping(event, userId, data);
     } else if (action === 'message:reaction') {
       await handleReaction(event, userId, data);
+    } else if (action === 'message:read') {
+      await handleReadReceipt(event, userId, data);
     }
 
     return { statusCode: 200, body: 'OK' };
@@ -362,6 +365,37 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
     UpdateExpression: 'SET translations = :translations',
     ExpressionAttributeValues: { ':translations': message.translations },
   }));
+
+  // Send push notifications to offline users
+  for (const participantId of participantIds) {
+    if (participantId === senderId) continue;
+    
+    // Check if user has any active WebSocket connections
+    const connections = await dynamodb.send(new QueryCommand({
+      TableName: Tables.CONNECTIONS,
+      IndexName: 'user-connections-index',
+      KeyConditionExpression: 'userId = :userId',
+      ExpressionAttributeValues: { ':userId': participantId }
+    }));
+
+    // If no active connections, send push notification
+    if (!connections.Items?.length) {
+      const notificationBody = type === 'text' 
+        ? truncateForNotification(content || '') 
+        : `Sent ${type}`;
+      
+      await sendPushNotification({
+        userId: participantId,
+        title: sender?.username || 'New Message',
+        body: notificationBody,
+        data: {
+          conversationId,
+          messageId: message.id,
+          type: 'new_message'
+        }
+      });
+    }
+  }
 }
 
 async function handleTyping(event: any, userId: string, data: any) {
@@ -507,5 +541,99 @@ async function handleReaction(event: any, userId: string, data: any) {
       }
     }
   }
+}
+
+/**
+ * Handle read receipt - marks messages as read and broadcasts to sender
+ */
+async function handleReadReceipt(event: any, userId: string, data: any) {
+  const { conversationId, messageId, messageTimestamp } = data;
+
+  if (!conversationId || !messageTimestamp) {
+    console.error('Read receipt missing required fields');
+    return;
+  }
+
+  // Update message readBy array
+  try {
+    await dynamodb.send(new UpdateCommand({
+      TableName: Tables.MESSAGES,
+      Key: { conversationId, timestamp: messageTimestamp },
+      UpdateExpression: 'SET #readBy = list_append(if_not_exists(#readBy, :empty), :userIdList)',
+      ExpressionAttributeNames: {
+        '#readBy': 'readBy',
+      },
+      ExpressionAttributeValues: {
+        ':empty': [],
+        ':userIdList': [userId],
+        ':userId': userId,
+      },
+      ConditionExpression: 'NOT contains(if_not_exists(#readBy, :empty), :userId)',
+    }));
+  } catch (err: any) {
+    // Ignore condition check failures (user already in readBy)
+    if (err.name !== 'ConditionalCheckFailedException') {
+      console.error('Error updating readBy:', err);
+    }
+  }
+
+  // Get conversation to find the message sender
+  const convResult = await dynamodb.send(new QueryCommand({
+    TableName: Tables.CONVERSATIONS,
+    IndexName: 'user-conversations-index',
+    KeyConditionExpression: 'visibleTo = :userId',
+    FilterExpression: 'conversationId = :convId',
+    ExpressionAttributeValues: {
+      ':userId': userId,
+      ':convId': conversationId,
+    },
+  }));
+
+  const conversation = convResult.Items?.[0];
+  if (!conversation) return;
+
+  // Get the message to find the sender
+  const messageResult = await dynamodb.send(new GetCommand({
+    TableName: Tables.MESSAGES,
+    Key: { conversationId, timestamp: messageTimestamp },
+  }));
+
+  const originalMessage = messageResult.Item;
+  if (!originalMessage || originalMessage.senderId === userId) return;
+
+  const api = getApiClient(event);
+
+  // Broadcast read receipt to message sender
+  const senderConnections = await dynamodb.send(new QueryCommand({
+    TableName: Tables.CONNECTIONS,
+    IndexName: 'user-connections-index',
+    KeyConditionExpression: 'userId = :userId',
+    ExpressionAttributeValues: { ':userId': originalMessage.senderId },
+  }));
+
+  for (const conn of senderConnections.Items || []) {
+    try {
+      await api.send(new PostToConnectionCommand({
+        ConnectionId: conn.connectionId,
+        Data: JSON.stringify({
+          action: 'message:read',
+          conversationId,
+          messageId: messageId || originalMessage.id,
+          messageTimestamp,
+          readBy: userId,
+          readAt: new Date().toISOString(),
+        }),
+      }));
+    } catch (err: any) {
+      if (err.statusCode === 410) {
+        await dynamodb.send(new DeleteCommand({
+          TableName: Tables.CONNECTIONS,
+          Key: { connectionId: conn.connectionId },
+        }));
+      }
+    }
+  }
+
+  console.log(`✅ Read receipt: user ${userId} read message in ${conversationId}`);
 }
 

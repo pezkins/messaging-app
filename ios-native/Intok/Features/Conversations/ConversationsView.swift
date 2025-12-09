@@ -345,10 +345,26 @@ struct ConversationRow: View {
                         .foregroundColor(.gray)
                 }
                 
-                Text(lastMessagePreview)
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-                    .lineLimit(2)
+                HStack {
+                    Text(lastMessagePreview)
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                        .lineLimit(2)
+                    
+                    Spacer()
+                    
+                    // Unread badge
+                    if let unreadCount = conversation.unreadCount, unreadCount > 0 {
+                        Text(unreadCount > 99 ? "99+" : "\(unreadCount)")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color(hex: "8B5CF6"))
+                            .clipShape(Capsule())
+                    }
+                }
             }
         }
         .padding()

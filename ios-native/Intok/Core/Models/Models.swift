@@ -57,6 +57,7 @@ struct Conversation: Codable, Identifiable {
     let lastMessage: Message?
     let createdAt: String
     let updatedAt: String
+    var unreadCount: Int?
 }
 
 struct CreateConversationRequest: Codable {
@@ -115,6 +116,8 @@ struct Message: Codable, Identifiable {
     let createdAt: String
     let reactions: [String: [String]]?
     let attachment: Attachment?
+    var readBy: [String]?  // Array of user IDs who have read
+    var readAt: String?    // Timestamp when read
     
     // Custom decoding to handle backend variations
     enum CodingKeys: String, CodingKey {
@@ -123,6 +126,7 @@ struct Message: Codable, Identifiable {
         case translatedContent, targetLanguage
         case status, createdAt, reactions, attachment
         case content  // Backend might use 'content' instead of 'originalContent'
+        case readBy, readAt
     }
     
     init(from decoder: Decoder) throws {
@@ -156,6 +160,8 @@ struct Message: Codable, Identifiable {
         createdAt = try container.decode(String.self, forKey: .createdAt)
         reactions = try container.decodeIfPresent([String: [String]].self, forKey: .reactions)
         attachment = try container.decodeIfPresent(Attachment.self, forKey: .attachment)
+        readBy = try container.decodeIfPresent([String].self, forKey: .readBy)
+        readAt = try container.decodeIfPresent(String.self, forKey: .readAt)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -173,9 +179,11 @@ struct Message: Codable, Identifiable {
         try container.encode(createdAt, forKey: .createdAt)
         try container.encodeIfPresent(reactions, forKey: .reactions)
         try container.encodeIfPresent(attachment, forKey: .attachment)
+        try container.encodeIfPresent(readBy, forKey: .readBy)
+        try container.encodeIfPresent(readAt, forKey: .readAt)
     }
     
-    init(id: String, conversationId: String, senderId: String, sender: UserPublic?, type: MessageType = .text, originalContent: String, originalLanguage: String?, translatedContent: String? = nil, targetLanguage: String? = nil, status: MessageStatus? = .sent, createdAt: String, reactions: [String: [String]]? = nil, attachment: Attachment? = nil) {
+    init(id: String, conversationId: String, senderId: String, sender: UserPublic?, type: MessageType = .text, originalContent: String, originalLanguage: String?, translatedContent: String? = nil, targetLanguage: String? = nil, status: MessageStatus? = .sent, createdAt: String, reactions: [String: [String]]? = nil, attachment: Attachment? = nil, readBy: [String]? = nil, readAt: String? = nil) {
         self.id = id
         self.conversationId = conversationId
         self.senderId = senderId
@@ -189,6 +197,8 @@ struct Message: Codable, Identifiable {
         self.createdAt = createdAt
         self.reactions = reactions
         self.attachment = attachment
+        self.readBy = readBy
+        self.readAt = readAt
     }
 }
 

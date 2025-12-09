@@ -239,6 +239,48 @@ class AuthManager: ObservableObject {
         isLoading = false
     }
     
+    // MARK: - Apple Sign-In
+    func signInWithApple(idToken: String, nonce: String, fullName: String?, email: String?) async {
+        isLoading = true
+        error = nil
+        
+        do {
+            let response = try await APIService.shared.appleSignIn(
+                idToken: idToken,
+                nonce: nonce,
+                fullName: fullName,
+                email: email
+            )
+            
+            logger.info("✅ Apple Sign-In successful: \(response.user.email, privacy: .public)")
+            
+            // Store tokens
+            accessToken = response.accessToken
+            refreshToken = response.refreshToken
+            APIService.shared.setAccessToken(response.accessToken)
+            
+            // Connect WebSocket
+            WebSocketService.shared.connect(token: response.accessToken)
+            
+            // Update state
+            currentUser = response.user
+            isAuthenticated = true
+            needsSetup = response.isNewUser ?? false
+            
+            saveAuth()
+            logger.info("✅ Auth state updated - isAuthenticated: \(self.isAuthenticated), needsSetup: \(self.needsSetup)")
+            
+        } catch APIError.serverError(let message) {
+            logger.error("❌ Apple Sign-In error: \(message, privacy: .public)")
+            self.error = message
+        } catch {
+            logger.error("❌ Apple Sign-In failed: \(error.localizedDescription, privacy: .public)")
+            self.error = "Apple Sign-In failed. Please try again."
+        }
+        
+        isLoading = false
+    }
+    
     func signOut() async {
         // Disconnect WebSocket
         WebSocketService.shared.disconnect()

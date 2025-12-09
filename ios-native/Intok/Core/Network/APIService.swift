@@ -342,6 +342,40 @@ class APIService {
             throw APIError.serverError("Upload failed")
         }
     }
+    
+    // MARK: - Device Registration
+    func registerDeviceToken(token: String, platform: String) async throws {
+        struct DeviceRequest: Codable {
+            let token: String
+            let platform: String
+        }
+        let body = try JSONEncoder().encode(DeviceRequest(token: token, platform: platform))
+        let _: EmptyResponse = try await request(endpoint: "/api/devices/register", method: "POST", body: body)
+    }
+    
+    // MARK: - Apple Sign-In
+    func appleSignIn(idToken: String, nonce: String, fullName: String?, email: String?) async throws -> AuthResponse {
+        struct AppleSignInRequest: Codable {
+            let provider: String
+            let idToken: String
+            let nonce: String
+            let fullName: String?
+            let email: String?
+        }
+        let body = try JSONEncoder().encode(AppleSignInRequest(
+            provider: "apple",
+            idToken: idToken,
+            nonce: nonce,
+            fullName: fullName,
+            email: email
+        ))
+        return try await request(endpoint: "/api/auth/oauth", method: "POST", body: body)
+    }
+    
+    // MARK: - Mark Conversation as Read
+    func markAsRead(conversationId: String) async throws {
+        let _: EmptyResponse = try await request(endpoint: "/api/conversations/\(conversationId)/read", method: "POST")
+    }
 }
 
 // MARK: - Empty Response for void endpoints

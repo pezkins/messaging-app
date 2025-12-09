@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var authManager: AuthManager
+    @StateObject private var whatsNewManager = WhatsNewManager.shared
     
     var body: some View {
         Group {
@@ -21,6 +22,21 @@ struct ContentView: View {
         }
         .animation(.easeInOut, value: authManager.isAuthenticated)
         .animation(.easeInOut, value: authManager.needsSetup)
+        .onAppear {
+            if authManager.isAuthenticated && !authManager.needsSetup {
+                whatsNewManager.checkForNewVersion()
+            }
+        }
+        .sheet(isPresented: $whatsNewManager.shouldShowWhatsNew) {
+            WhatsNewView()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .openConversation)) { notification in
+            if let conversationId = notification.userInfo?["conversationId"] as? String {
+                // Handle navigation to conversation
+                print("📱 Opening conversation: \(conversationId)")
+                // TODO: Navigate to specific conversation
+            }
+        }
     }
     
     var loadingView: some View {

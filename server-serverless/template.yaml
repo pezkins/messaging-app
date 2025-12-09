@@ -14,11 +14,15 @@ Globals:
         MESSAGES_TABLE: !Ref MessagesTable
         CONVERSATIONS_TABLE: !Ref ConversationsTable
         CONNECTIONS_TABLE: !Ref ConnectionsTable
+        DEVICE_TOKENS_TABLE: !Ref DeviceTokensTable
         ATTACHMENTS_BUCKET: !Ref AttachmentsBucket
         AI_PROVIDER: !Ref AIProvider
         OPENAI_API_KEY: !Ref OpenAIApiKey
         ANTHROPIC_API_KEY: !Ref AnthropicApiKey
         DEEPSEEK_API_KEY: !Ref DeepSeekApiKey
+        APNS_KEY_ID: !Ref ApnsKeyId
+        APNS_TEAM_ID: !Ref ApnsTeamId
+        FCM_SERVER_KEY: !Ref FcmServerKey
 
 Parameters:
   JwtSecret:
@@ -48,6 +52,21 @@ Parameters:
     NoEcho: true
     Default: ""
     Description: DeepSeek API key (required if AIProvider=deepseek)
+  ApnsKeyId:
+    Type: String
+    NoEcho: true
+    Default: ""
+    Description: Apple Push Notification Service Key ID
+  ApnsTeamId:
+    Type: String
+    NoEcho: true
+    Default: ""
+    Description: Apple Developer Team ID
+  FcmServerKey:
+    Type: String
+    NoEcho: true
+    Default: ""
+    Description: Firebase Cloud Messaging Server Key
 Resources:
 
   # ============== DynamoDB Tables ==============
@@ -152,6 +171,29 @@ Resources:
       TimeToLiveSpecification:
         AttributeName: ttl
         Enabled: true
+
+  DeviceTokensTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: lingualink-device-tokens
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: token
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: token
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: token-index
+          KeySchema:
+            - AttributeName: token
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
 
   # ============== S3 Bucket for Attachments ==============
   AttachmentsBucket:
@@ -457,6 +499,61 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
 
+  # Device Registration
+  RegisterDeviceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/devices.register
+      CodeUri: .
+      Timeout: 10
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/devices/register
+            Method: POST
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DeviceTokensTable
+
+  UnregisterDeviceFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/devices.unregister
+      CodeUri: .
+      Timeout: 10
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/devices/unregister
+            Method: POST
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DeviceTokensTable
+
+  # Conversations - Mark as Read
+  MarkConversationReadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/conversations.markAsRead
+      CodeUri: .
+      Timeout: 10
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/conversations/{conversationId}/read
+            Method: POST
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConversationsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MessagesTable
+
   # WebSocket Handlers
   WebSocketConnectFunction:
     Type: AWS::Serverless::Function
@@ -496,6 +593,8 @@ Resources:
             TableName: !Ref UsersTable
         - DynamoDBCrudPolicy:
             TableName: !Ref TranslationsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref DeviceTokensTable
         - Statement:
             - Effect: Allow
               Action:
