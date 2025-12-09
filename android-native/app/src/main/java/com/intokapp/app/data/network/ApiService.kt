@@ -30,6 +30,9 @@ interface ApiService {
     @POST("api/auth/register")
     suspend fun register(@Body request: RegisterRequest): AuthResponse
     
+    @POST("api/auth/check-email")
+    suspend fun checkEmail(@Body request: CheckEmailRequest): CheckEmailResponse
+    
     // ============================================
     // User Endpoints
     // ============================================
@@ -106,6 +109,10 @@ data class UpdateCountryRequest(
     val preferredCountry: String
 )
 
+data class CheckEmailRequest(
+    val email: String
+)
+
 data class UploadUrlRequest(
     val fileName: String,
     val contentType: String,
@@ -119,6 +126,11 @@ data class UploadUrlRequest(
 
 data class UserResponse(
     val user: User
+)
+
+data class CheckEmailResponse(
+    val exists: Boolean,
+    val email: String
 )
 
 data class RefreshTokenResponse(

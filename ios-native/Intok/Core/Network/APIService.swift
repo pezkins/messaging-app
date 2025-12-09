@@ -184,6 +184,52 @@ class APIService {
         return try await request(endpoint: "/api/auth/oauth", method: "POST", body: body)
     }
     
+    func checkEmail(_ email: String) async throws -> Bool {
+        struct CheckEmailRequest: Codable {
+            let email: String
+        }
+        struct CheckEmailResponse: Codable {
+            let exists: Bool
+            let email: String
+        }
+        let body = try JSONEncoder().encode(CheckEmailRequest(email: email))
+        let response: CheckEmailResponse = try await request(endpoint: "/api/auth/check-email", method: "POST", body: body)
+        return response.exists
+    }
+    
+    func loginWithEmail(email: String, password: String) async throws -> AuthResponse {
+        struct LoginRequest: Codable {
+            let email: String
+            let password: String
+        }
+        let body = try JSONEncoder().encode(LoginRequest(email: email, password: password))
+        return try await request(endpoint: "/api/auth/login", method: "POST", body: body)
+    }
+    
+    func registerWithEmail(
+        email: String,
+        password: String,
+        username: String,
+        preferredLanguage: String,
+        preferredCountry: String
+    ) async throws -> AuthResponse {
+        struct RegisterRequest: Codable {
+            let email: String
+            let password: String
+            let username: String
+            let preferredLanguage: String
+            let preferredCountry: String
+        }
+        let body = try JSONEncoder().encode(RegisterRequest(
+            email: email,
+            password: password,
+            username: username,
+            preferredLanguage: preferredLanguage,
+            preferredCountry: preferredCountry
+        ))
+        return try await request(endpoint: "/api/auth/register", method: "POST", body: body)
+    }
+    
     func getMe() async throws -> UserResponse {
         return try await request(endpoint: "/api/auth/me")
     }

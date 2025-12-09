@@ -7,46 +7,50 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0A4B0E687695C677BB093AC1 /* Languages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5002939CE5BF5306ECCB5352 /* Languages.swift */; };
 		12B23CCA0F9EA70F3EFB6987 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196D3B5805F957A909DAD1F2 /* SettingsView.swift */; };
 		13E97AF4558937103E093D31 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EF4B062A1B8C0B229E1A2F04 /* Assets.xcassets */; };
+		15C342AD2BE063F592274C8B /* WebSocketService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FC0FD61CD1299ADD5DFE44 /* WebSocketService.swift */; };
 		17049A5BC0443C70F5DC9EEA /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 364BF34D67B234294D1DA2E4 /* AuthManager.swift */; };
-		A1B2C3D4E5F60718091A2B3C /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = D4E5F6A7B8C9D0E1F2A3B4C5 /* APIService.swift */; };
 		26B5FFD35D1066A90B174AAB /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D2E2DA7FC82BEE77F0F2738 /* Models.swift */; };
 		40DE0A76B1DA1CE1C8DFD990 /* ConversationsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08CAB9E74F4A67184DFF5A2A /* ConversationsView.swift */; };
+		45C7FD107061FED125ED0AE0 /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = D6434847F516B1907B567A98 /* ChatStore.swift */; };
 		494574466F14DBD2B0A54797 /* IntokApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 209CBB20DB64B3411A313918 /* IntokApp.swift */; };
 		60A4306F3D4F126CCA543555 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12409B09249C3035423A8BCB /* Theme.swift */; };
-		7A6DAFA2FC03F3840A25097C /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19527CB278B7265CD4B6B05D /* SetupView.swift */; };
+		728AFB49D128CF8EF534C782 /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F86C60FB71AD30EBBFE247E1 /* SetupView.swift */; };
 		7D45E12CC3607427168D0CAF /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41BA84E3D221AE506BEAEB0E /* LoginView.swift */; };
+		83BF5C33236C3B64DB13D461 /* NewChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4CC88A0FBFB5A9E9B13C4D8C /* NewChatView.swift */; };
 		87AEDDE4F49DFFDCCE41B202 /* SDWebImage in Frameworks */ = {isa = PBXBuildFile; productRef = A73210F19CB8369E8C2A18B0 /* SDWebImage */; };
+		89CFFD6541446392F138C33A /* EmailAuthView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 41AD2AB1F0BBCAFDAC43013D /* EmailAuthView.swift */; };
 		B98F38C0A33351099F429F3B /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F97FEA229E5E1F138D3CA8CE /* ChatView.swift */; };
 		C7CD3D311E159C1417642C45 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = EA5A736AC3C346F43BBF7EF9 /* GoogleSignIn */; };
 		C9858BF749563A4D1DE527A5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E66B7BEAC0BAC39B5363BEA /* ContentView.swift */; };
-		AA1122334455667788990011 /* WebSocketService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB1122334455667788990011 /* WebSocketService.swift */; };
-		AA2233445566778899001122 /* ChatStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB2233445566778899001122 /* ChatStore.swift */; };
-		AA3344556677889900112233 /* Languages.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB3344556677889900112233 /* Languages.swift */; };
-		AA4455667788990011223344 /* NewChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB4455667788990011223344 /* NewChatView.swift */; };
+		D80DBE10FEA9DBBE5C16807B /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CFDA1A8F3BE2B1CA9ED2914 /* APIService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		08CAB9E74F4A67184DFF5A2A /* ConversationsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConversationsView.swift; sourceTree = "<group>"; };
+		10C3ED3AF3D21BB00F9BA1EE /* .cursorrules */ = {isa = PBXFileReference; path = .cursorrules; sourceTree = "<group>"; };
 		12409B09249C3035423A8BCB /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
-		D4E5F6A7B8C9D0E1F2A3B4C5 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
-		19527CB278B7265CD4B6B05D /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
 		196D3B5805F957A909DAD1F2 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		1FABA2603C1DFDD12AEABA9D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		E1F2A3B4C5D6E7F80910A1B2 /* Intok.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intok.entitlements; sourceTree = "<group>"; };
 		209CBB20DB64B3411A313918 /* IntokApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntokApp.swift; sourceTree = "<group>"; };
+		25FC0FD61CD1299ADD5DFE44 /* WebSocketService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketService.swift; sourceTree = "<group>"; };
+		2914665731456D97AF2A0E15 /* Intok.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intok.entitlements; sourceTree = "<group>"; };
 		2E66B7BEAC0BAC39B5363BEA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		364BF34D67B234294D1DA2E4 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		41AD2AB1F0BBCAFDAC43013D /* EmailAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailAuthView.swift; sourceTree = "<group>"; };
 		41BA84E3D221AE506BEAEB0E /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		4CC88A0FBFB5A9E9B13C4D8C /* NewChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChatView.swift; sourceTree = "<group>"; };
+		5002939CE5BF5306ECCB5352 /* Languages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Languages.swift; sourceTree = "<group>"; };
+		72213156D4F6C402554165E6 /* .cursorrules */ = {isa = PBXFileReference; path = .cursorrules; sourceTree = "<group>"; };
 		73B0FEF31E6B420EE397F67C /* Intok.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Intok.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8CFDA1A8F3BE2B1CA9ED2914 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 		9D2E2DA7FC82BEE77F0F2738 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		D6434847F516B1907B567A98 /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
 		EF4B062A1B8C0B229E1A2F04 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F86C60FB71AD30EBBFE247E1 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
 		F97FEA229E5E1F138D3CA8CE /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
-		BB1122334455667788990011 /* WebSocketService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketService.swift; sourceTree = "<group>"; };
-		BB2233445566778899001122 /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
-		BB3344556677889900112233 /* Languages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Languages.swift; sourceTree = "<group>"; };
-		BB4455667788990011223344 /* NewChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChatView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -81,17 +85,25 @@
 		180E7A341716A4BFDA666D28 /* Utils */ = {
 			isa = PBXGroup;
 			children = (
-				BB3344556677889900112233 /* Languages.swift */,
+				5002939CE5BF5306ECCB5352 /* Languages.swift */,
 				12409B09249C3035423A8BCB /* Theme.swift */,
 			);
 			path = Utils;
+			sourceTree = "<group>";
+		};
+		208D493040370C5AEF30C9C6 /* NewChat */ = {
+			isa = PBXGroup;
+			children = (
+				4CC88A0FBFB5A9E9B13C4D8C /* NewChatView.swift */,
+			);
+			path = NewChat;
 			sourceTree = "<group>";
 		};
 		266AA7BFEB20FA2AE580EAA2 /* Intok */ = {
 			isa = PBXGroup;
 			children = (
 				1FABA2603C1DFDD12AEABA9D /* Info.plist */,
-				E1F2A3B4C5D6E7F80910A1B2 /* Intok.entitlements */,
+				2914665731456D97AF2A0E15 /* Intok.entitlements */,
 				45AD77A3C59A3DC54BFCBBFF /* App */,
 				4E498C1834E6E9B379607780 /* Core */,
 				D4542F78D9DABF0ABD531233 /* Features */,
@@ -122,26 +134,19 @@
 			children = (
 				0B6D625C3BD4C26CCDE90D88 /* Models */,
 				691C26F0DFD2BCD692CA88C9 /* Network */,
-				CC5566778899001122334455 /* Store */,
+				D1F23B5F52A4D329F5DC10EF /* Store */,
 				180E7A341716A4BFDA666D28 /* Utils */,
 			);
 			path = Core;
 			sourceTree = "<group>";
 		};
-		CC5566778899001122334455 /* Store */ = {
-			isa = PBXGroup;
-			children = (
-				BB2233445566778899001122 /* ChatStore.swift */,
-			);
-			path = Store;
-			sourceTree = "<group>";
-		};
 		691C26F0DFD2BCD692CA88C9 /* Network */ = {
 			isa = PBXGroup;
 			children = (
-				D4E5F6A7B8C9D0E1F2A3B4C5 /* APIService.swift */,
+				72213156D4F6C402554165E6 /* .cursorrules */,
+				8CFDA1A8F3BE2B1CA9ED2914 /* APIService.swift */,
 				364BF34D67B234294D1DA2E4 /* AuthManager.swift */,
-				BB1122334455667788990011 /* WebSocketService.swift */,
+				25FC0FD61CD1299ADD5DFE44 /* WebSocketService.swift */,
 			);
 			path = Network;
 			sourceTree = "<group>";
@@ -170,6 +175,14 @@
 			path = Conversations;
 			sourceTree = "<group>";
 		};
+		CBC478811A2C373DABA8ED27 /* Setup */ = {
+			isa = PBXGroup;
+			children = (
+				F86C60FB71AD30EBBFE247E1 /* SetupView.swift */,
+			);
+			path = Setup;
+			sourceTree = "<group>";
+		};
 		CE18A72710E1017E942C1EB1 = {
 			isa = PBXGroup;
 			children = (
@@ -178,41 +191,35 @@
 			);
 			sourceTree = "<group>";
 		};
+		D1F23B5F52A4D329F5DC10EF /* Store */ = {
+			isa = PBXGroup;
+			children = (
+				D6434847F516B1907B567A98 /* ChatStore.swift */,
+			);
+			path = Store;
+			sourceTree = "<group>";
+		};
 		D4542F78D9DABF0ABD531233 /* Features */ = {
 			isa = PBXGroup;
 			children = (
+				10C3ED3AF3D21BB00F9BA1EE /* .cursorrules */,
 				F6CEA5F53E9E7E2AD82BBEC3 /* Auth */,
 				A9ACF8DE18A630409695FFD1 /* Chat */,
 				BB38D97E0DAA7C78D3D51A03 /* Conversations */,
-				DD6677889900112233445566 /* NewChat */,
+				208D493040370C5AEF30C9C6 /* NewChat */,
 				16E716C3FDD87A6E402595BC /* Settings */,
-				EE7788990011223344556677 /* Setup */,
+				CBC478811A2C373DABA8ED27 /* Setup */,
 			);
 			path = Features;
-			sourceTree = "<group>";
-		};
-		DD6677889900112233445566 /* NewChat */ = {
-			isa = PBXGroup;
-			children = (
-				BB4455667788990011223344 /* NewChatView.swift */,
-			);
-			path = NewChat;
 			sourceTree = "<group>";
 		};
 		F6CEA5F53E9E7E2AD82BBEC3 /* Auth */ = {
 			isa = PBXGroup;
 			children = (
+				41AD2AB1F0BBCAFDAC43013D /* EmailAuthView.swift */,
 				41BA84E3D221AE506BEAEB0E /* LoginView.swift */,
 			);
 			path = Auth;
-			sourceTree = "<group>";
-		};
-		EE7788990011223344556677 /* Setup */ = {
-			isa = PBXGroup;
-			children = (
-				19527CB278B7265CD4B6B05D /* SetupView.swift */,
-			);
-			path = Setup;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -293,21 +300,22 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1B2C3D4E5F60718091A2B3C /* APIService.swift in Sources */,
+				D80DBE10FEA9DBBE5C16807B /* APIService.swift in Sources */,
 				17049A5BC0443C70F5DC9EEA /* AuthManager.swift in Sources */,
+				45C7FD107061FED125ED0AE0 /* ChatStore.swift in Sources */,
 				B98F38C0A33351099F429F3B /* ChatView.swift in Sources */,
-				AA2233445566778899001122 /* ChatStore.swift in Sources */,
 				C9858BF749563A4D1DE527A5 /* ContentView.swift in Sources */,
 				40DE0A76B1DA1CE1C8DFD990 /* ConversationsView.swift in Sources */,
+				89CFFD6541446392F138C33A /* EmailAuthView.swift in Sources */,
 				494574466F14DBD2B0A54797 /* IntokApp.swift in Sources */,
-				AA3344556677889900112233 /* Languages.swift in Sources */,
+				0A4B0E687695C677BB093AC1 /* Languages.swift in Sources */,
 				7D45E12CC3607427168D0CAF /* LoginView.swift in Sources */,
 				26B5FFD35D1066A90B174AAB /* Models.swift in Sources */,
-				AA4455667788990011223344 /* NewChatView.swift in Sources */,
+				83BF5C33236C3B64DB13D461 /* NewChatView.swift in Sources */,
 				12B23CCA0F9EA70F3EFB6987 /* SettingsView.swift in Sources */,
-				7A6DAFA2FC03F3840A25097C /* SetupView.swift in Sources */,
+				728AFB49D128CF8EF534C782 /* SetupView.swift in Sources */,
 				60A4306F3D4F126CCA543555 /* Theme.swift in Sources */,
-				AA1122334455667788990011 /* WebSocketService.swift in Sources */,
+				15C342AD2BE063F592274C8B /* WebSocketService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -319,7 +327,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Intok/Intok.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Intok/Info.plist;
@@ -405,7 +412,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Intok/Intok.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Intok/Info.plist;
