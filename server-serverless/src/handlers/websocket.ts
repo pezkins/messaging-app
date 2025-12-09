@@ -117,7 +117,19 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
   const messageId = uuid();
   const timestamp = new Date().toISOString();
 
-  const message = {
+  const message: {
+    id: string;
+    conversationId: string;
+    senderId: string;
+    sender: { id?: string; username?: string; preferredLanguage?: string };
+    type: string;
+    originalContent: string;
+    originalLanguage: string;
+    status: string;
+    timestamp: string;
+    createdAt: string;
+    translations: Record<string, string>;
+  } = {
     id: messageId,
     conversationId,
     senderId,

@@ -50,10 +50,9 @@ export const list: APIGatewayProxyHandler = async (event) => {
       ...(cursor && { ExclusiveStartKey: { conversationId, timestamp: cursor } }),
     }));
 
-    const hasMore = (messagesResult.Items?.length || 0) > limit;
-    const items = hasMore 
-      ? messagesResult.Items?.slice(0, -1) 
-      : messagesResult.Items || [];
+    const allItems = messagesResult.Items || [];
+    const hasMore = allItems.length > limit;
+    const items = hasMore ? allItems.slice(0, -1) : allItems;
 
     // Translate messages
     const messages = await Promise.all(
@@ -93,7 +92,7 @@ export const list: APIGatewayProxyHandler = async (event) => {
     return response(200, {
       messages: messages.reverse(), // Chronological order
       hasMore,
-      nextCursor: hasMore ? items[items.length - 1]?.timestamp : null,
+      nextCursor: hasMore && items.length > 0 ? items[items.length - 1].timestamp : null,
     });
   } catch (error) {
     console.error('List messages error:', error);
