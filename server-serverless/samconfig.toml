@@ -4,15 +4,15 @@
 version = 0.1
 
 [default.deploy.parameters]
-stack_name = "intok-api"
+stack_name = "lingualink"
 resolve_s3 = true
-s3_prefix = "intok-api"
+s3_prefix = "lingualink"
 region = "us-east-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
 
 [dev.deploy.parameters]
-stack_name = "intok-api-dev"
+stack_name = "lingualink"
 confirm_changeset = false
 parameter_overrides = [
     "JwtSecret=${JWT_SECRET}",
@@ -21,7 +21,7 @@ parameter_overrides = [
 ]
 
 [stage.deploy.parameters]
-stack_name = "intok-api-stage"
+stack_name = "lingualink-stage"
 confirm_changeset = true
 parameter_overrides = [
     "JwtSecret=${JWT_SECRET}",
@@ -30,7 +30,7 @@ parameter_overrides = [
 ]
 
 [prod.deploy.parameters]
-stack_name = "intok-api-prod"
+stack_name = "lingualink-prod"
 confirm_changeset = true
 parameter_overrides = [
     "JwtSecret=${JWT_SECRET}",

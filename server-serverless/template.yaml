@@ -157,7 +157,7 @@ Resources:
   AttachmentsBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub "intok-attachments-${AWS::AccountId}"
+      BucketName: !Sub "lingualink-attachments-${AWS::AccountId}"
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders:
