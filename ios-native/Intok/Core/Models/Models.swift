@@ -53,6 +53,39 @@ struct UserPublic: Codable, Identifiable {
     let username: String
     let preferredLanguage: String
     let avatarUrl: String?
+    
+    enum CodingKeys: String, CodingKey {
+        case id, username, preferredLanguage, avatarUrl, profilePicture
+    }
+    
+    init(id: String, username: String, preferredLanguage: String, avatarUrl: String?) {
+        self.id = id
+        self.username = username
+        self.preferredLanguage = preferredLanguage
+        self.avatarUrl = avatarUrl
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        username = try container.decode(String.self, forKey: .username)
+        preferredLanguage = try container.decodeIfPresent(String.self, forKey: .preferredLanguage) ?? "en"
+        
+        // Try avatarUrl first, then fall back to profilePicture
+        if let url = try container.decodeIfPresent(String.self, forKey: .avatarUrl) {
+            avatarUrl = url
+        } else {
+            avatarUrl = try container.decodeIfPresent(String.self, forKey: .profilePicture)
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(username, forKey: .username)
+        try container.encode(preferredLanguage, forKey: .preferredLanguage)
+        try container.encodeIfPresent(avatarUrl, forKey: .avatarUrl)
+    }
 }
 
 // MARK: - Auth Models
