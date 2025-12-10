@@ -20,11 +20,10 @@ Globals:
         OPENAI_API_KEY: !Ref OpenAIApiKey
         ANTHROPIC_API_KEY: !Ref AnthropicApiKey
         DEEPSEEK_API_KEY: !Ref DeepSeekApiKey
-        APNS_KEY_ID: !Ref AppStoreConnectApiKeyId
-        APNS_TEAM_ID: !Ref AppleTeamId
-        APNS_AUTH_KEY: !Ref AppStoreConnectApiKey
-        FCM_SERVICE_ACCOUNT: !Ref FcmServiceAccount
-        FCM_PROJECT_ID: !Ref FcmProjectId
+        # Push notification credentials via AWS Secrets Manager
+        APNS_SECRET_NAME: intok/push/apns
+        FCM_SECRET_NAME: intok/push/fcm
+        AWS_REGION_NAME: !Ref AWS::Region
 
 Parameters:
   JwtSecret:
@@ -54,30 +53,7 @@ Parameters:
     NoEcho: true
     Default: ""
     Description: DeepSeek API key (required if AIProvider=deepseek)
-  AppStoreConnectApiKeyId:
-    Type: String
-    NoEcho: true
-    Default: ""
-    Description: App Store Connect API Key ID (also used for APNs)
-  AppleTeamId:
-    Type: String
-    NoEcho: true
-    Default: ""
-    Description: Apple Developer Team ID
-  AppStoreConnectApiKey:
-    Type: String
-    NoEcho: true
-    Default: ""
-    Description: App Store Connect API Key (.p8 content, also used for APNs)
-  FcmServiceAccount:
-    Type: String
-    NoEcho: true
-    Default: ""
-    Description: Firebase Service Account JSON (for FCM V1 API)
-  FcmProjectId:
-    Type: String
-    Default: "lingualink-479903"
-    Description: Firebase/Google Cloud Project ID
+
 Resources:
 
   # ============== DynamoDB Tables ==============
@@ -612,6 +588,12 @@ Resources:
                 - execute-api:ManageConnections
               Resource:
                 - !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - secretsmanager:GetSecretValue
+              Resource:
+                - !Sub "arn:aws:secretsmanager:${AWS::Region}:${AWS::AccountId}:secret:intok/push/*"
 
   # WebSocket Routes
   ConnectRoute:

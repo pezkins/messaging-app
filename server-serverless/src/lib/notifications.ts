@@ -1,20 +1,33 @@
 /**
  * Push Notification Service
  * Supports iOS (APNs) and Android (FCM V1 API)
+ * 
+ * Credentials are fetched from AWS Secrets Manager:
+ * - intok/push/apns: APNs credentials (keyId, teamId, privateKey)
+ * - intok/push/fcm: FCM credentials (projectId, serviceAccount)
  */
 
 import { dynamodb, Tables, QueryCommand } from './dynamo';
+import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 import * as jwt from 'jsonwebtoken';
 import { GoogleAuth } from 'google-auth-library';
 
-// APNs Configuration
-const APNS_KEY_ID = process.env.APNS_KEY_ID;
-const APNS_TEAM_ID = process.env.APNS_TEAM_ID;
-const APNS_AUTH_KEY = process.env.APNS_AUTH_KEY;
+// Secrets Manager client
+const secretsManager = new SecretsManagerClient({ 
+  region: process.env.AWS_REGION_NAME || 'us-east-1' 
+});
 
-// FCM V1 Configuration (Service Account)
-const FCM_SERVICE_ACCOUNT = process.env.FCM_SERVICE_ACCOUNT; // JSON string
-const FCM_PROJECT_ID = process.env.FCM_PROJECT_ID || 'lingualink-479903';
+// Cache for credentials (fetched once per Lambda cold start)
+let apnsCredentials: {
+  keyId: string;
+  teamId: string;
+  privateKey: string;
+} | null = null;
+
+let fcmCredentials: {
+  projectId: string;
+  serviceAccount: Record<string, unknown>;
+} | null = null;
 
 // APNs JWT token cache (valid for 1 hour max, we refresh every 50 mins)
 let apnsJwtToken: string | null = null;
@@ -34,6 +47,70 @@ interface DeviceToken {
   userId: string;
   token: string;
   platform: 'ios' | 'android';
+}
+
+/**
+ * Fetch APNs credentials from AWS Secrets Manager
+ */
+async function getAPNsCredentials(): Promise<typeof apnsCredentials> {
+  if (apnsCredentials) return apnsCredentials;
+  
+  const secretName = process.env.APNS_SECRET_NAME;
+  if (!secretName) {
+    console.log('📱 APNS_SECRET_NAME not configured');
+    return null;
+  }
+  
+  try {
+    const response = await secretsManager.send(new GetSecretValueCommand({
+      SecretId: secretName
+    }));
+    
+    if (response.SecretString) {
+      apnsCredentials = JSON.parse(response.SecretString);
+      console.log('✅ APNs credentials loaded from Secrets Manager');
+      return apnsCredentials;
+    }
+  } catch (error) {
+    console.error('❌ Failed to fetch APNs credentials:', error);
+  }
+  
+  return null;
+}
+
+/**
+ * Fetch FCM credentials from AWS Secrets Manager
+ */
+async function getFCMCredentials(): Promise<typeof fcmCredentials> {
+  if (fcmCredentials) return fcmCredentials;
+  
+  const secretName = process.env.FCM_SECRET_NAME;
+  if (!secretName) {
+    console.log('📱 FCM_SECRET_NAME not configured');
+    return null;
+  }
+  
+  try {
+    const response = await secretsManager.send(new GetSecretValueCommand({
+      SecretId: secretName
+    }));
+    
+    if (response.SecretString) {
+      const parsed = JSON.parse(response.SecretString);
+      fcmCredentials = {
+        projectId: parsed.projectId,
+        serviceAccount: typeof parsed.serviceAccount === 'string' 
+          ? JSON.parse(parsed.serviceAccount)
+          : parsed.serviceAccount
+      };
+      console.log('✅ FCM credentials loaded from Secrets Manager');
+      return fcmCredentials;
+    }
+  } catch (error) {
+    console.error('❌ Failed to fetch FCM credentials:', error);
+  }
+  
+  return null;
 }
 
 /**
@@ -73,7 +150,7 @@ export async function sendPushNotification(payload: NotificationPayload): Promis
 /**
  * Generate JWT token for APNs authentication
  */
-function getAPNsJWT(): string {
+async function getAPNsJWT(): Promise<string | null> {
   const now = Math.floor(Date.now() / 1000);
   
   // Return cached token if still valid (refresh 10 mins before expiry)
@@ -81,22 +158,21 @@ function getAPNsJWT(): string {
     return apnsJwtToken;
   }
 
-  if (!APNS_AUTH_KEY || !APNS_KEY_ID || !APNS_TEAM_ID) {
-    throw new Error('APNs credentials not configured');
-  }
+  const creds = await getAPNsCredentials();
+  if (!creds) return null;
 
   // The .p8 key content - handle both with and without header/footer
-  let key = APNS_AUTH_KEY;
+  let key = creds.privateKey;
   if (!key.includes('-----BEGIN PRIVATE KEY-----')) {
     key = `-----BEGIN PRIVATE KEY-----\n${key}\n-----END PRIVATE KEY-----`;
   }
 
   const token = jwt.sign({}, key, {
     algorithm: 'ES256',
-    issuer: APNS_TEAM_ID,
+    issuer: creds.teamId,
     header: {
       alg: 'ES256',
-      kid: APNS_KEY_ID,
+      kid: creds.keyId,
     },
     expiresIn: '1h',
   });
@@ -116,15 +192,14 @@ async function sendAPNS(
   body: string, 
   data?: Record<string, string>
 ): Promise<void> {
-  // Skip if APNs is not configured
-  if (!APNS_KEY_ID || !APNS_TEAM_ID || !APNS_AUTH_KEY) {
+  const jwtToken = await getAPNsJWT();
+  
+  if (!jwtToken) {
     console.log(`📱 APNs not configured, skipping iOS push to ${deviceToken.substring(0, 10)}...`);
     return;
   }
 
   console.log(`📱 Sending APNs to ${deviceToken.substring(0, 10)}...`);
-  
-  const jwtToken = getAPNsJWT();
   
   // Use production APNs endpoint
   const url = `https://api.push.apple.com/3/device/${deviceToken}`;
@@ -159,16 +234,14 @@ async function sendAPNS(
 /**
  * Get FCM OAuth2 access token using Service Account
  */
-async function getFCMAccessToken(): Promise<string> {
-  if (!FCM_SERVICE_ACCOUNT) {
-    throw new Error('FCM Service Account not configured');
-  }
+async function getFCMAccessToken(): Promise<string | null> {
+  const creds = await getFCMCredentials();
+  if (!creds) return null;
 
   // Initialize auth client if needed
   if (!fcmAuthClient) {
-    const serviceAccount = JSON.parse(FCM_SERVICE_ACCOUNT);
     fcmAuthClient = new GoogleAuth({
-      credentials: serviceAccount,
+      credentials: creds.serviceAccount,
       scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
     });
   }
@@ -192,29 +265,18 @@ async function sendFCMv1(
   body: string, 
   data?: Record<string, string>
 ): Promise<void> {
-  // Skip if FCM is not configured
-  if (!FCM_SERVICE_ACCOUNT) {
+  const creds = await getFCMCredentials();
+  const accessToken = await getFCMAccessToken();
+  
+  if (!creds || !accessToken) {
     console.log(`📱 FCM not configured, skipping Android push to ${deviceToken.substring(0, 10)}...`);
     return;
   }
 
   console.log(`📱 Sending FCM V1 to ${deviceToken.substring(0, 10)}...`);
   
-  // Get project ID from service account if not explicitly set
-  let projectId = FCM_PROJECT_ID;
-  if (!projectId || projectId === 'lingualink-479903') {
-    try {
-      const serviceAccount = JSON.parse(FCM_SERVICE_ACCOUNT);
-      projectId = serviceAccount.project_id || 'lingualink-479903';
-    } catch {
-      projectId = 'lingualink-479903';
-    }
-  }
-
-  const accessToken = await getFCMAccessToken();
-  
   // FCM V1 API endpoint
-  const url = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
+  const url = `https://fcm.googleapis.com/v1/projects/${creds.projectId}/messages:send`;
   
   const response = await fetch(url, {
     method: 'POST',
@@ -225,10 +287,7 @@ async function sendFCMv1(
     body: JSON.stringify({
       message: {
         token: deviceToken,
-        notification: {
-          title,
-          body,
-        },
+        notification: { title, body },
         android: {
           priority: 'high',
           notification: {

@@ -179,12 +179,6 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          # Push notification credentials (reusing existing Apple secrets)
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          FCM_SERVICE_ACCOUNT: ${{ secrets.FCM_SERVICE_ACCOUNT }}
-          FCM_PROJECT_ID: ${{ secrets.FCM_PROJECT_ID }}
         run: |
           # Validate required secrets
           if [ -z "${JWT_SECRET}" ]; then
@@ -194,6 +188,8 @@ jobs:
           fi
           
           # Build parameter overrides dynamically (skip empty values)
+          # Note: Push notification credentials (APNs, FCM) are stored in AWS Secrets Manager
+          # and accessed at runtime by Lambda functions. No need to pass as parameters.
           PARAMS="JwtSecret=${JWT_SECRET} AIProvider=${AI_PROVIDER}"
           
           if [ -n "${OPENAI_API_KEY}" ]; then
@@ -206,29 +202,6 @@ jobs:
           
           if [ -n "${DEEPSEEK_API_KEY}" ]; then
             PARAMS="${PARAMS} DeepSeekApiKey=${DEEPSEEK_API_KEY}"
-          fi
-          
-          # Push notification params (iOS APNs - reusing App Store Connect credentials)
-          if [ -n "${APPLE_TEAM_ID}" ]; then
-            PARAMS="${PARAMS} AppleTeamId=${APPLE_TEAM_ID}"
-          fi
-          
-          if [ -n "${APP_STORE_CONNECT_API_KEY_ID}" ]; then
-            PARAMS="${PARAMS} AppStoreConnectApiKeyId=${APP_STORE_CONNECT_API_KEY_ID}"
-          fi
-          
-          if [ -n "${APP_STORE_CONNECT_API_KEY}" ]; then
-            PARAMS="${PARAMS} AppStoreConnectApiKey=${APP_STORE_CONNECT_API_KEY}"
-          fi
-          
-          # Push notification params (Android FCM V1)
-          if [ -n "${FCM_SERVICE_ACCOUNT}" ]; then
-            # Base64 encode the JSON to avoid escaping issues
-            PARAMS="${PARAMS} FcmServiceAccount=${FCM_SERVICE_ACCOUNT}"
-          fi
-          
-          if [ -n "${FCM_PROJECT_ID}" ]; then
-            PARAMS="${PARAMS} FcmProjectId=${FCM_PROJECT_ID}"
           fi
           
           sam deploy \
