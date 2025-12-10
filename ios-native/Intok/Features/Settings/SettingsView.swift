@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 
 struct SettingsView: View {
     @EnvironmentObject var authManager: AuthManager
@@ -12,6 +13,15 @@ struct SettingsView: View {
     
     @State private var editingName = ""
     @State private var isLoading = false
+    
+    // Profile picture states
+    @State private var showingImageSourcePicker = false
+    @State private var showingPhotoPicker = false
+    @State private var showingCamera = false
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var isUploadingPhoto = false
+    @State private var photoError: String?
+    @State private var showPhotoError = false
     
     var body: some View {
         NavigationView {
@@ -71,40 +81,95 @@ struct SettingsView: View {
             } message: {
                 Text("Are you sure you want to sign out?")
             }
+            // Image source picker action sheet
+            .confirmationDialog("Change Profile Photo", isPresented: $showingImageSourcePicker) {
+                Button("Take Photo") {
+                    showingCamera = true
+                }
+                Button("Choose from Library") {
+                    showingPhotoPicker = true
+                }
+                if authManager.currentUser?.avatarUrl != nil {
+                    Button("Remove Photo", role: .destructive) {
+                        Task { await removeProfilePhoto() }
+                    }
+                }
+                Button("Cancel", role: .cancel) { }
+            }
+            // Photo library picker
+            .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhotoItem, matching: .images)
+            .onChange(of: selectedPhotoItem) { oldValue, newValue in
+                Task { await handlePhotoSelection(newValue) }
+            }
+            // Camera
+            .sheet(isPresented: $showingCamera) {
+                ProfileCameraCaptureView { image in
+                    Task { await uploadProfileImage(image) }
+                }
+            }
+            // Photo error alert
+            .alert("Photo Error", isPresented: $showPhotoError) {
+                Button("OK") { }
+            } message: {
+                Text(photoError ?? "Failed to update profile photo")
+            }
         }
     }
     
     // MARK: - Profile Section
     var profileSection: some View {
         VStack(spacing: 16) {
-            // Avatar
-            if let avatarUrl = authManager.currentUser?.avatarUrl,
-               let url = URL(string: avatarUrl) {
-                AsyncImage(url: url) { image in
-                    image
-                        .resizable()
-                        .scaledToFill()
-                } placeholder: {
+            // Avatar - Tappable with camera overlay
+            Button(action: { showingImageSourcePicker = true }) {
+                ZStack(alignment: .bottomTrailing) {
+                    // Avatar circle
+                    if let avatarUrl = authManager.currentUser?.avatarUrl,
+                       let url = URL(string: avatarUrl) {
+                        AsyncImage(url: url) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                            case .failure:
+                                avatarPlaceholder
+                            case .empty:
+                                ProgressView()
+                                    .frame(width: 100, height: 100)
+                            @unknown default:
+                                avatarPlaceholder
+                            }
+                        }
+                        .frame(width: 100, height: 100)
+                        .clipShape(Circle())
+                    } else {
+                        avatarPlaceholder
+                    }
+                    
+                    // Camera icon overlay
                     Circle()
-                        .fill(Color(hex: "8B5CF6"))
+                        .fill(Color(hex: "2A2A2A"))
+                        .frame(width: 32, height: 32)
                         .overlay(
-                            Text(String(authManager.currentUser?.username.prefix(1).uppercased() ?? "?"))
-                                .font(.title)
-                                .foregroundColor(.white)
+                            Group {
+                                if isUploadingPhoto {
+                                    ProgressView()
+                                        .scaleEffect(0.7)
+                                        .tint(.white)
+                                } else {
+                                    Image(systemName: "camera.fill")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.white)
+                                }
+                            }
+                        )
+                        .overlay(
+                            Circle()
+                                .stroke(Color(hex: "0F0F0F"), lineWidth: 3)
                         )
                 }
-                .frame(width: 100, height: 100)
-                .clipShape(Circle())
-            } else {
-                Circle()
-                    .fill(Color(hex: "8B5CF6"))
-                    .frame(width: 100, height: 100)
-                    .overlay(
-                        Text(String(authManager.currentUser?.username.prefix(1).uppercased() ?? "?"))
-                            .font(.title)
-                            .foregroundColor(.white)
-                    )
             }
+            .disabled(isUploadingPhoto)
             
             // Display Name
             Button(action: {
@@ -132,6 +197,18 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity)
         .background(Color.white.opacity(0.05))
         .cornerRadius(16)
+    }
+    
+    // Avatar placeholder view
+    var avatarPlaceholder: some View {
+        Circle()
+            .fill(Color(hex: "8B5CF6"))
+            .frame(width: 100, height: 100)
+            .overlay(
+                Text(String(authManager.currentUser?.username.prefix(1).uppercased() ?? "?"))
+                    .font(.system(size: 40, weight: .semibold))
+                    .foregroundColor(.white)
+            )
     }
     
     // MARK: - Preferences Section
@@ -303,6 +380,94 @@ struct SettingsView: View {
             }
         }
         showingCountryPicker = false
+    }
+    
+    // MARK: - Profile Photo Actions
+    func handlePhotoSelection(_ item: PhotosPickerItem?) async {
+        guard let item = item,
+              let data = try? await item.loadTransferable(type: Data.self),
+              let image = UIImage(data: data) else {
+            return
+        }
+        
+        selectedPhotoItem = nil
+        await uploadProfileImage(image)
+    }
+    
+    func uploadProfileImage(_ image: UIImage) async {
+        // Resize image to 512x512
+        let resizedImage = resizeImage(image, targetSize: CGSize(width: 512, height: 512))
+        
+        guard let imageData = resizedImage.jpegData(compressionQuality: 0.8) else {
+            photoError = "Failed to process image"
+            showPhotoError = true
+            return
+        }
+        
+        isUploadingPhoto = true
+        
+        do {
+            // Get presigned upload URL from profile picture endpoint
+            let uploadResponse = try await APIService.shared.getProfileUploadUrl(
+                fileName: "profile-\(UUID().uuidString).jpg",
+                contentType: "image/jpeg",
+                fileSize: imageData.count
+            )
+            
+            // Upload to S3
+            try await APIService.shared.uploadFile(
+                uploadUrl: uploadResponse.uploadUrl,
+                data: imageData,
+                contentType: "image/jpeg"
+            )
+            
+            // Update user profile with the S3 key (backend constructs the full URL)
+            let response = try await APIService.shared.updateProfilePicture(key: uploadResponse.key)
+            await authManager.updateUser(response.user)
+            
+        } catch {
+            photoError = "Failed to upload photo. Please try again."
+            showPhotoError = true
+        }
+        
+        isUploadingPhoto = false
+    }
+    
+    func removeProfilePhoto() async {
+        isUploadingPhoto = true
+        
+        do {
+            let response = try await APIService.shared.deleteProfilePicture()
+            await authManager.updateUser(response.user)
+        } catch {
+            photoError = "Failed to remove photo. Please try again."
+            showPhotoError = true
+        }
+        
+        isUploadingPhoto = false
+    }
+    
+    func resizeImage(_ image: UIImage, targetSize: CGSize) -> UIImage {
+        // Calculate aspect ratio to crop to square
+        let size = image.size
+        let minDimension = min(size.width, size.height)
+        
+        // Crop to center square
+        let xOffset = (size.width - minDimension) / 2
+        let yOffset = (size.height - minDimension) / 2
+        let cropRect = CGRect(x: xOffset, y: yOffset, width: minDimension, height: minDimension)
+        
+        guard let cgImage = image.cgImage?.cropping(to: cropRect) else {
+            return image
+        }
+        
+        let croppedImage = UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
+        
+        // Resize to target size
+        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        return renderer.image { _ in
+            croppedImage.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
     }
 }
 
@@ -509,6 +674,48 @@ struct WhatsNewSheet: View {
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
+        }
+    }
+}
+
+// MARK: - Profile Camera Capture View
+struct ProfileCameraCaptureView: UIViewControllerRepresentable {
+    let onImageCaptured: (UIImage) -> Void
+    @Environment(\.dismiss) var dismiss
+    
+    func makeUIViewController(context: Context) -> UIImagePickerController {
+        let picker = UIImagePickerController()
+        picker.sourceType = .camera
+        picker.cameraDevice = .front
+        picker.allowsEditing = true
+        picker.delegate = context.coordinator
+        return picker
+    }
+    
+    func updateUIViewController(_ uiViewController: UIImagePickerController, context: Context) {}
+    
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+    
+    class Coordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
+        let parent: ProfileCameraCaptureView
+        
+        init(_ parent: ProfileCameraCaptureView) {
+            self.parent = parent
+        }
+        
+        func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+            if let editedImage = info[.editedImage] as? UIImage {
+                parent.onImageCaptured(editedImage)
+            } else if let originalImage = info[.originalImage] as? UIImage {
+                parent.onImageCaptured(originalImage)
+            }
+            parent.dismiss()
+        }
+        
+        func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+            parent.dismiss()
         }
     }
 }

@@ -3,6 +3,7 @@ import AuthenticationServices
 
 struct LoginView: View {
     @EnvironmentObject var authManager: AuthManager
+    @StateObject private var appleAuthManager = AppleAuthManager.shared
     @State private var showEmailAuth = false
     
     var body: some View {
@@ -20,13 +21,11 @@ struct LoginView: View {
                     Spacer()
                     
                     // Logo
-                    RoundedRectangle(cornerRadius: 24)
-                        .fill(Color.purple500)
+                    Image("AppLogo")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
                         .frame(width: 120, height: 120)
-                        .overlay(
-                            Text("🌐")
-                                .font(.system(size: 48))
-                        )
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
                     
                     // App Name
                     Text("Intok")
@@ -43,11 +42,16 @@ struct LoginView: View {
                     
                     // Apple Sign In Button
                     Button(action: {
-                        AppleAuthManager.shared.signIn()
+                        appleAuthManager.signIn()
                     }) {
                         HStack {
-                            Image(systemName: "apple.logo")
-                            Text("Continue with Apple")
+                            if appleAuthManager.isLoading {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Image(systemName: "apple.logo")
+                                Text("Continue with Apple")
+                            }
                         }
                     }
                     .font(.titleMedium)
@@ -60,7 +64,7 @@ struct LoginView: View {
                         RoundedRectangle(cornerRadius: 16)
                             .stroke(Color.white.opacity(0.2), lineWidth: 1)
                     )
-                    .disabled(authManager.isLoading)
+                    .disabled(authManager.isLoading || appleAuthManager.isLoading)
                     
                     // Google Sign In Button
                     Button(action: {
@@ -122,6 +126,11 @@ struct LoginView: View {
             }
             .navigationDestination(isPresented: $showEmailAuth) {
                 EmailAuthView()
+            }
+            .alert("Sign in with Apple", isPresented: $appleAuthManager.showError) {
+                Button("OK") { }
+            } message: {
+                Text(appleAuthManager.errorMessage ?? "An error occurred")
             }
         }
     }

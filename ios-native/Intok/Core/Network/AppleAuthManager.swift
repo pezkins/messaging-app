@@ -1,13 +1,26 @@
 import Foundation
 import AuthenticationServices
 import CryptoKit
+import UIKit
 
 class AppleAuthManager: NSObject, ObservableObject {
     static let shared = AppleAuthManager()
     
     private var currentNonce: String?
+    private weak var presentingWindow: UIWindow?
     
+    // Published properties for UI feedback
+    @Published var isLoading = false
+    @Published var errorMessage: String?
+    @Published var showError = false
+    
+    @MainActor
     func signIn() {
+        NSLog("🍎 Apple Sign-In: Starting...")
+        
+        isLoading = true
+        errorMessage = nil
+        
         let nonce = randomNonceString()
         currentNonce = nonce
         
@@ -15,10 +28,25 @@ class AppleAuthManager: NSObject, ObservableObject {
         request.requestedScopes = [.fullName, .email]
         request.nonce = sha256(nonce)
         
+        // Cache the window reference before performing the request
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = scene.windows.first(where: { $0.isKeyWindow }) ?? scene.windows.first {
+            presentingWindow = window
+            NSLog("🍎 Apple Sign-In: Found window")
+        } else {
+            NSLog("❌ Apple Sign-In: No window found")
+            isLoading = false
+            errorMessage = "Unable to present Sign in with Apple"
+            showError = true
+            return
+        }
+        
         let controller = ASAuthorizationController(authorizationRequests: [request])
         controller.delegate = self
         controller.presentationContextProvider = self
         controller.performRequests()
+        
+        NSLog("🍎 Apple Sign-In: Request performed")
     }
     
     private func randomNonceString(length: Int = 32) -> String {
@@ -42,11 +70,18 @@ class AppleAuthManager: NSObject, ObservableObject {
 // MARK: - ASAuthorizationControllerDelegate
 extension AppleAuthManager: ASAuthorizationControllerDelegate {
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
+        NSLog("🍎 Apple Sign-In: Authorization completed")
+        
         guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
               let nonce = currentNonce,
               let identityToken = appleIDCredential.identityToken,
               let tokenString = String(data: identityToken, encoding: .utf8) else {
-            print("❌ Apple Sign-In: Missing credentials")
+            NSLog("❌ Apple Sign-In: Missing credentials")
+            DispatchQueue.main.async {
+                self.isLoading = false
+                self.errorMessage = "Failed to get Apple credentials"
+                self.showError = true
+            }
             return
         }
         
@@ -57,31 +92,83 @@ extension AppleAuthManager: ASAuthorizationControllerDelegate {
         
         let email = appleIDCredential.email
         
-        print("✅ Apple Sign-In successful")
+        NSLog("✅ Apple Sign-In successful - email: %@", email ?? "hidden")
         
         // Send to backend for verification
-        Task {
+        Task { @MainActor in
             await AuthManager.shared.signInWithApple(
                 idToken: tokenString,
                 nonce: nonce,
                 fullName: fullName.isEmpty ? nil : fullName,
                 email: email
             )
+            self.isLoading = false
         }
     }
     
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {
-        print("❌ Apple Sign-In error: \(error.localizedDescription)")
+        NSLog("❌ Apple Sign-In: Error received - %@", error.localizedDescription)
+        
+        DispatchQueue.main.async {
+            self.isLoading = false
+            
+            if let authError = error as? ASAuthorizationError {
+                switch authError.code {
+                case .canceled:
+                    NSLog("🍎 Apple Sign-In: User canceled")
+                    // Don't show error for user cancellation
+                    return
+                case .failed:
+                    NSLog("❌ Apple Sign-In failed: %@", error.localizedDescription)
+                    self.errorMessage = "Sign in with Apple failed. Please try again."
+                case .invalidResponse:
+                    NSLog("❌ Apple Sign-In: Invalid response")
+                    self.errorMessage = "Invalid response from Apple. Please try again."
+                case .notHandled:
+                    NSLog("❌ Apple Sign-In: Not handled")
+                    self.errorMessage = "Sign in with Apple is not available."
+                case .notInteractive:
+                    NSLog("❌ Apple Sign-In: Not interactive")
+                    self.errorMessage = "Sign in with Apple requires interaction."
+                case .unknown:
+                    NSLog("❌ Apple Sign-In: Unknown error (code 1000)")
+                    // Error code 1000 typically means simulator or configuration issue
+                    #if targetEnvironment(simulator)
+                    self.errorMessage = "Sign in with Apple is not fully supported in the Simulator. Please test on a real device."
+                    #else
+                    self.errorMessage = "Sign in with Apple is not available. Please ensure the app is properly configured."
+                    #endif
+                @unknown default:
+                    NSLog("❌ Apple Sign-In: Unexpected error code")
+                    self.errorMessage = "An unexpected error occurred."
+                }
+            } else {
+                NSLog("❌ Apple Sign-In error: %@", error.localizedDescription)
+                self.errorMessage = "Sign in with Apple failed: \(error.localizedDescription)"
+            }
+            
+            self.showError = true
+        }
     }
 }
 
 // MARK: - ASAuthorizationControllerPresentationContextProviding
 extension AppleAuthManager: ASAuthorizationControllerPresentationContextProviding {
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let window = scene.windows.first else {
-            fatalError("No window found")
+        // Use cached window if available
+        if let window = presentingWindow {
+            return window
         }
+        
+        // Fallback: try to find any available window
+        if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+           let window = scene.windows.first(where: { $0.isKeyWindow }) ?? scene.windows.first {
+            return window
+        }
+        
+        // Last resort: create a new window (shouldn't happen)
+        NSLog("⚠️ Apple Sign-In: Creating fallback window")
+        let window = UIWindow()
         return window
     }
 }

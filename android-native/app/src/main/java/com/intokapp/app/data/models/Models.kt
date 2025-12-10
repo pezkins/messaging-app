@@ -16,6 +16,8 @@ data class User(
     val preferredCountry: String? = null,
     @SerializedName("avatarUrl")
     val avatarUrl: String? = null,
+    @SerializedName("profilePicture")
+    val profilePicture: String? = null,
     @SerializedName("createdAt")
     val createdAt: String,
     @SerializedName("updatedAt")

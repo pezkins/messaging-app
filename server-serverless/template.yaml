@@ -392,6 +392,64 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
 
+  # Profile Picture
+  GetProfilePictureUploadUrlFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/users.getProfilePictureUploadUrl
+      CodeUri: .
+      Timeout: 10
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/users/profile-picture/upload-url
+            Method: POST
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - S3CrudPolicy:
+            BucketName: !Ref AttachmentsBucket
+
+  UpdateProfilePictureFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/users.updateProfilePicture
+      CodeUri: .
+      Timeout: 10
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/users/profile-picture
+            Method: PUT
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - S3CrudPolicy:
+            BucketName: !Ref AttachmentsBucket
+
+  DeleteProfilePictureFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/users.deleteProfilePicture
+      CodeUri: .
+      Timeout: 10
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/users/profile-picture
+            Method: DELETE
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+        - S3CrudPolicy:
+            BucketName: !Ref AttachmentsBucket
+
   # Conversations
   GetConversationsFunction:
     Type: AWS::Serverless::Function

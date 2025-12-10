@@ -1,5 +1,10 @@
 package com.intokapp.app.ui.screens.settings
 
+import android.Manifest
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,14 +24,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.intokapp.app.data.constants.*
 import com.intokapp.app.ui.theme.*
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -36,13 +44,66 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val context = LocalContext.current
+    val snackbarHostState = remember { SnackbarHostState() }
     
     var showLanguagePicker by remember { mutableStateOf(false) }
     var showCountryPicker by remember { mutableStateOf(false) }
     var showWhatsNew by remember { mutableStateOf(false) }
     var showEditName by remember { mutableStateOf(false) }
     var showSignOutConfirm by remember { mutableStateOf(false) }
+    var showImagePickerDialog by remember { mutableStateOf(false) }
     var editingName by remember { mutableStateOf("") }
+    
+    // Camera capture URI
+    var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
+    
+    // Gallery picker launcher
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        uri?.let { viewModel.uploadProfilePicture(it) }
+    }
+    
+    // Camera launcher
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && cameraImageUri != null) {
+            viewModel.uploadProfilePicture(cameraImageUri!!)
+        }
+    }
+    
+    // Camera permission launcher
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            // Create temp file and launch camera
+            val photoFile = File.createTempFile("profile_", ".jpg", context.cacheDir)
+            cameraImageUri = FileProvider.getUriForFile(
+                context,
+                "${context.packageName}.provider",
+                photoFile
+            )
+            cameraImageUri?.let { cameraLauncher.launch(it) }
+        }
+    }
+    
+    // Show error/success messages
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let { error ->
+            snackbarHostState.showSnackbar(error)
+            viewModel.clearError()
+        }
+    }
+    
+    LaunchedEffect(uiState.successMessage) {
+        uiState.successMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            viewModel.clearSuccessMessage()
+        }
+    }
     
     LaunchedEffect(uiState.isSignedOut) {
         if (uiState.isSignedOut) {
@@ -51,6 +112,7 @@ fun SettingsScreen(
     }
     
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { Text("Settings", color = White) },
@@ -63,113 +125,157 @@ fun SettingsScreen(
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(Surface950, Surface900)
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(Surface950, Surface900)
+                        )
                     )
+                    .padding(padding)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(24.dp)
+            ) {
+                // Profile Section
+                ProfileSection(
+                    username = uiState.user?.username ?: "Unknown",
+                    email = uiState.user?.email ?: "",
+                    profilePicture = uiState.user?.profilePicture ?: uiState.user?.avatarUrl,
+                    isUploading = uiState.isUploadingPhoto,
+                    uploadProgress = uiState.uploadProgress,
+                    onAvatarClick = { showImagePickerDialog = true },
+                    onEditClick = {
+                        editingName = uiState.user?.username ?: ""
+                        showEditName = true
+                    }
                 )
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(24.dp)
-        ) {
-            // Profile Section
-            ProfileSection(
-                username = uiState.user?.username ?: "Unknown",
-                email = uiState.user?.email ?: "",
-                avatarUrl = uiState.user?.avatarUrl,
-                onEditClick = {
-                    editingName = uiState.user?.username ?: ""
-                    showEditName = true
+                
+                // Preferences Section
+                SettingsSection(title = "PREFERENCES") {
+                    SettingsRow(
+                        icon = Icons.Default.Public,
+                        iconColor = Purple500,
+                        title = "Language",
+                        value = getLanguageByCode(uiState.user?.preferredLanguage ?: "en")?.name ?: "English",
+                        onClick = { showLanguagePicker = true }
+                    )
+                    
+                    Divider(color = Surface700)
+                    
+                    SettingsRow(
+                        icon = Icons.Default.Map,
+                        iconColor = Green500,
+                        title = "Country",
+                        value = uiState.user?.preferredCountry?.let { getCountryByCode(it)?.name } ?: "Not set",
+                        onClick = { showCountryPicker = true }
+                    )
                 }
-            )
-            
-            // Preferences Section
-            SettingsSection(title = "PREFERENCES") {
-                SettingsRow(
-                    icon = Icons.Default.Public,
-                    iconColor = Purple500,
-                    title = "Language",
-                    value = getLanguageByCode(uiState.user?.preferredLanguage ?: "en")?.name ?: "English",
-                    onClick = { showLanguagePicker = true }
-                )
                 
-                Divider(color = Surface700)
+                // About Section
+                SettingsSection(title = "ABOUT") {
+                    SettingsRow(
+                        icon = Icons.Default.AutoAwesome,
+                        iconColor = Yellow500,
+                        title = "What's New",
+                        onClick = { showWhatsNew = true }
+                    )
+                    
+                    Divider(color = Surface700)
+                    
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            tint = Blue500,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        
+                        Text(
+                            text = "Version",
+                            color = White,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(start = 12.dp)
+                        )
+                        
+                        Text(
+                            text = "0.1.1",
+                            color = Surface400
+                        )
+                    }
+                }
                 
-                SettingsRow(
-                    icon = Icons.Default.Map,
-                    iconColor = Green500,
-                    title = "Country",
-                    value = uiState.user?.preferredCountry?.let { getCountryByCode(it)?.name } ?: "Not set",
-                    onClick = { showCountryPicker = true }
-                )
-            }
-            
-            // About Section
-            SettingsSection(title = "ABOUT") {
-                SettingsRow(
-                    icon = Icons.Default.AutoAwesome,
-                    iconColor = Yellow500,
-                    title = "What's New",
-                    onClick = { showWhatsNew = true }
-                )
-                
-                Divider(color = Surface700)
-                
-                Row(
+                // Sign Out Button
+                Button(
+                    onClick = { showSignOutConfirm = true },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .height(56.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Red500.copy(alpha = 0.1f)
+                    )
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Info,
+                        imageVector = Icons.Default.ExitToApp,
                         contentDescription = null,
-                        tint = Blue500,
-                        modifier = Modifier.size(24.dp)
+                        tint = Red500
                     )
-                    
-                    Text(
-                        text = "Version",
-                        color = White,
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 12.dp)
-                    )
-                    
-                    Text(
-                        text = "0.1.1",
-                        color = Surface400
-                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Sign Out", color = Red500, fontWeight = FontWeight.SemiBold)
                 }
             }
             
-            // Sign Out Button
-            Button(
-                onClick = { showSignOutConfirm = true },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Red500.copy(alpha = 0.1f)
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Default.ExitToApp,
-                    contentDescription = null,
-                    tint = Red500
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Sign Out", color = Red500, fontWeight = FontWeight.SemiBold)
+            // Loading overlay during upload
+            if (uiState.isUploadingPhoto) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Surface950.copy(alpha = 0.7f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = Purple500)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Uploading photo...",
+                            color = White,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
             }
         }
     }
     
     // Dialogs & Sheets
+    if (showImagePickerDialog) {
+        ImagePickerDialog(
+            hasExistingPhoto = (uiState.user?.profilePicture ?: uiState.user?.avatarUrl) != null,
+            onTakePhoto = {
+                showImagePickerDialog = false
+                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            },
+            onChooseFromGallery = {
+                showImagePickerDialog = false
+                galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            },
+            onRemovePhoto = {
+                showImagePickerDialog = false
+                viewModel.deleteProfilePicture()
+            },
+            onDismiss = { showImagePickerDialog = false }
+        )
+    }
+    
     if (showLanguagePicker) {
         LanguagePickerDialog(
             onDismiss = { showLanguagePicker = false },
@@ -252,7 +358,10 @@ fun SettingsScreen(
 private fun ProfileSection(
     username: String,
     email: String,
-    avatarUrl: String?,
+    profilePicture: String?,
+    isUploading: Boolean,
+    uploadProgress: Float,
+    onAvatarClick: () -> Unit,
     onEditClick: () -> Unit
 ) {
     Surface(
@@ -264,26 +373,67 @@ private fun ProfileSection(
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Avatar
+            // Avatar with camera overlay
             Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(CircleShape)
-                    .background(Purple500),
+                modifier = Modifier.clickable(onClick = onAvatarClick),
                 contentAlignment = Alignment.Center
             ) {
-                if (avatarUrl != null) {
-                    AsyncImage(
-                        model = avatarUrl,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Text(
-                        text = username.take(1).uppercase(),
-                        style = MaterialTheme.typography.headlineLarge,
-                        color = White
+                // Avatar circle
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(CircleShape)
+                        .background(Purple500),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (profilePicture != null) {
+                        AsyncImage(
+                            model = profilePicture,
+                            contentDescription = "Profile picture",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Text(
+                            text = username.take(1).uppercase(),
+                            style = MaterialTheme.typography.headlineLarge,
+                            color = White
+                        )
+                    }
+                    
+                    // Loading overlay
+                    if (isUploading) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Surface950.copy(alpha = 0.6f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(
+                                progress = uploadProgress,
+                                color = Purple500,
+                                strokeWidth = 3.dp,
+                                modifier = Modifier.size(40.dp)
+                            )
+                        }
+                    }
+                }
+                
+                // Camera icon overlay - bottom right
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomEnd)
+                        .offset(x = 4.dp, y = 4.dp)
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(Surface700),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.CameraAlt,
+                        contentDescription = "Change photo",
+                        tint = White,
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
@@ -320,6 +470,98 @@ private fun ProfileSection(
             )
         }
     }
+}
+
+@Composable
+private fun ImagePickerDialog(
+    hasExistingPhoto: Boolean,
+    onTakePhoto: () -> Unit,
+    onChooseFromGallery: () -> Unit,
+    onRemovePhoto: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Change Profile Photo") },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                // Take Photo
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onTakePhoto),
+                    shape = RoundedCornerShape(8.dp),
+                    color = Surface700
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.CameraAlt,
+                            contentDescription = null,
+                            tint = Purple500
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Take Photo", color = White)
+                    }
+                }
+                
+                // Choose from Gallery
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onChooseFromGallery),
+                    shape = RoundedCornerShape(8.dp),
+                    color = Surface700
+                ) {
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.PhotoLibrary,
+                            contentDescription = null,
+                            tint = Purple500
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Choose from Gallery", color = White)
+                    }
+                }
+                
+                // Remove Photo (only show if there's an existing photo)
+                if (hasExistingPhoto) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable(onClick = onRemovePhoto),
+                        shape = RoundedCornerShape(8.dp),
+                        color = Red500.copy(alpha = 0.1f)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = null,
+                                tint = Red500
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("Remove Photo", color = Red500)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+        containerColor = Surface800
+    )
 }
 
 @Composable

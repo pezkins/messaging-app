@@ -49,6 +49,16 @@ interface ApiService {
     @GET("api/users/search")
     suspend fun searchUsers(@Query("q") query: String): UsersSearchResponse
     
+    // Profile Picture Endpoints
+    @POST("api/users/profile-picture/upload-url")
+    suspend fun getProfilePictureUploadUrl(@Body request: ProfilePictureUploadRequest): ProfilePictureUploadResponse
+    
+    @PUT("api/users/profile-picture")
+    suspend fun updateProfilePicture(@Body request: UpdateProfilePictureRequest): UserResponse
+    
+    @DELETE("api/users/profile-picture")
+    suspend fun deleteProfilePicture(): UserResponse
+    
     // ============================================
     // Conversation Endpoints
     // ============================================
@@ -137,6 +147,16 @@ data class UploadUrlRequest(
     val conversationId: String
 )
 
+data class ProfilePictureUploadRequest(
+    val fileName: String,
+    val contentType: String,
+    val fileSize: Long
+)
+
+data class UpdateProfilePictureRequest(
+    val key: String
+)
+
 data class RegisterDeviceRequest(
     val token: String,
     val platform: String = "android"
@@ -179,6 +199,12 @@ data class UploadUrlResponse(
 data class DownloadUrlResponse(
     val downloadUrl: String,
     val expiresIn: Int? = null
+)
+
+data class ProfilePictureUploadResponse(
+    val uploadUrl: String,
+    val key: String,
+    val expiresIn: Int
 )
 
 

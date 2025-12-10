@@ -223,12 +223,12 @@ class AuthRepository @Inject constructor(
         return try {
             val response = apiService.updateCountry(UpdateCountryRequest(country))
             tokenManager.saveUser(response.user)
-            
+
             val currentState = _authState.value
             if (currentState is AuthState.Authenticated) {
                 _authState.value = AuthState.Authenticated(response.user, currentState.needsSetup)
             }
-            
+
             Result.success(response.user)
         } catch (e: Exception) {
             Log.e(TAG, "❌ Update country failed: ${e.message}")
@@ -236,6 +236,20 @@ class AuthRepository @Inject constructor(
         }
     }
     
+    /**
+     * Update user data locally (used after profile picture update)
+     */
+    suspend fun updateUserLocally(user: User) {
+        tokenManager.saveUser(user)
+        
+        val currentState = _authState.value
+        if (currentState is AuthState.Authenticated) {
+            _authState.value = AuthState.Authenticated(user, currentState.needsSetup)
+        }
+        
+        Log.d(TAG, "✅ User updated locally: ${user.username}")
+    }
+
     suspend fun completeSetup() {
         val currentState = _authState.value
         if (currentState is AuthState.Authenticated) {

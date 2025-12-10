@@ -372,6 +372,127 @@ Authorization: Bearer <accessToken>
 
 ---
 
+### POST /api/users/profile-picture/upload-url
+
+Get a presigned URL to upload a profile picture.
+
+**Headers:**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request:**
+```json
+{
+  "contentType": "image/jpeg",
+  "fileSize": 512000
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| contentType | string | Yes | MIME type (image/jpeg, image/png, image/webp) |
+| fileSize | number | Yes | File size in bytes (max 5MB) |
+
+**Response (200 OK):**
+```json
+{
+  "uploadUrl": "https://lingualink-attachments-xxx.s3.us-east-1.amazonaws.com/profiles/user_abc123/uuid.jpg?...",
+  "key": "profiles/user_abc123/uuid.jpg",
+  "expiresIn": 300
+}
+```
+
+**Upload Flow:**
+1. Call this endpoint to get presigned URL
+2. Upload image directly to S3 using HTTP PUT with the presigned URL
+3. Call `PUT /api/users/profile-picture` with the returned `key`
+
+**Errors:**
+- `400` - Missing required fields
+- `400` - Invalid file type (allowed: JPEG, PNG, WebP)
+- `400` - File too large (max 5MB)
+- `401` - Unauthorized
+
+---
+
+### PUT /api/users/profile-picture
+
+Update user's profile picture after successful upload to S3.
+
+**Headers:**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request:**
+```json
+{
+  "key": "profiles/user_abc123/uuid.jpg"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| key | string | Yes | S3 key from upload-url response |
+
+**Response (200 OK):**
+```json
+{
+  "user": {
+    "id": "user_abc123",
+    "email": "user@example.com",
+    "username": "johndoe",
+    "preferredLanguage": "en",
+    "preferredCountry": "US",
+    "profilePicture": "https://lingualink-attachments-xxx.s3.us-east-1.amazonaws.com/profiles/user_abc123/uuid.jpg",
+    "createdAt": "2024-12-08T00:00:00.000Z"
+  },
+  "profilePicture": "https://lingualink-attachments-xxx.s3.us-east-1.amazonaws.com/profiles/user_abc123/uuid.jpg"
+}
+```
+
+**Notes:**
+- Old profile picture is automatically deleted from S3
+- Profile picture URL is permanent (no expiration)
+
+**Errors:**
+- `400` - Missing key
+- `401` - Unauthorized
+- `403` - Invalid profile picture key (must belong to user)
+
+---
+
+### DELETE /api/users/profile-picture
+
+Delete user's profile picture.
+
+**Headers:**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Response (200 OK):**
+```json
+{
+  "user": {
+    "id": "user_abc123",
+    "email": "user@example.com",
+    "username": "johndoe",
+    "preferredLanguage": "en",
+    "preferredCountry": "US",
+    "profilePicture": null,
+    "createdAt": "2024-12-08T00:00:00.000Z"
+  }
+}
+```
+
+**Errors:**
+- `401` - Unauthorized
+- `404` - No profile picture to delete
+
+---
+
 ## Devices (Push Notifications)
 
 ### POST /api/devices/register
@@ -1196,7 +1317,7 @@ interface User {
   username: string;
   preferredLanguage: LanguageCode;
   preferredCountry: string; // 2-letter ISO code
-  avatarUrl: string | null;
+  profilePicture: string | null; // S3 URL for profile picture
   createdAt: string; // ISO 8601
 }
 ```
@@ -1319,6 +1440,9 @@ All errors follow this format:
 | PATCH | `/api/users/me` | Yes | Update profile |
 | PATCH | `/api/users/me/language` | Yes | Update language |
 | PATCH | `/api/users/me/country` | Yes | Update country |
+| POST | `/api/users/profile-picture/upload-url` | Yes | Get presigned upload URL |
+| PUT | `/api/users/profile-picture` | Yes | Update profile picture |
+| DELETE | `/api/users/profile-picture` | Yes | Delete profile picture |
 
 ### Conversation Endpoints
 | Method | Endpoint | Auth | Description |

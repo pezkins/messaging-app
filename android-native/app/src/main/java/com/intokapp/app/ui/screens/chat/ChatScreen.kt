@@ -918,25 +918,29 @@ private fun MessageBubble(
         }
     }
     
+    val hasReactions = !message.reactions.isNullOrEmpty()
+    val isRead = !message.readBy.isNullOrEmpty()
+    
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp)
+            .padding(bottom = if (hasReactions) 22.dp else 0.dp) // Extra space for reactions hanging below (10% overlap)
             .combinedClickable(
                 onClick = {},
                 onLongClick = onLongPress
             ),
-        horizontalArrangement = if (isOwnMessage) Arrangement.End else Arrangement.Start
+        horizontalArrangement = if (isOwnMessage) Arrangement.End else Arrangement.Start,
+        verticalAlignment = Alignment.Top // Avatar aligned to top
     ) {
         if (!isOwnMessage) {
-            // Avatar
+            // Avatar - aligned to top of message
             Box(
                 modifier = Modifier
-                    .padding(end = 8.dp)
+                    .padding(end = 8.dp, top = 18.dp) // top padding to align with bubble (after sender name)
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(Purple500)
-                    .align(Alignment.Bottom),
+                    .background(Purple500),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -962,197 +966,312 @@ private fun MessageBubble(
                 )
             }
             
-            // Bubble
-            Surface(
-                shape = RoundedCornerShape(
-                    topStart = 16.dp,
-                    topEnd = 16.dp,
-                    bottomStart = if (isOwnMessage) 16.dp else 4.dp,
-                    bottomEnd = if (isOwnMessage) 4.dp else 16.dp
-                ),
-                color = if (isOwnMessage) Purple500 else Surface800
-            ) {
-                Column(modifier = Modifier.padding(if (message.type == MessageType.IMAGE || message.type == MessageType.GIF) 4.dp else 12.dp)) {
-                    // Quoted message view (if replying)
-                    message.replyTo?.let { replyTo ->
-                        QuotedMessageView(
-                            replyTo = replyTo,
-                            isOwnMessage = isOwnMessage
+            // Bubble with overlapping reactions
+            Box {
+                // Bubble
+                Surface(
+                    shape = RoundedCornerShape(
+                        topStart = 16.dp,
+                        topEnd = 16.dp,
+                        bottomStart = if (isOwnMessage) 16.dp else 4.dp,
+                        bottomEnd = if (isOwnMessage) 4.dp else 16.dp
+                    ),
+                    color = if (isOwnMessage) Purple500 else Surface800
+                ) {
+                    Column(
+                        modifier = Modifier.padding(
+                            start = if (message.type == MessageType.IMAGE || message.type == MessageType.GIF) 4.dp else 12.dp,
+                            end = if (message.type == MessageType.IMAGE || message.type == MessageType.GIF) 4.dp else 12.dp,
+                            top = if (message.type == MessageType.IMAGE || message.type == MessageType.GIF) 4.dp else 12.dp,
+                            bottom = if (message.type == MessageType.IMAGE || message.type == MessageType.GIF) 4.dp else 8.dp
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    
-                    // Content based on message type
-                    when (message.type) {
-                        MessageType.IMAGE -> {
-                            // Image message
-                            val imageUrl = attachmentUrl ?: message.attachment?.url ?: message.originalContent
-                            AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(imageUrl)
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = "Image",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(max = 200.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .clickable { onImageClick(imageUrl) },
-                                contentScale = ContentScale.Crop
+                    ) {
+                        // Quoted message view (if replying)
+                        message.replyTo?.let { replyTo ->
+                            QuotedMessageView(
+                                replyTo = replyTo,
+                                isOwnMessage = isOwnMessage
                             )
+                            Spacer(modifier = Modifier.height(8.dp))
                         }
                         
-                        MessageType.GIF -> {
-                            // GIF message
-                            val gifUrl = attachmentUrl ?: message.attachment?.url ?: message.originalContent
-                            AsyncImage(
-                                model = ImageRequest.Builder(context)
-                                    .data(gifUrl)
-                                    .crossfade(true)
-                                    .build(),
-                                contentDescription = "GIF",
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .heightIn(max = 200.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                                    .clickable { onImageClick(gifUrl) },
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                        
-                        MessageType.FILE -> {
-                            // Document message
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(8.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.Description,
-                                    contentDescription = "Document",
-                                    tint = if (isOwnMessage) White else Purple500,
-                                    modifier = Modifier.size(40.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
+                        // Content based on message type
+                        when (message.type) {
+                            MessageType.IMAGE -> {
+                                // Image message
+                                val imageUrl = attachmentUrl ?: message.attachment?.url ?: message.originalContent
+                                Box {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(context)
+                                            .data(imageUrl)
+                                            .crossfade(true)
+                                            .build(),
+                                        contentDescription = "Image",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .heightIn(max = 200.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .clickable { onImageClick(imageUrl) },
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    // Timestamp overlay for images
+                                    Row(
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .padding(6.dp)
+                                            .background(
+                                                Color.Black.copy(alpha = 0.5f),
+                                                RoundedCornerShape(8.dp)
+                                            )
+                                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                    ) {
+                                        Text(
+                                            text = formatTime(message.createdAt),
+                                            fontSize = 11.sp,
+                                            color = White.copy(alpha = 0.9f)
+                                        )
+                                        if (isOwnMessage) {
+                                            Icon(
+                                                imageVector = when {
+                                                    message.status == MessageStatus.SENDING -> Icons.Default.Schedule
+                                                    message.status == MessageStatus.FAILED -> Icons.Default.Error
+                                                    isRead || message.status == MessageStatus.SEEN -> Icons.Default.DoneAll
+                                                    message.status == MessageStatus.DELIVERED -> Icons.Default.DoneAll
+                                                    else -> Icons.Default.Check
+                                                },
+                                                contentDescription = null,
+                                                modifier = Modifier.size(12.dp),
+                                                tint = if (isRead || message.status == MessageStatus.SEEN) Purple300 else White.copy(alpha = 0.9f)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            MessageType.GIF -> {
+                                // GIF message
+                                val gifUrl = attachmentUrl ?: message.attachment?.url ?: message.originalContent
+                                Box {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(context)
+                                            .data(gifUrl)
+                                            .crossfade(true)
+                                            .build(),
+                                        contentDescription = "GIF",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .heightIn(max = 200.dp)
+                                            .clip(RoundedCornerShape(12.dp))
+                                            .clickable { onImageClick(gifUrl) },
+                                        contentScale = ContentScale.Crop
+                                    )
+                                    // Timestamp overlay for GIFs
+                                    Row(
+                                        modifier = Modifier
+                                            .align(Alignment.BottomEnd)
+                                            .padding(6.dp)
+                                            .background(
+                                                Color.Black.copy(alpha = 0.5f),
+                                                RoundedCornerShape(8.dp)
+                                            )
+                                            .padding(horizontal = 6.dp, vertical = 2.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                    ) {
+                                        Text(
+                                            text = formatTime(message.createdAt),
+                                            fontSize = 11.sp,
+                                            color = White.copy(alpha = 0.9f)
+                                        )
+                                        if (isOwnMessage) {
+                                            Icon(
+                                                imageVector = when {
+                                                    message.status == MessageStatus.SENDING -> Icons.Default.Schedule
+                                                    message.status == MessageStatus.FAILED -> Icons.Default.Error
+                                                    isRead || message.status == MessageStatus.SEEN -> Icons.Default.DoneAll
+                                                    message.status == MessageStatus.DELIVERED -> Icons.Default.DoneAll
+                                                    else -> Icons.Default.Check
+                                                },
+                                                contentDescription = null,
+                                                modifier = Modifier.size(12.dp),
+                                                tint = if (isRead || message.status == MessageStatus.SEEN) Purple300 else White.copy(alpha = 0.9f)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            MessageType.FILE -> {
+                                // Document message
+                                Column {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Description,
+                                            contentDescription = "Document",
+                                            tint = if (isOwnMessage) White else Purple500,
+                                            modifier = Modifier.size(40.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = message.attachment?.fileName ?: message.originalContent,
+                                                color = White,
+                                                fontWeight = FontWeight.Medium,
+                                                maxLines = 2,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                            message.attachment?.fileSize?.let { size ->
+                                                Text(
+                                                    text = formatFileSize(size),
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    color = if (isOwnMessage) White.copy(alpha = 0.7f) else Surface400
+                                                )
+                                            }
+                                        }
+                                    }
+                                    // Timestamp for documents
+                                    Row(
+                                        modifier = Modifier
+                                            .align(Alignment.End)
+                                            .padding(top = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                    ) {
+                                        Text(
+                                            text = formatTime(message.createdAt),
+                                            fontSize = 11.sp,
+                                            color = if (isOwnMessage) White.copy(alpha = 0.7f) else Surface500
+                                        )
+                                        if (isOwnMessage) {
+                                            Icon(
+                                                imageVector = when {
+                                                    message.status == MessageStatus.SENDING -> Icons.Default.Schedule
+                                                    message.status == MessageStatus.FAILED -> Icons.Default.Error
+                                                    isRead || message.status == MessageStatus.SEEN -> Icons.Default.DoneAll
+                                                    message.status == MessageStatus.DELIVERED -> Icons.Default.DoneAll
+                                                    else -> Icons.Default.Check
+                                                },
+                                                contentDescription = null,
+                                                modifier = Modifier.size(12.dp),
+                                                tint = when {
+                                                    message.status == MessageStatus.FAILED -> MaterialTheme.colorScheme.error
+                                                    isRead || message.status == MessageStatus.SEEN -> Purple300
+                                                    else -> White.copy(alpha = 0.7f)
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            else -> {
+                                // Text message (default)
                                 Column {
                                     Text(
-                                        text = message.attachment?.fileName ?: message.originalContent,
-                                        color = White,
-                                        fontWeight = FontWeight.Medium,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis
+                                        text = if (showOriginal) 
+                                            message.originalContent 
+                                        else 
+                                            message.translatedContent ?: message.originalContent,
+                                        color = White
                                     )
-                                    message.attachment?.fileSize?.let { size ->
+                                    
+                                    // Translation toggle - only show if there's a translation available
+                                    if (message.translatedContent != null && message.translatedContent != message.originalContent) {
+                                        TextButton(
+                                            onClick = { showOriginal = !showOriginal },
+                                            contentPadding = PaddingValues(0.dp),
+                                            modifier = Modifier.padding(top = 2.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Public,
+                                                null,
+                                                modifier = Modifier.size(12.dp),
+                                                tint = if (isOwnMessage) White.copy(alpha = 0.7f) else Purple500
+                                            )
+                                            Spacer(Modifier.width(4.dp))
+                                            Text(
+                                                text = if (showOriginal) "Translate" else "Original",
+                                                fontSize = 11.sp,
+                                                color = if (isOwnMessage) White.copy(alpha = 0.7f) else Purple500
+                                            )
+                                        }
+                                    }
+                                    
+                                    // Timestamp inside bubble - bottom right
+                                    Row(
+                                        modifier = Modifier
+                                            .align(Alignment.End)
+                                            .padding(top = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(3.dp)
+                                    ) {
                                         Text(
-                                            text = formatFileSize(size),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = if (isOwnMessage) White.copy(alpha = 0.7f) else Surface400
+                                            text = formatTime(message.createdAt),
+                                            fontSize = 11.sp,
+                                            color = if (isOwnMessage) White.copy(alpha = 0.7f) else Surface500
                                         )
+                                        if (isOwnMessage) {
+                                            Icon(
+                                                imageVector = when {
+                                                    message.status == MessageStatus.SENDING -> Icons.Default.Schedule
+                                                    message.status == MessageStatus.FAILED -> Icons.Default.Error
+                                                    isRead || message.status == MessageStatus.SEEN -> Icons.Default.DoneAll
+                                                    message.status == MessageStatus.DELIVERED -> Icons.Default.DoneAll
+                                                    else -> Icons.Default.Check
+                                                },
+                                                contentDescription = null,
+                                                modifier = Modifier.size(12.dp),
+                                                tint = when {
+                                                    message.status == MessageStatus.FAILED -> MaterialTheme.colorScheme.error
+                                                    isRead || message.status == MessageStatus.SEEN -> Purple300
+                                                    else -> White.copy(alpha = 0.7f)
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
-                        
-                        else -> {
-                            // Text message (default)
-                            Text(
-                                text = if (showOriginal) 
-                                    message.originalContent 
-                                else 
-                                    message.translatedContent ?: message.originalContent,
-                                color = White
-                            )
-                            
-                            // Translation toggle - only show if there's a translation available
-                            if (message.translatedContent != null && message.translatedContent != message.originalContent) {
-                                TextButton(
-                                    onClick = { showOriginal = !showOriginal },
-                                    contentPadding = PaddingValues(0.dp),
-                                    modifier = Modifier.padding(top = 4.dp)
-                                ) {
-                                    Icon(
-                                        Icons.Default.Public,
-                                        null,
-                                        modifier = Modifier.size(14.dp),
-                                        tint = if (isOwnMessage) White.copy(alpha = 0.7f) else Purple500
-                                    )
-                                    Spacer(Modifier.width(4.dp))
-                                    Text(
-                                        text = if (showOriginal) "Translate" else "Original",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = if (isOwnMessage) White.copy(alpha = 0.7f) else Purple500
-                                    )
-                                }
-                            }
-                        }
                     }
                 }
-            }
-            
-            // Status and Time
-            Row(
-                modifier = Modifier.padding(top = 2.dp, start = 4.dp, end = 4.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = formatTime(message.createdAt),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = Surface500
-                )
                 
-                if (isOwnMessage) {
-                    Spacer(modifier = Modifier.width(4.dp))
-                    // Determine read status - prefer readBy list over status field
-                    val isRead = !message.readBy.isNullOrEmpty()
-                    Icon(
-                        imageVector = when {
-                            message.status == MessageStatus.SENDING -> Icons.Default.Schedule
-                            message.status == MessageStatus.FAILED -> Icons.Default.Error
-                            isRead || message.status == MessageStatus.SEEN -> Icons.Default.DoneAll
-                            message.status == MessageStatus.DELIVERED -> Icons.Default.DoneAll
-                            else -> Icons.Default.Check
-                        },
-                        contentDescription = when {
-                            message.status == MessageStatus.SENDING -> "Sending"
-                            message.status == MessageStatus.FAILED -> "Failed"
-                            isRead || message.status == MessageStatus.SEEN -> "Read"
-                            message.status == MessageStatus.DELIVERED -> "Delivered"
-                            else -> "Sent"
-                        },
-                        modifier = Modifier.size(14.dp),
-                        tint = when {
-                            message.status == MessageStatus.FAILED -> MaterialTheme.colorScheme.error
-                            isRead || message.status == MessageStatus.SEEN -> Purple500
-                            else -> Surface500
-                        }
-                    )
-                }
-            }
-            
-            // Reactions
-            if (!message.reactions.isNullOrEmpty()) {
-                LazyRow(
-                    modifier = Modifier.padding(top = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    items(message.reactions.entries.toList()) { (emoji, users) ->
-                        if (users.isNotEmpty()) {
-                            val isMyReaction = users.contains(currentUserId)
-                            Surface(
-                                shape = RoundedCornerShape(12.dp),
-                                color = if (isMyReaction) Purple500.copy(alpha = 0.3f) else Surface800,
-                                modifier = Modifier.clickable { onReactionClick(emoji) }
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                // Reactions - only top ~10% overlaps, rest hangs below bubble
+                if (hasReactions) {
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .offset(x = 8.dp, y = 20.dp) // Increased offset so only top 10% overlaps
+                            .background(Surface800, RoundedCornerShape(12.dp))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        message.reactions?.entries?.forEach { (emoji, users) ->
+                            if (users.isNotEmpty()) {
+                                val isMyReaction = users.contains(currentUserId)
+                                Surface(
+                                    shape = RoundedCornerShape(10.dp),
+                                    color = if (isMyReaction) Purple500.copy(alpha = 0.3f) else Color.Transparent,
+                                    modifier = Modifier.clickable { onReactionClick(emoji) }
                                 ) {
-                                    Text(emoji)
-                                    Spacer(Modifier.width(2.dp))
-                                    Text(
-                                        "${users.size}",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = if (isMyReaction) Purple500 else Surface400
-                                    )
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(emoji, fontSize = 14.sp)
+                                        if (users.size > 1) {
+                                            Spacer(Modifier.width(2.dp))
+                                            Text(
+                                                "${users.size}",
+                                                style = MaterialTheme.typography.labelSmall,
+                                                color = if (isMyReaction) Purple500 else Surface400
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }

@@ -61,6 +61,12 @@ struct UploadUrlResponse: Codable {
     let expiresIn: Int
 }
 
+struct ProfilePictureUploadResponse: Codable {
+    let uploadUrl: String
+    let key: String
+    let expiresIn: Int
+}
+
 struct DownloadUrlResponse: Codable {
     let downloadUrl: String
     let expiresIn: Int?
@@ -259,6 +265,14 @@ class APIService {
         return try await request(endpoint: "/api/users/me", method: "PATCH", body: body)
     }
     
+    func updateAvatar(avatarUrl: String?) async throws -> UserResponse {
+        struct UpdateRequest: Codable {
+            let avatarUrl: String?
+        }
+        let body = try JSONEncoder().encode(UpdateRequest(avatarUrl: avatarUrl))
+        return try await request(endpoint: "/api/users/me", method: "PATCH", body: body)
+    }
+
     func updateLanguage(preferredLanguage: String) async throws -> UserResponse {
         struct UpdateRequest: Codable {
             let preferredLanguage: String
@@ -317,6 +331,28 @@ class APIService {
         }
         let body = try JSONEncoder().encode(UploadRequest(fileName: fileName, contentType: contentType, fileSize: fileSize, conversationId: conversationId))
         return try await request(endpoint: "/api/attachments/upload-url", method: "POST", body: body)
+    }
+    
+    // MARK: - Profile Picture Endpoints
+    func getProfileUploadUrl(fileName: String, contentType: String, fileSize: Int) async throws -> ProfilePictureUploadResponse {
+        struct UploadRequest: Codable {
+            let contentType: String
+            let fileSize: Int
+        }
+        let body = try JSONEncoder().encode(UploadRequest(contentType: contentType, fileSize: fileSize))
+        return try await request(endpoint: "/api/users/profile-picture/upload-url", method: "POST", body: body)
+    }
+    
+    func updateProfilePicture(key: String) async throws -> UserResponse {
+        struct UpdateRequest: Codable {
+            let key: String
+        }
+        let body = try JSONEncoder().encode(UpdateRequest(key: key))
+        return try await request(endpoint: "/api/users/profile-picture", method: "PUT", body: body)
+    }
+    
+    func deleteProfilePicture() async throws -> UserResponse {
+        return try await request(endpoint: "/api/users/profile-picture", method: "DELETE")
     }
     
     func getDownloadUrl(key: String) async throws -> DownloadUrlResponse {

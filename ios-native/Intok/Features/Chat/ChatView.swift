@@ -508,12 +508,19 @@ struct MessageBubble: View {
     @State private var downloadedImageURL: URL?
     @StateObject private var frequentManager = FrequentEmojiManager.shared
     
+    private var hasReactions: Bool {
+        if let reactions = message.reactions, !reactions.isEmpty {
+            return true
+        }
+        return false
+    }
+    
     var body: some View {
-        HStack(alignment: .bottom, spacing: 8) {
+        HStack(alignment: .top, spacing: 8) {
             if isOwnMessage {
                 Spacer(minLength: 60)
             } else {
-                // Avatar
+                // Avatar - aligned to top
                 Circle()
                     .fill(Color(hex: "8B5CF6"))
                     .frame(width: 28, height: 28)
@@ -532,60 +539,52 @@ struct MessageBubble: View {
                         .foregroundColor(.gray)
                 }
                 
-                // Message Content with long-press for reactions
-                ZStack(alignment: isOwnMessage ? .topLeading : .topTrailing) {
-                    messageContent
-                        .onLongPressGesture {
-                            withAnimation(.spring(response: 0.3)) {
-                                showReactionBar = true
-                            }
-                        }
-                    
-                    // Quick Reaction Bar Popup
-                    if showReactionBar {
-                        QuickReactionBar(
-                            onEmojiSelected: { emoji in
-                                onReaction(emoji)
-                                withAnimation {
-                                    showReactionBar = false
+                // Message Content with reactions overlapping (bottom-left)
+                ZStack(alignment: .bottomLeading) {
+                    // Inner ZStack for reaction bar popup
+                    ZStack(alignment: isOwnMessage ? .topLeading : .topTrailing) {
+                        messageContent
+                            .onLongPressGesture {
+                                withAnimation(.spring(response: 0.3)) {
+                                    showReactionBar = true
                                 }
-                            },
-                            onShowFullPicker: {
-                                showReactionBar = false
-                                onShowFullEmojiPicker()
-                            },
-                            onReply: {
-                                showReactionBar = false
-                                onReply()
-                            },
-                            onCopy: {
-                                showReactionBar = false
-                                onCopy()
                             }
-                        )
-                        .frame(width: 280)
-                        .offset(y: -120)
-                        .transition(.scale.combined(with: .opacity))
+                        
+                        // Quick Reaction Bar Popup
+                        if showReactionBar {
+                            QuickReactionBar(
+                                onEmojiSelected: { emoji in
+                                    onReaction(emoji)
+                                    withAnimation {
+                                        showReactionBar = false
+                                    }
+                                },
+                                onShowFullPicker: {
+                                    showReactionBar = false
+                                    onShowFullEmojiPicker()
+                                },
+                                onReply: {
+                                    showReactionBar = false
+                                    onReply()
+                                },
+                                onCopy: {
+                                    showReactionBar = false
+                                    onCopy()
+                                }
+                            )
+                            .frame(width: 280)
+                            .offset(y: -120)
+                            .transition(.scale.combined(with: .opacity))
+                        }
                     }
-                }
-                
-                // Status and Time
-                HStack(spacing: 4) {
-                    Text(formatTime(message.createdAt))
-                        .font(.caption2)
-                        .foregroundColor(.gray)
                     
-                    if isOwnMessage {
-                        Image(systemName: statusIcon)
-                            .font(.caption2)
-                            .foregroundColor(statusColor)
+                    // Reactions overlapping bottom edge of bubble (top ~10% overlaps)
+                    if let reactions = message.reactions, !reactions.isEmpty {
+                        reactionsView(reactions)
+                            .offset(x: 4, y: 20)
                     }
                 }
-                
-                // Reactions Display
-                if let reactions = message.reactions, !reactions.isEmpty {
-                    reactionsView(reactions)
-                }
+                .padding(.bottom, hasReactions ? 22 : 0)
             }
             
             if !isOwnMessage {
@@ -629,6 +628,22 @@ struct MessageBubble: View {
             // Text Content
             else {
                 textContent
+            }
+            
+            // Timestamp inside bubble (bottom-right)
+            HStack {
+                Spacer()
+                HStack(spacing: 4) {
+                    Text(formatTime(message.createdAt))
+                        .font(.system(size: 10))
+                        .foregroundColor(isOwnMessage ? .white.opacity(0.7) : .gray)
+                    
+                    if isOwnMessage {
+                        Image(systemName: statusIcon)
+                            .font(.system(size: 10))
+                            .foregroundColor(isOwnMessage ? statusColor.opacity(0.9) : statusColor)
+                    }
+                }
             }
         }
         .padding(12)
@@ -726,27 +741,29 @@ struct MessageBubble: View {
     
     // MARK: - Reactions Display
     func reactionsView(_ reactions: [String: [String]]) -> some View {
-        HStack(spacing: 4) {
+        HStack(spacing: 6) {
             ForEach(Array(reactions.keys.sorted()), id: \.self) { emoji in
                 if let users = reactions[emoji], !users.isEmpty {
                     Button(action: { onReaction(emoji) }) {
                         HStack(spacing: 2) {
                             Text(emoji)
+                                .font(.system(size: 14))
                             if users.count > 1 {
                                 Text("\(users.count)")
                                     .font(.caption2)
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.white.opacity(0.7))
                             }
                         }
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.white.opacity(0.1))
-                        .cornerRadius(12)
                     }
                     .buttonStyle(.plain)
                 }
             }
         }
+        .padding(.horizontal, 10)
+        .padding(.vertical, 6)
+        .background(Color(hex: "1F1F1F"))  // Solid dark background (Surface800)
+        .cornerRadius(14)
+        .shadow(color: .black.opacity(0.2), radius: 4, y: 2)
     }
     
     // MARK: - Helper Functions

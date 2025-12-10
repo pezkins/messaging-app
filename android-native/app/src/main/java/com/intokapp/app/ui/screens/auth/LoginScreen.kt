@@ -3,6 +3,7 @@ package com.intokapp.app.ui.screens.auth
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -20,10 +21,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -33,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.intokapp.app.R
 import com.intokapp.app.data.constants.COUNTRIES
 import com.intokapp.app.data.constants.LANGUAGES
 import com.intokapp.app.ui.theme.*
@@ -116,15 +121,14 @@ private fun InitialLoginContent(
         verticalArrangement = Arrangement.Center
     ) {
         // Logo
-        Surface(
-            modifier = Modifier.size(120.dp),
-            shape = RoundedCornerShape(24.dp),
-            color = Purple500
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Text(text = "🌐", fontSize = 48.sp)
-            }
-        }
+        Image(
+            painter = painterResource(id = R.drawable.app_logo),
+            contentDescription = "Intok Logo",
+            modifier = Modifier
+                .size(120.dp)
+                .clip(RoundedCornerShape(24.dp)),
+            contentScale = ContentScale.Fit
+        )
         
         Spacer(modifier = Modifier.height(24.dp))
         
