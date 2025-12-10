@@ -1,13 +1,13 @@
 {
   "project_info": {
     "project_number": "75949298562",
-    "project_id": "intok-app",
-    "storage_bucket": "intok-app.appspot.com"
+    "project_id": "lingualink-479903",
+    "storage_bucket": "lingualink-479903.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:75949298562:android:placeholder",
+        "mobilesdk_app_id": "1:75949298562:android:c7da66540048378a77f59b",
         "android_client_info": {
           "package_name": "com.intokapp.app"
         }
@@ -16,11 +16,15 @@
         {
           "client_id": "75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2.apps.googleusercontent.com",
           "client_type": 3
+        },
+        {
+          "client_id": "75949298562-t5r741c9ud61cnbsrhc95eghutjo5h4m.apps.googleusercontent.com",
+          "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyAyimkuYQYF_FXVvIi8ND7S_FLRh1xqLYM"
+          "current_key": "AIzaSyBdS1pqm1PGZ_xnlIP9rjqMOFPN_8Lj-uk"
         }
       ],
       "services": {
@@ -29,6 +33,18 @@
             {
               "client_id": "75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "75949298562-t5r741c9ud61cnbsrhc95eghutjo5h4m.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "75949298562-g1bf5a941mad8hmha4css3ci7fef5q5o.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.pezkins.intok",
+                "app_store_id": "6756202317"
+              }
             }
           ]
         }
@@ -37,5 +53,3 @@
   ],
   "configuration_version": "1"
 }
-
-

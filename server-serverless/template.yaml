@@ -76,7 +76,7 @@ Parameters:
     Description: Firebase Service Account JSON (for FCM V1 API)
   FcmProjectId:
     Type: String
-    Default: "lingualink"
+    Default: "lingualink-479903"
     Description: Firebase/Google Cloud Project ID
 Resources:
 

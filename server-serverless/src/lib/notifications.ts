@@ -14,7 +14,7 @@ const APNS_AUTH_KEY = process.env.APNS_AUTH_KEY;
 
 // FCM V1 Configuration (Service Account)
 const FCM_SERVICE_ACCOUNT = process.env.FCM_SERVICE_ACCOUNT; // JSON string
-const FCM_PROJECT_ID = process.env.FCM_PROJECT_ID || 'lingualink';
+const FCM_PROJECT_ID = process.env.FCM_PROJECT_ID || 'lingualink-479903';
 
 // APNs JWT token cache (valid for 1 hour max, we refresh every 50 mins)
 let apnsJwtToken: string | null = null;
@@ -202,12 +202,12 @@ async function sendFCMv1(
   
   // Get project ID from service account if not explicitly set
   let projectId = FCM_PROJECT_ID;
-  if (!projectId || projectId === 'lingualink') {
+  if (!projectId || projectId === 'lingualink-479903') {
     try {
       const serviceAccount = JSON.parse(FCM_SERVICE_ACCOUNT);
-      projectId = serviceAccount.project_id || 'lingualink';
+      projectId = serviceAccount.project_id || 'lingualink-479903';
     } catch {
-      projectId = 'lingualink';
+      projectId = 'lingualink-479903';
     }
   }
 
