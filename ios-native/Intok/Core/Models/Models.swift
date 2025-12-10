@@ -10,6 +10,42 @@ struct User: Codable, Identifiable {
     let avatarUrl: String?
     let createdAt: String
     let updatedAt: String?
+    
+    // Custom decoding to handle both 'avatarUrl' and 'profilePicture' from backend
+    enum CodingKeys: String, CodingKey {
+        case id, email, username, preferredLanguage, preferredCountry
+        case avatarUrl, profilePicture, createdAt, updatedAt
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(String.self, forKey: .id)
+        email = try container.decode(String.self, forKey: .email)
+        username = try container.decode(String.self, forKey: .username)
+        preferredLanguage = try container.decode(String.self, forKey: .preferredLanguage)
+        preferredCountry = try container.decodeIfPresent(String.self, forKey: .preferredCountry)
+        createdAt = try container.decode(String.self, forKey: .createdAt)
+        updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt)
+        
+        // Try avatarUrl first, then profilePicture
+        if let url = try container.decodeIfPresent(String.self, forKey: .avatarUrl) {
+            avatarUrl = url
+        } else {
+            avatarUrl = try container.decodeIfPresent(String.self, forKey: .profilePicture)
+        }
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(email, forKey: .email)
+        try container.encode(username, forKey: .username)
+        try container.encode(preferredLanguage, forKey: .preferredLanguage)
+        try container.encodeIfPresent(preferredCountry, forKey: .preferredCountry)
+        try container.encodeIfPresent(avatarUrl, forKey: .avatarUrl)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encodeIfPresent(updatedAt, forKey: .updatedAt)
+    }
 }
 
 struct UserPublic: Codable, Identifiable {

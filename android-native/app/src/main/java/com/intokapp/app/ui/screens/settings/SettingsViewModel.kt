@@ -119,16 +119,20 @@ class SettingsViewModel @Inject constructor(
     }
     
     fun uploadProfilePicture(imageUri: Uri) {
+        Log.d(TAG, "📷 uploadProfilePicture called with URI: $imageUri")
+        
         viewModelScope.launch {
             _uiState.update { it.copy(isUploadingPhoto = true, uploadProgress = 0f, error = null) }
             
             try {
                 // 1. Read and resize image
+                Log.d(TAG, "📷 Step 1: Resizing image...")
                 val imageData = withContext(Dispatchers.IO) {
                     resizeImage(imageUri)
                 }
                 
                 if (imageData == null) {
+                    Log.e(TAG, "❌ Failed to resize image - imageData is null")
                     _uiState.update { it.copy(
                         isUploadingPhoto = false,
                         error = "Failed to process image"
@@ -136,9 +140,11 @@ class SettingsViewModel @Inject constructor(
                     return@launch
                 }
                 
+                Log.d(TAG, "📷 Image resized successfully, size: ${imageData.size} bytes")
                 _uiState.update { it.copy(uploadProgress = 0.2f) }
                 
                 // 2. Get presigned URL from backend
+                Log.d(TAG, "📷 Step 2: Getting presigned URL from backend...")
                 val fileName = "profile_${System.currentTimeMillis()}.jpg"
                 val contentType = "image/jpeg"
                 
@@ -150,14 +156,17 @@ class SettingsViewModel @Inject constructor(
                     )
                 )
                 
+                Log.d(TAG, "📷 Got presigned URL, key: ${uploadUrlResponse.key}")
                 _uiState.update { it.copy(uploadProgress = 0.4f) }
                 
                 // 3. Upload to S3
+                Log.d(TAG, "📷 Step 3: Uploading to S3...")
                 val uploadSuccess = withContext(Dispatchers.IO) {
                     uploadToS3(uploadUrlResponse.uploadUrl, imageData, contentType)
                 }
                 
                 if (!uploadSuccess) {
+                    Log.e(TAG, "❌ S3 upload failed")
                     _uiState.update { it.copy(
                         isUploadingPhoto = false,
                         error = "Failed to upload image"
@@ -165,14 +174,17 @@ class SettingsViewModel @Inject constructor(
                     return@launch
                 }
                 
+                Log.d(TAG, "📷 S3 upload successful")
                 _uiState.update { it.copy(uploadProgress = 0.8f) }
                 
                 // 4. Update user profile with new image key
+                Log.d(TAG, "📷 Step 4: Updating user profile...")
                 val userResponse = apiService.updateProfilePicture(
                     UpdateProfilePictureRequest(key = uploadUrlResponse.key)
                 )
                 
                 // 5. Update local user state
+                Log.d(TAG, "📷 Step 5: Updating local state...")
                 authRepository.updateUserLocally(userResponse.user)
                 
                 _uiState.update { it.copy(
@@ -183,8 +195,16 @@ class SettingsViewModel @Inject constructor(
                 
                 Log.d(TAG, "✅ Profile picture uploaded successfully")
                 
+            } catch (e: retrofit2.HttpException) {
+                val errorBody = e.response()?.errorBody()?.string()
+                Log.e(TAG, "❌ HTTP error uploading profile picture: ${e.code()} - ${e.message()}, body: $errorBody", e)
+                _uiState.update { it.copy(
+                    isUploadingPhoto = false,
+                    error = "Failed to upload: HTTP ${e.code()}"
+                ) }
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Failed to upload profile picture: ${e.message}", e)
+                e.printStackTrace()
                 _uiState.update { it.copy(
                     isUploadingPhoto = false,
                     error = "Failed to upload profile picture: ${e.message}"
@@ -277,19 +297,31 @@ class SettingsViewModel @Inject constructor(
     
     private fun uploadToS3(uploadUrl: String, data: ByteArray, contentType: String): Boolean {
         return try {
-            val requestBody = data.toRequestBody(contentType.toMediaType())
+            // Use octet-stream to avoid content-type mismatch issues with presigned URL
+            val requestBody = data.toRequestBody("application/octet-stream".toMediaType())
             
+            // Create a plain OkHttpClient WITHOUT auth interceptor for S3 uploads
+            // The presigned URL already contains auth, adding Authorization header causes conflict
+            val plainClient = OkHttpClient.Builder()
+                .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .writeTimeout(60, java.util.concurrent.TimeUnit.SECONDS)
+                .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                .build()
+            
+            // Only include minimal headers - the presigned URL handles auth
             val request = Request.Builder()
                 .url(uploadUrl)
                 .put(requestBody)
-                .header("Content-Type", contentType)
                 .build()
             
-            val response = okHttpClient.newCall(request).execute()
+            val response = plainClient.newCall(request).execute()
             val success = response.isSuccessful
             
             if (!success) {
-                Log.e(TAG, "S3 upload failed: ${response.code} - ${response.message}")
+                val errorBody = response.body?.string()
+                Log.e(TAG, "S3 upload failed: ${response.code} - ${response.message}, body: $errorBody")
+            } else {
+                Log.d(TAG, "📷 S3 upload response: ${response.code}")
             }
             
             response.close()

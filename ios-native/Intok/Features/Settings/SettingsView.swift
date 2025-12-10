@@ -122,7 +122,7 @@ struct SettingsView: View {
             // Avatar - Tappable with camera overlay
             Button(action: { showingImageSourcePicker = true }) {
                 ZStack(alignment: .bottomTrailing) {
-                    // Avatar circle
+                    // Avatar circle - use id to force refresh when URL changes
                     if let avatarUrl = authManager.currentUser?.avatarUrl,
                        let url = URL(string: avatarUrl) {
                         AsyncImage(url: url) { phase in
@@ -142,6 +142,7 @@ struct SettingsView: View {
                         }
                         .frame(width: 100, height: 100)
                         .clipShape(Circle())
+                        .id(avatarUrl) // Force refresh when URL changes
                     } else {
                         avatarPlaceholder
                     }
@@ -384,48 +385,72 @@ struct SettingsView: View {
     
     // MARK: - Profile Photo Actions
     func handlePhotoSelection(_ item: PhotosPickerItem?) async {
-        guard let item = item,
-              let data = try? await item.loadTransferable(type: Data.self),
-              let image = UIImage(data: data) else {
+        NSLog("📸 handlePhotoSelection: Called with item: \(item != nil)")
+        
+        guard let item = item else {
+            NSLog("📸 handlePhotoSelection: No item provided")
             return
         }
         
+        guard let data = try? await item.loadTransferable(type: Data.self) else {
+            NSLog("📸 handlePhotoSelection: Failed to load data from item")
+            return
+        }
+        
+        guard let image = UIImage(data: data) else {
+            NSLog("📸 handlePhotoSelection: Failed to create UIImage from data")
+            return
+        }
+        
+        NSLog("📸 handlePhotoSelection: Image loaded successfully, size: \(image.size)")
         selectedPhotoItem = nil
         await uploadProfileImage(image)
     }
     
     func uploadProfileImage(_ image: UIImage) async {
+        NSLog("📸 uploadProfileImage: Starting...")
+        
         // Resize image to 512x512
         let resizedImage = resizeImage(image, targetSize: CGSize(width: 512, height: 512))
         
         guard let imageData = resizedImage.jpegData(compressionQuality: 0.8) else {
+            NSLog("📸 uploadProfileImage: Failed to create JPEG data")
             photoError = "Failed to process image"
             showPhotoError = true
             return
         }
         
+        NSLog("📸 uploadProfileImage: Image data size: \(imageData.count) bytes")
         isUploadingPhoto = true
         
         do {
             // Get presigned upload URL from profile picture endpoint
+            NSLog("📸 uploadProfileImage: Getting upload URL...")
             let uploadResponse = try await APIService.shared.getProfileUploadUrl(
                 fileName: "profile-\(UUID().uuidString).jpg",
                 contentType: "image/jpeg",
                 fileSize: imageData.count
             )
+            NSLog("📸 uploadProfileImage: Got upload URL, key: \(uploadResponse.key)")
             
             // Upload to S3
+            NSLog("📸 uploadProfileImage: Uploading to S3...")
             try await APIService.shared.uploadFile(
                 uploadUrl: uploadResponse.uploadUrl,
                 data: imageData,
                 contentType: "image/jpeg"
             )
+            NSLog("📸 uploadProfileImage: S3 upload complete")
             
             // Update user profile with the S3 key (backend constructs the full URL)
+            NSLog("📸 uploadProfileImage: Updating profile picture...")
             let response = try await APIService.shared.updateProfilePicture(key: uploadResponse.key)
+            NSLog("📸 uploadProfileImage: Profile updated, avatarUrl: \(response.user.avatarUrl ?? "nil")")
             await authManager.updateUser(response.user)
+            NSLog("📸 uploadProfileImage: Success!")
             
         } catch {
+            NSLog("📸 uploadProfileImage: Error - \(error)")
             photoError = "Failed to upload photo. Please try again."
             showPhotoError = true
         }

@@ -205,9 +205,23 @@ Resources:
             ExpirationInDays: 365
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
-        BlockPublicPolicy: true
+        BlockPublicPolicy: false  # Allow bucket policy for profiles/ prefix
         IgnorePublicAcls: true
-        RestrictPublicBuckets: true
+        RestrictPublicBuckets: false  # Allow bucket policy to grant public access
+
+  # Bucket policy for public read access to profile pictures
+  AttachmentsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref AttachmentsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: PublicReadProfilePictures
+            Effect: Allow
+            Principal: '*'
+            Action: s3:GetObject
+            Resource: !Sub '${AttachmentsBucket.Arn}/profiles/*'
 
   # ============== HTTP API ==============
   HttpApi:

@@ -301,6 +301,7 @@ class AuthManager: ObservableObject {
     }
     
     func updateUser(_ user: User) async {
+        NSLog("👤 AuthManager.updateUser called - avatarUrl: %@", user.avatarUrl ?? "nil")
         currentUser = user
         saveAuth()
     }
@@ -325,6 +326,7 @@ class AuthManager: ObservableObject {
         
         if let userData = userDefaults.data(forKey: userKey),
            let user = try? JSONDecoder().decode(User.self, from: userData) {
+            NSLog("👤 loadStoredAuth - loaded user with avatarUrl: %@", user.avatarUrl ?? "nil")
             currentUser = user
             isAuthenticated = true
             logger.info("✅ Restored auth for: \(user.email, privacy: .public)")
@@ -341,6 +343,7 @@ class AuthManager: ObservableObject {
         do {
             // Try to fetch current user to validate token
             let response = try await APIService.shared.getMe()
+            NSLog("👤 validateAndRefreshTokenIfNeeded - got user with avatarUrl: %@", response.user.avatarUrl ?? "nil")
             currentUser = response.user
             saveAuth()
             logger.info("✅ Token validated successfully")
