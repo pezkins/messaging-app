@@ -247,7 +247,7 @@ async function sendFCMv1(
     throw new Error(`FCM V1 error: ${response.status} - ${errorBody}`);
   }
 
-  const result = await response.json();
+  const result = await response.json() as { name: string };
   console.log(`✅ FCM V1 notification sent:`, result.name);
 }
 
