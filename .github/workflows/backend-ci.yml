@@ -183,7 +183,8 @@ jobs:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
           APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          FCM_SERVER_KEY: ${{ secrets.FCM_SERVER_KEY }}
+          FCM_SERVICE_ACCOUNT: ${{ secrets.FCM_SERVICE_ACCOUNT }}
+          FCM_PROJECT_ID: ${{ secrets.FCM_PROJECT_ID }}
         run: |
           # Validate required secrets
           if [ -z "${JWT_SECRET}" ]; then
@@ -220,9 +221,14 @@ jobs:
             PARAMS="${PARAMS} AppStoreConnectApiKey=${APP_STORE_CONNECT_API_KEY}"
           fi
           
-          # Push notification params (Android FCM)
-          if [ -n "${FCM_SERVER_KEY}" ]; then
-            PARAMS="${PARAMS} FcmServerKey=${FCM_SERVER_KEY}"
+          # Push notification params (Android FCM V1)
+          if [ -n "${FCM_SERVICE_ACCOUNT}" ]; then
+            # Base64 encode the JSON to avoid escaping issues
+            PARAMS="${PARAMS} FcmServiceAccount=${FCM_SERVICE_ACCOUNT}"
+          fi
+          
+          if [ -n "${FCM_PROJECT_ID}" ]; then
+            PARAMS="${PARAMS} FcmProjectId=${FCM_PROJECT_ID}"
           fi
           
           sam deploy \

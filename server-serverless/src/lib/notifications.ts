@@ -1,19 +1,27 @@
 /**
  * Push Notification Service
- * Supports iOS (APNs) and Android (FCM)
+ * Supports iOS (APNs) and Android (FCM V1 API)
  */
 
 import { dynamodb, Tables, QueryCommand } from './dynamo';
 import * as jwt from 'jsonwebtoken';
+import { GoogleAuth } from 'google-auth-library';
 
-const FCM_SERVER_KEY = process.env.FCM_SERVER_KEY;
+// APNs Configuration
 const APNS_KEY_ID = process.env.APNS_KEY_ID;
 const APNS_TEAM_ID = process.env.APNS_TEAM_ID;
 const APNS_AUTH_KEY = process.env.APNS_AUTH_KEY;
 
+// FCM V1 Configuration (Service Account)
+const FCM_SERVICE_ACCOUNT = process.env.FCM_SERVICE_ACCOUNT; // JSON string
+const FCM_PROJECT_ID = process.env.FCM_PROJECT_ID || 'lingualink';
+
 // APNs JWT token cache (valid for 1 hour max, we refresh every 50 mins)
 let apnsJwtToken: string | null = null;
 let apnsJwtExpiry: number = 0;
+
+// FCM GoogleAuth client (handles OAuth2 token caching automatically)
+let fcmAuthClient: GoogleAuth | null = null;
 
 interface NotificationPayload {
   userId: string;
@@ -53,7 +61,7 @@ export async function sendPushNotification(payload: NotificationPayload): Promis
       if (device.platform === 'ios') {
         await sendAPNS(device.token, title, body, data);
       } else if (device.platform === 'android') {
-        await sendFCM(device.token, title, body, data);
+        await sendFCMv1(device.token, title, body, data);
       }
     } catch (error) {
       console.error(`Failed to send to ${device.platform} device:`, error);
@@ -149,50 +157,98 @@ async function sendAPNS(
 }
 
 /**
- * Send notification via Firebase Cloud Messaging
+ * Get FCM OAuth2 access token using Service Account
  */
-async function sendFCM(
+async function getFCMAccessToken(): Promise<string> {
+  if (!FCM_SERVICE_ACCOUNT) {
+    throw new Error('FCM Service Account not configured');
+  }
+
+  // Initialize auth client if needed
+  if (!fcmAuthClient) {
+    const serviceAccount = JSON.parse(FCM_SERVICE_ACCOUNT);
+    fcmAuthClient = new GoogleAuth({
+      credentials: serviceAccount,
+      scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
+    });
+  }
+
+  const client = await fcmAuthClient.getClient();
+  const accessToken = await client.getAccessToken();
+  
+  if (!accessToken.token) {
+    throw new Error('Failed to get FCM access token');
+  }
+  
+  return accessToken.token;
+}
+
+/**
+ * Send notification via Firebase Cloud Messaging V1 API
+ */
+async function sendFCMv1(
   deviceToken: string, 
   title: string, 
   body: string, 
   data?: Record<string, string>
 ): Promise<void> {
   // Skip if FCM is not configured
-  if (!FCM_SERVER_KEY) {
+  if (!FCM_SERVICE_ACCOUNT) {
     console.log(`📱 FCM not configured, skipping Android push to ${deviceToken.substring(0, 10)}...`);
     return;
   }
 
-  console.log(`📱 Sending FCM to ${deviceToken.substring(0, 10)}...`);
+  console.log(`📱 Sending FCM V1 to ${deviceToken.substring(0, 10)}...`);
   
-  const response = await fetch('https://fcm.googleapis.com/fcm/send', {
+  // Get project ID from service account if not explicitly set
+  let projectId = FCM_PROJECT_ID;
+  if (!projectId || projectId === 'lingualink') {
+    try {
+      const serviceAccount = JSON.parse(FCM_SERVICE_ACCOUNT);
+      projectId = serviceAccount.project_id || 'lingualink';
+    } catch {
+      projectId = 'lingualink';
+    }
+  }
+
+  const accessToken = await getFCMAccessToken();
+  
+  // FCM V1 API endpoint
+  const url = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
+  
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `key=${FCM_SERVER_KEY}`
+      'Authorization': `Bearer ${accessToken}`
     },
     body: JSON.stringify({
-      to: deviceToken,
-      notification: {
-        title,
-        body,
-        sound: 'default'
-      },
-      data: {
-        ...data,
-        click_action: 'FLUTTER_NOTIFICATION_CLICK'
-      },
-      priority: 'high'
+      message: {
+        token: deviceToken,
+        notification: {
+          title,
+          body,
+        },
+        android: {
+          priority: 'high',
+          notification: {
+            sound: 'default',
+            click_action: 'OPEN_ACTIVITY',
+          },
+        },
+        data: data || {},
+      }
     })
   });
 
   if (!response.ok) {
     const errorBody = await response.text();
-    throw new Error(`FCM error: ${response.status} - ${errorBody}`);
+    console.error(`❌ FCM V1 error: ${response.status} - ${errorBody}`);
+    throw new Error(`FCM V1 error: ${response.status} - ${errorBody}`);
   }
 
   const result = await response.json();
-  console.log(`📱 FCM response:`, result);
+  console.log(`✅ FCM V1 notification sent:`, result.name);
 }
 
 /**

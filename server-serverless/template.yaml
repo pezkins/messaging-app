@@ -23,7 +23,8 @@ Globals:
         APNS_KEY_ID: !Ref AppStoreConnectApiKeyId
         APNS_TEAM_ID: !Ref AppleTeamId
         APNS_AUTH_KEY: !Ref AppStoreConnectApiKey
-        FCM_SERVER_KEY: !Ref FcmServerKey
+        FCM_SERVICE_ACCOUNT: !Ref FcmServiceAccount
+        FCM_PROJECT_ID: !Ref FcmProjectId
 
 Parameters:
   JwtSecret:
@@ -68,11 +69,15 @@ Parameters:
     NoEcho: true
     Default: ""
     Description: App Store Connect API Key (.p8 content, also used for APNs)
-  FcmServerKey:
+  FcmServiceAccount:
     Type: String
     NoEcho: true
     Default: ""
-    Description: Firebase Cloud Messaging Server Key
+    Description: Firebase Service Account JSON (for FCM V1 API)
+  FcmProjectId:
+    Type: String
+    Default: "lingualink"
+    Description: Firebase/Google Cloud Project ID
 Resources:
 
   # ============== DynamoDB Tables ==============
