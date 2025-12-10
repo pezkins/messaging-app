@@ -179,6 +179,11 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
           JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          # Push notification credentials (reusing existing Apple secrets)
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          FCM_SERVER_KEY: ${{ secrets.FCM_SERVER_KEY }}
         run: |
           # Validate required secrets
           if [ -z "${JWT_SECRET}" ]; then
@@ -200,6 +205,24 @@ jobs:
           
           if [ -n "${DEEPSEEK_API_KEY}" ]; then
             PARAMS="${PARAMS} DeepSeekApiKey=${DEEPSEEK_API_KEY}"
+          fi
+          
+          # Push notification params (iOS APNs - reusing App Store Connect credentials)
+          if [ -n "${APPLE_TEAM_ID}" ]; then
+            PARAMS="${PARAMS} AppleTeamId=${APPLE_TEAM_ID}"
+          fi
+          
+          if [ -n "${APP_STORE_CONNECT_API_KEY_ID}" ]; then
+            PARAMS="${PARAMS} AppStoreConnectApiKeyId=${APP_STORE_CONNECT_API_KEY_ID}"
+          fi
+          
+          if [ -n "${APP_STORE_CONNECT_API_KEY}" ]; then
+            PARAMS="${PARAMS} AppStoreConnectApiKey=${APP_STORE_CONNECT_API_KEY}"
+          fi
+          
+          # Push notification params (Android FCM)
+          if [ -n "${FCM_SERVER_KEY}" ]; then
+            PARAMS="${PARAMS} FcmServerKey=${FCM_SERVER_KEY}"
           fi
           
           sam deploy \

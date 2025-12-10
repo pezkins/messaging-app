@@ -4,10 +4,16 @@
  */
 
 import { dynamodb, Tables, QueryCommand } from './dynamo';
+import * as jwt from 'jsonwebtoken';
 
 const FCM_SERVER_KEY = process.env.FCM_SERVER_KEY;
 const APNS_KEY_ID = process.env.APNS_KEY_ID;
 const APNS_TEAM_ID = process.env.APNS_TEAM_ID;
+const APNS_AUTH_KEY = process.env.APNS_AUTH_KEY;
+
+// APNs JWT token cache (valid for 1 hour max, we refresh every 50 mins)
+let apnsJwtToken: string | null = null;
+let apnsJwtExpiry: number = 0;
 
 interface NotificationPayload {
   userId: string;
@@ -57,6 +63,43 @@ export async function sendPushNotification(payload: NotificationPayload): Promis
 }
 
 /**
+ * Generate JWT token for APNs authentication
+ */
+function getAPNsJWT(): string {
+  const now = Math.floor(Date.now() / 1000);
+  
+  // Return cached token if still valid (refresh 10 mins before expiry)
+  if (apnsJwtToken && apnsJwtExpiry > now + 600) {
+    return apnsJwtToken;
+  }
+
+  if (!APNS_AUTH_KEY || !APNS_KEY_ID || !APNS_TEAM_ID) {
+    throw new Error('APNs credentials not configured');
+  }
+
+  // The .p8 key content - handle both with and without header/footer
+  let key = APNS_AUTH_KEY;
+  if (!key.includes('-----BEGIN PRIVATE KEY-----')) {
+    key = `-----BEGIN PRIVATE KEY-----\n${key}\n-----END PRIVATE KEY-----`;
+  }
+
+  const token = jwt.sign({}, key, {
+    algorithm: 'ES256',
+    issuer: APNS_TEAM_ID,
+    header: {
+      alg: 'ES256',
+      kid: APNS_KEY_ID,
+    },
+    expiresIn: '1h',
+  });
+
+  apnsJwtToken = token;
+  apnsJwtExpiry = now + 3600; // 1 hour from now
+  
+  return token;
+}
+
+/**
  * Send notification via Apple Push Notification Service
  */
 async function sendAPNS(
@@ -66,52 +109,43 @@ async function sendAPNS(
   data?: Record<string, string>
 ): Promise<void> {
   // Skip if APNs is not configured
-  if (!APNS_KEY_ID || !APNS_TEAM_ID) {
+  if (!APNS_KEY_ID || !APNS_TEAM_ID || !APNS_AUTH_KEY) {
     console.log(`📱 APNs not configured, skipping iOS push to ${deviceToken.substring(0, 10)}...`);
     return;
   }
 
   console.log(`📱 Sending APNs to ${deviceToken.substring(0, 10)}...`);
   
-  // Note: Full APNs implementation requires:
-  // 1. APNs Auth Key (.p8 file)
-  // 2. JWT signing for APNs token
-  // 3. HTTP/2 client for APNs API
-  // 
-  // For production, consider using:
-  // - AWS SNS (Simple Notification Service)
-  // - Firebase Admin SDK
-  // - A dedicated push service like OneSignal
-  //
-  // Example implementation with APNs HTTP/2:
-  /*
-  const jwt = generateAPNsJWT();
-  const response = await fetch(
-    `https://api.push.apple.com/3/device/${deviceToken}`,
-    {
-      method: 'POST',
-      headers: {
-        'authorization': `bearer ${jwt}`,
-        'apns-topic': 'com.pezkins.intok',
-        'apns-push-type': 'alert',
-        'apns-priority': '10',
+  const jwtToken = getAPNsJWT();
+  
+  // Use production APNs endpoint
+  const url = `https://api.push.apple.com/3/device/${deviceToken}`;
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'authorization': `bearer ${jwtToken}`,
+      'apns-topic': 'com.pezkins.intok',
+      'apns-push-type': 'alert',
+      'apns-priority': '10',
+    },
+    body: JSON.stringify({
+      aps: {
+        alert: { title, body },
+        badge: 1,
+        sound: 'default',
       },
-      body: JSON.stringify({
-        aps: {
-          alert: { title, body },
-          badge: 1,
-          sound: 'default',
-        },
-        ...data
-      })
-    }
-  );
+      ...data
+    })
+  });
   
   if (!response.ok) {
     const errorBody = await response.text();
+    console.error(`❌ APNs error: ${response.status} - ${errorBody}`);
     throw new Error(`APNs error: ${response.status} - ${errorBody}`);
   }
-  */
+  
+  console.log(`✅ APNs notification sent to ${deviceToken.substring(0, 10)}...`);
 }
 
 /**

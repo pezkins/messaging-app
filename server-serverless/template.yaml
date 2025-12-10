@@ -20,8 +20,9 @@ Globals:
         OPENAI_API_KEY: !Ref OpenAIApiKey
         ANTHROPIC_API_KEY: !Ref AnthropicApiKey
         DEEPSEEK_API_KEY: !Ref DeepSeekApiKey
-        APNS_KEY_ID: !Ref ApnsKeyId
-        APNS_TEAM_ID: !Ref ApnsTeamId
+        APNS_KEY_ID: !Ref AppStoreConnectApiKeyId
+        APNS_TEAM_ID: !Ref AppleTeamId
+        APNS_AUTH_KEY: !Ref AppStoreConnectApiKey
         FCM_SERVER_KEY: !Ref FcmServerKey
 
 Parameters:
@@ -52,16 +53,21 @@ Parameters:
     NoEcho: true
     Default: ""
     Description: DeepSeek API key (required if AIProvider=deepseek)
-  ApnsKeyId:
+  AppStoreConnectApiKeyId:
     Type: String
     NoEcho: true
     Default: ""
-    Description: Apple Push Notification Service Key ID
-  ApnsTeamId:
+    Description: App Store Connect API Key ID (also used for APNs)
+  AppleTeamId:
     Type: String
     NoEcho: true
     Default: ""
     Description: Apple Developer Team ID
+  AppStoreConnectApiKey:
+    Type: String
+    NoEcho: true
+    Default: ""
+    Description: App Store Connect API Key (.p8 content, also used for APNs)
   FcmServerKey:
     Type: String
     NoEcho: true
