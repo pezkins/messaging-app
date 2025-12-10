@@ -75,6 +75,23 @@ interface ApiService {
     
     @GET("api/attachments/download-url")
     suspend fun getDownloadUrl(@Query("key") key: String): DownloadUrlResponse
+    
+    // ============================================
+    // Device/Push Notification Endpoints
+    // ============================================
+    
+    @POST("api/devices/register")
+    suspend fun registerDeviceToken(@Body request: RegisterDeviceRequest)
+    
+    @POST("api/devices/unregister")
+    suspend fun unregisterDeviceToken(@Body request: UnregisterDeviceRequest)
+    
+    // ============================================
+    // Read Receipts
+    // ============================================
+    
+    @POST("api/conversations/{conversationId}/read")
+    suspend fun markConversationAsRead(@Path("conversationId") conversationId: String)
 }
 
 // ============================================
@@ -118,6 +135,15 @@ data class UploadUrlRequest(
     val contentType: String,
     val fileSize: Long,
     val conversationId: String
+)
+
+data class RegisterDeviceRequest(
+    val token: String,
+    val platform: String = "android"
+)
+
+data class UnregisterDeviceRequest(
+    val token: String
 )
 
 // ============================================

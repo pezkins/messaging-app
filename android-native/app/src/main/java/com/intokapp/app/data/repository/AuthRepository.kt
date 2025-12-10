@@ -9,18 +9,24 @@ import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.tasks.Task
+import com.google.firebase.messaging.FirebaseMessaging
 import com.intokapp.app.data.models.User
 import com.intokapp.app.data.network.ApiService
 import com.intokapp.app.data.network.OAuthLoginRequest
+import com.intokapp.app.data.network.RegisterDeviceRequest
 import com.intokapp.app.data.network.TokenManager
+import com.intokapp.app.data.network.UnregisterDeviceRequest
 import com.intokapp.app.data.network.UpdateCountryRequest
 import com.intokapp.app.data.network.UpdateLanguageRequest
 import com.intokapp.app.data.network.UpdateProfileRequest
 import com.intokapp.app.data.network.WebSocketService
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -74,6 +80,9 @@ class AuthRepository @Inject constructor(
             // Connect WebSocket
             webSocketService.connect()
             
+            // Register FCM token for push notifications
+            registerFCMToken()
+            
             _authState.value = AuthState.Authenticated(response.user)
             Log.d(TAG, "✅ Auth restored for: ${response.user.email}")
         } catch (e: Exception) {
@@ -91,6 +100,9 @@ class AuthRepository @Inject constructor(
                     tokenManager.saveUser(response.user)
                     
                     webSocketService.connect()
+                    
+                    // Register FCM token for push notifications
+                    registerFCMToken()
                     
                     _authState.value = AuthState.Authenticated(response.user)
                     Log.d(TAG, "✅ Token refreshed for: ${response.user.email}")
@@ -147,6 +159,9 @@ class AuthRepository @Inject constructor(
                 response.user.username == response.user.email
             
             _authState.value = AuthState.Authenticated(response.user, isNewUser)
+            
+            // Register FCM token for push notifications
+            registerFCMToken()
             
             Log.d(TAG, "✅ Backend auth successful: ${response.user.email}, isNew: $isNewUser")
             Result.success(isNewUser)
@@ -228,8 +243,58 @@ class AuthRepository @Inject constructor(
         }
     }
     
+    /**
+     * Register the FCM token with the backend for push notifications.
+     * Called after successful login/registration.
+     */
+    private fun registerFCMToken() {
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                Log.d(TAG, "📱 Got FCM token, registering with backend...")
+                
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        apiService.registerDeviceToken(RegisterDeviceRequest(token = token))
+                        Log.d(TAG, "✅ FCM token registered with backend")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "❌ Failed to register FCM token: ${e.message}")
+                    }
+                }
+            } else {
+                Log.e(TAG, "❌ Failed to get FCM token", task.exception)
+            }
+        }
+    }
+    
+    /**
+     * Unregister the FCM token from the backend before logout.
+     */
+    private suspend fun unregisterFCMToken() {
+        try {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            apiService.unregisterDeviceToken(UnregisterDeviceRequest(token = token))
+                            Log.d(TAG, "✅ FCM token unregistered from backend")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "❌ Failed to unregister FCM token: ${e.message}")
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Error unregistering FCM token: ${e.message}")
+        }
+    }
+    
     suspend fun logout() {
         Log.d(TAG, "🚪 Logging out...")
+        
+        // Unregister FCM token first
+        unregisterFCMToken()
         
         try {
             val refreshToken = tokenManager.getRefreshToken()
@@ -282,6 +347,10 @@ class AuthRepository @Inject constructor(
             webSocketService.connect()
             
             _authState.value = AuthState.Authenticated(response.user, false)
+            
+            // Register FCM token for push notifications
+            registerFCMToken()
+            
             Log.d(TAG, "✅ Email login successful: ${response.user.email}")
             Result.success(false) // Not a new user
             
@@ -324,6 +393,10 @@ class AuthRepository @Inject constructor(
             webSocketService.connect()
             
             _authState.value = AuthState.Authenticated(response.user, false)
+            
+            // Register FCM token for push notifications
+            registerFCMToken()
+            
             Log.d(TAG, "✅ Registration successful: ${response.user.email}")
             Result.success(true) // Is a new user
             

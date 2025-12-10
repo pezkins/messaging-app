@@ -8,32 +8,75 @@ import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.intokapp.app.MainActivity
 import com.intokapp.app.R
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class IntokFirebaseMessagingService : FirebaseMessagingService() {
+    
+    @Inject
+    lateinit var apiService: ApiService
+    
+    @Inject
+    lateinit var tokenManager: TokenManager
     
     companion object {
         private const val TAG = "FCMService"
         private const val CHANNEL_ID = "intok_messages"
         private const val CHANNEL_NAME = "Messages"
+        
+        /**
+         * Register the current FCM token with the backend.
+         * Call this after login or when the app starts with a logged-in user.
+         */
+        fun registerCurrentToken(apiService: ApiService, tokenManager: TokenManager) {
+            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val token = task.result
+                    Log.d(TAG, "📱 Got FCM token for registration")
+                    
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val authToken = tokenManager.getAccessToken()
+                            if (authToken != null) {
+                                apiService.registerDeviceToken(RegisterDeviceRequest(token = token))
+                                Log.d(TAG, "✅ FCM token registered with backend")
+                            } else {
+                                Log.d(TAG, "⚠️ User not logged in, skipping token registration")
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "❌ Failed to register token: ${e.message}")
+                        }
+                    }
+                } else {
+                    Log.e(TAG, "❌ Failed to get FCM token", task.exception)
+                }
+            }
+        }
     }
     
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        Log.d(TAG, "📱 New FCM Token: $token")
+        Log.d(TAG, "📱 New FCM Token received")
         
         // Send token to backend
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                // TODO: Inject or access API service to register token
-                // apiService.registerDeviceToken(token, "android")
-                Log.d(TAG, "📱 Token registration would happen here")
+                val authToken = tokenManager.getAccessToken()
+                if (authToken != null) {
+                    apiService.registerDeviceToken(RegisterDeviceRequest(token = token))
+                    Log.d(TAG, "✅ FCM token registered with backend")
+                } else {
+                    Log.d(TAG, "⚠️ User not logged in, skipping token registration")
+                }
             } catch (e: Exception) {
                 Log.e(TAG, "❌ Failed to register token: ${e.message}")
             }
