@@ -214,7 +214,7 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
     id: string;
     conversationId: string;
     senderId: string;
-    sender: { id?: string; username?: string; preferredLanguage?: string };
+    sender: { id?: string; username?: string; preferredLanguage?: string; avatarUrl?: string | null; profilePicture?: string | null };
     type: string;
     originalContent: string;
     originalLanguage: string;
@@ -232,6 +232,8 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
       id: sender?.id,
       username: sender?.username,
       preferredLanguage: sender?.preferredLanguage,
+      avatarUrl: sender?.avatarUrl || null,
+      profilePicture: sender?.profilePicture || null,
     },
     type,
     originalContent: content || '',

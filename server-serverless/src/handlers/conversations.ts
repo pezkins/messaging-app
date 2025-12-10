@@ -38,6 +38,8 @@ export const list: APIGatewayProxyHandler = async (event) => {
               id: user.Item.id,
               username: user.Item.username,
               preferredLanguage: user.Item.preferredLanguage,
+              avatarUrl: user.Item.avatarUrl || null,
+              profilePicture: user.Item.profilePicture || null,
             } : null;
           })
         );
@@ -137,6 +139,8 @@ export const create: APIGatewayProxyHandler = async (event) => {
           id: user.Item.id,
           username: user.Item.username,
           preferredLanguage: user.Item.preferredLanguage,
+          avatarUrl: user.Item.avatarUrl || null,
+          profilePicture: user.Item.profilePicture || null,
         } : null;
       })
     );

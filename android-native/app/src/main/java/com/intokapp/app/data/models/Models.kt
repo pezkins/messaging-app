@@ -30,8 +30,14 @@ data class UserPublic(
     @SerializedName("preferredLanguage")
     val preferredLanguage: String,
     @SerializedName("avatarUrl")
-    val avatarUrl: String? = null
-)
+    val avatarUrl: String? = null,
+    @SerializedName("profilePicture")
+    val profilePicture: String? = null
+) {
+    /** Returns the best available profile image URL */
+    val displayAvatarUrl: String?
+        get() = profilePicture ?: avatarUrl
+}
 
 // ============================================
 // Auth Models

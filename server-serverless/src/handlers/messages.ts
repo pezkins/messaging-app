@@ -54,7 +54,24 @@ export const list: APIGatewayProxyHandler = async (event) => {
     const hasMore = allItems.length > limit;
     const items = hasMore ? allItems.slice(0, -1) : allItems;
 
-    // Translate messages
+    // Collect unique sender IDs to batch fetch
+    const senderIds = [...new Set(items.map(msg => msg.senderId))];
+    
+    // Batch fetch sender data for avatars
+    const senderMap = new Map<string, any>();
+    await Promise.all(
+      senderIds.map(async (senderId) => {
+        const senderResult = await dynamodb.send(new GetCommand({
+          TableName: Tables.USERS,
+          Key: { id: senderId },
+        }));
+        if (senderResult.Item) {
+          senderMap.set(senderId, senderResult.Item);
+        }
+      })
+    );
+
+    // Translate messages and enrich with current sender data
     const messages = await Promise.all(
       items.map(async (msg) => {
         let translatedContent = msg.originalContent;
@@ -72,11 +89,20 @@ export const list: APIGatewayProxyHandler = async (event) => {
           }
         }
 
+        // Get current sender info for fresh avatar URL
+        const currentSender = senderMap.get(msg.senderId);
+
         return {
           id: msg.id,
           conversationId: msg.conversationId,
           senderId: msg.senderId,
-          sender: msg.sender,
+          sender: {
+            id: msg.senderId,
+            username: currentSender?.username || msg.sender?.username,
+            preferredLanguage: currentSender?.preferredLanguage || msg.sender?.preferredLanguage,
+            avatarUrl: currentSender?.avatarUrl || null,
+            profilePicture: currentSender?.profilePicture || null,
+          },
           type: msg.type,
           originalContent: msg.originalContent,
           originalLanguage: msg.originalLanguage,

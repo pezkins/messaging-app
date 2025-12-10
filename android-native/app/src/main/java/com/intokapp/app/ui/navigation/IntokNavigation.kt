@@ -4,6 +4,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -36,32 +39,50 @@ fun IntokNavigation(
     val navController = rememberNavController()
     val authState by viewModel.authState.collectAsState()
     
+    // Track previous auth state to only navigate on state transitions
+    var previousAuthStateType by remember { mutableStateOf<String?>(null) }
+    
     // Initialize auth
     LaunchedEffect(Unit) {
         viewModel.initialize()
     }
     
-    // Handle auth state changes
+    // Handle auth state changes - only navigate on state TYPE transitions, not user data updates
     LaunchedEffect(authState) {
-        when (authState) {
-            is AuthState.Unauthenticated -> {
-                navController.navigate(Screen.Login.route) {
-                    popUpTo(0) { inclusive = true }
-                }
-            }
+        val currentStateType = when (authState) {
+            is AuthState.Loading -> "Loading"
+            is AuthState.Unauthenticated -> "Unauthenticated"
             is AuthState.Authenticated -> {
                 val state = authState as AuthState.Authenticated
-                if (state.needsSetup) {
-                    navController.navigate(Screen.Setup.route) {
-                        popUpTo(0) { inclusive = true }
-                    }
-                } else {
-                    navController.navigate(Screen.Conversations.route) {
+                if (state.needsSetup) "NeedsSetup" else "Authenticated"
+            }
+            is AuthState.Error -> "Error"
+        }
+        
+        // Only navigate if the state TYPE has changed (not just user data)
+        if (currentStateType != previousAuthStateType) {
+            previousAuthStateType = currentStateType
+            
+            when (authState) {
+                is AuthState.Unauthenticated -> {
+                    navController.navigate(Screen.Login.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
+                is AuthState.Authenticated -> {
+                    val state = authState as AuthState.Authenticated
+                    if (state.needsSetup) {
+                        navController.navigate(Screen.Setup.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    } else {
+                        navController.navigate(Screen.Conversations.route) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                    }
+                }
+                else -> {}
             }
-            else -> {}
         }
     }
     

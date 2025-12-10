@@ -515,20 +515,42 @@ struct MessageBubble: View {
         return false
     }
     
+    private var avatarPlaceholder: some View {
+        Circle()
+            .fill(Color(hex: "8B5CF6"))
+            .frame(width: 28, height: 28)
+            .overlay(
+                Text(String((message.sender?.username ?? "?").prefix(1).uppercased()))
+                    .font(.caption2)
+                    .foregroundColor(.white)
+            )
+    }
+    
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             if isOwnMessage {
                 Spacer(minLength: 60)
             } else {
                 // Avatar - aligned to top
-                Circle()
-                    .fill(Color(hex: "8B5CF6"))
+                if let avatarUrl = message.sender?.avatarUrl,
+                   let url = URL(string: avatarUrl) {
+                    AsyncImage(url: url) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        case .failure, .empty:
+                            avatarPlaceholder
+                        @unknown default:
+                            avatarPlaceholder
+                        }
+                    }
                     .frame(width: 28, height: 28)
-                    .overlay(
-                        Text(String((message.sender?.username ?? "?").prefix(1).uppercased()))
-                            .font(.caption2)
-                            .foregroundColor(.white)
-                    )
+                    .clipShape(Circle())
+                } else {
+                    avatarPlaceholder
+                }
             }
             
             VStack(alignment: isOwnMessage ? .trailing : .leading, spacing: 4) {

@@ -73,9 +73,10 @@ fun ConversationsScreen(
                                 .background(Purple500),
                             contentAlignment = Alignment.Center
                         ) {
-                            if (uiState.user?.avatarUrl != null) {
+                            val userAvatarUrl = uiState.user?.profilePicture ?: uiState.user?.avatarUrl
+                            if (userAvatarUrl != null) {
                                 AsyncImage(
-                                    model = uiState.user?.avatarUrl,
+                                    model = userAvatarUrl,
                                     contentDescription = null,
                                     modifier = Modifier.fillMaxSize(),
                                     contentScale = ContentScale.Crop
@@ -247,7 +248,7 @@ private fun ConversationRow(
     
     val avatarUrl = remember(conversation) {
         if (conversation.type == "direct") {
-            conversation.participants.firstOrNull { it.id != currentUserId }?.avatarUrl
+            conversation.participants.firstOrNull { it.id != currentUserId }?.displayAvatarUrl
         } else null
     }
     

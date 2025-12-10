@@ -935,6 +935,8 @@ private fun MessageBubble(
     ) {
         if (!isOwnMessage) {
             // Avatar - aligned to top of message
+            val senderAvatarUrl = message.sender?.displayAvatarUrl
+            
             Box(
                 modifier = Modifier
                     .padding(end = 8.dp, top = 18.dp) // top padding to align with bubble (after sender name)
@@ -943,12 +945,24 @@ private fun MessageBubble(
                     .background(Purple500),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = (message.sender?.username ?: "?").take(1).uppercase(),
-                    color = White,
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                if (senderAvatarUrl != null) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(context)
+                            .data(senderAvatarUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = "Sender avatar",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Text(
+                        text = (message.sender?.username ?: "?").take(1).uppercase(),
+                        color = White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
         }
         
