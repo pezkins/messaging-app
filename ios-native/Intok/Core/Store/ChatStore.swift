@@ -238,7 +238,7 @@ class ChatStore: ObservableObject {
     }
     
     // MARK: - Send Message
-    func sendMessage(_ content: String, type: String = "text", attachment: [String: Any]? = nil, translateDocument: Bool? = nil) {
+    func sendMessage(_ content: String, type: String = "text", attachment: [String: Any]? = nil, translateDocument: Bool? = nil, replyTo: ReplyTo? = nil) {
         guard let conversation = activeConversation,
               !content.trimmingCharacters(in: .whitespaces).isEmpty || attachment != nil else { return }
         
@@ -260,11 +260,24 @@ class ChatStore: ObservableObject {
             originalContent: content,
             originalLanguage: currentUser?.preferredLanguage ?? "en",
             status: .sending,
-            createdAt: ISO8601DateFormatter().string(from: Date())
+            createdAt: ISO8601DateFormatter().string(from: Date()),
+            replyTo: replyTo
         )
         
         messages.append(optimisticMessage)
         logger.debug("📤 Added optimistic message: \(tempId, privacy: .public)")
+        
+        // Build replyTo dictionary for WebSocket
+        var replyToDict: [String: Any]?
+        if let reply = replyTo {
+            replyToDict = [
+                "messageId": reply.messageId,
+                "content": reply.content,
+                "senderId": reply.senderId,
+                "senderName": reply.senderName,
+                "type": reply.type.rawValue
+            ]
+        }
         
         // Send via WebSocket
         WebSocketService.shared.sendMessage(
@@ -273,7 +286,8 @@ class ChatStore: ObservableObject {
             type: type,
             tempId: tempId,
             attachment: attachment,
-            translateDocument: translateDocument
+            translateDocument: translateDocument,
+            replyTo: replyToDict
         )
     }
     

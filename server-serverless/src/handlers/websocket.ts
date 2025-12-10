@@ -113,12 +113,22 @@ interface Attachment {
   category: string;
 }
 
+// ReplyTo interface for message replies
+interface ReplyTo {
+  messageId: string;
+  content: string;
+  senderId: string;
+  senderName: string;
+  type: string;
+}
+
 async function handleSendMessage(event: any, senderId: string, data: any) {
   const { 
     conversationId, 
     content, 
     type = 'text', 
     attachment,
+    replyTo,
     translateDocument = false  // Flag for document translation
   } = data;
 
@@ -174,6 +184,32 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
     }
   }
 
+  // Validate and sanitize replyTo data if provided
+  let sanitizedReplyTo: ReplyTo | null = null;
+  
+  if (replyTo) {
+    // Validate required fields for reply
+    if (!replyTo.messageId || !replyTo.senderId) {
+      console.error('ReplyTo missing required fields:', { messageId: replyTo.messageId, senderId: replyTo.senderId });
+    } else {
+      // Truncate content to 100 characters max for preview
+      const truncatedContent = replyTo.content 
+        ? replyTo.content.length > 100 
+          ? replyTo.content.substring(0, 100) + '...'
+          : replyTo.content
+        : '';
+      
+      sanitizedReplyTo = {
+        messageId: replyTo.messageId,
+        content: truncatedContent,
+        senderId: replyTo.senderId,
+        senderName: replyTo.senderName || 'Unknown',
+        type: replyTo.type || 'text',
+      };
+      console.log(`↩️ Reply to message ${replyTo.messageId}`);
+    }
+  }
+
   const message: {
     id: string;
     conversationId: string;
@@ -187,6 +223,7 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
     createdAt: string;
     translations: Record<string, string>;
     attachment: Attachment | null;
+    replyTo: ReplyTo | null;
   } = {
     id: messageId,
     conversationId,
@@ -204,6 +241,7 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
     createdAt: timestamp, // Frontend expects createdAt
     translations: {}, // Cache translations here
     attachment: sanitizedAttachment,
+    replyTo: sanitizedReplyTo,
   };
 
   await dynamodb.send(new PutCommand({
@@ -261,6 +299,7 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
             status: message.status,
             createdAt: message.createdAt,
             attachment: message.attachment,
+            replyTo: message.replyTo,
           },
           ':updatedAt': timestamp,
         },

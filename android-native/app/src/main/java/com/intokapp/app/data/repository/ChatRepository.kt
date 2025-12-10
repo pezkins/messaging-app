@@ -294,7 +294,13 @@ class ChatRepository @Inject constructor(
         _isLoadingMessages.value = false
     }
     
-    fun sendMessage(content: String, type: String = "TEXT", attachment: Map<String, Any>? = null, translateDocument: Boolean? = null) {
+    fun sendMessage(
+        content: String, 
+        type: String = "TEXT", 
+        attachment: Map<String, Any>? = null, 
+        translateDocument: Boolean? = null,
+        replyToMessage: Message? = null
+    ) {
         val conversation = _activeConversation.value ?: return
         if (content.isBlank() && attachment == null) return
         
@@ -329,6 +335,17 @@ class ChatRepository @Inject constructor(
             )
         }
         
+        // Create ReplyTo object for optimistic message if replying
+        val optimisticReplyTo = replyToMessage?.let {
+            ReplyTo(
+                messageId = it.id,
+                content = it.originalContent.take(100),
+                senderId = it.senderId,
+                senderName = it.sender?.username ?: "Unknown",
+                type = it.type?.name?.lowercase()
+            )
+        }
+        
         // Create optimistic message with real user data
         val optimisticMessage = Message(
             id = tempId,
@@ -345,7 +362,8 @@ class ChatRepository @Inject constructor(
             originalLanguage = currentUser?.preferredLanguage ?: "en",
             status = MessageStatus.SENDING,
             createdAt = dateFormat.format(now),
-            attachment = optimisticAttachment
+            attachment = optimisticAttachment,
+            replyTo = optimisticReplyTo
         )
         
         _messages.value = _messages.value + optimisticMessage
@@ -357,6 +375,17 @@ class ChatRepository @Inject constructor(
             timestamp = now.time
         )
         
+        // Create replyTo map for WebSocket
+        val replyToMap = replyToMessage?.let {
+            mapOf(
+                "messageId" to it.id,
+                "content" to it.originalContent.take(100),
+                "senderId" to it.senderId,
+                "senderName" to (it.sender?.username ?: "Unknown"),
+                "type" to (it.type?.name?.lowercase() ?: "text")
+            )
+        }
+        
         // Send via WebSocket
         webSocketService.sendMessage(
             conversationId = conversation.id,
@@ -364,7 +393,8 @@ class ChatRepository @Inject constructor(
             type = type,
             tempId = tempId,
             attachment = attachment,
-            translateDocument = translateDocument
+            translateDocument = translateDocument,
+            replyTo = replyToMap
         )
     }
     

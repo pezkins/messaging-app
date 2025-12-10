@@ -126,6 +126,17 @@ enum class MessageType {
     ATTACHMENT
 }
 
+data class ReplyTo(
+    @SerializedName("messageId")
+    val messageId: String,
+    val content: String,
+    @SerializedName("senderId")
+    val senderId: String,
+    @SerializedName("senderName")
+    val senderName: String,
+    val type: String? = null
+)
+
 data class Message(
     val id: String,
     @SerializedName("conversationId")
@@ -150,7 +161,9 @@ data class Message(
     @SerializedName("readBy")
     val readBy: List<String>? = null,
     @SerializedName("readAt")
-    val readAt: String? = null
+    val readAt: String? = null,
+    @SerializedName("replyTo")
+    val replyTo: ReplyTo? = null
 )
 
 data class Attachment(

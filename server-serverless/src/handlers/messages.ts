@@ -85,7 +85,8 @@ export const list: APIGatewayProxyHandler = async (event) => {
           status: msg.status,
           createdAt: msg.timestamp,
           reactions: msg.reactions || {},
-          attachment: msg.attachment || null, // Include attachment in response
+          attachment: msg.attachment || null,
+          replyTo: msg.replyTo || null, // Include reply reference in response
         };
       })
     );

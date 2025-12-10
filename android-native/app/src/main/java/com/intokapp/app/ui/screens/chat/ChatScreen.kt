@@ -2,6 +2,7 @@ package com.intokapp.app.ui.screens.chat
 
 import android.Manifest
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -29,9 +30,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -43,15 +47,14 @@ import com.intokapp.app.data.models.Message
 import com.intokapp.app.data.models.MessageStatus
 import com.intokapp.app.data.models.MessageType
 import com.intokapp.app.data.network.GiphyGif
+import com.intokapp.app.ui.components.EmojiPickerSheet
+import com.intokapp.app.ui.components.FrequentEmojiManager
 import com.intokapp.app.ui.theme.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-
-// Emoji options for reactions
-private val REACTION_EMOJIS = listOf("👍", "❤️", "😂", "😮", "😢", "🔥")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -341,6 +344,14 @@ fun ChatScreen(
                     )
                 }
                 
+                // Reply preview bar
+                uiState.replyingTo?.let { replyMessage ->
+                    ReplyPreviewBar(
+                        message = replyMessage,
+                        onClose = { viewModel.clearReply() }
+                    )
+                }
+                
                 // Input
                 Surface(
                     color = Surface900,
@@ -368,7 +379,12 @@ fun ChatScreen(
                                 viewModel.setTyping(it.isNotEmpty())
                             },
                             modifier = Modifier.weight(1f),
-                            placeholder = { Text("Message...", color = Surface500) },
+                            placeholder = { 
+                                Text(
+                                    if (uiState.replyingTo != null) "Reply..." else "Message...", 
+                                    color = Surface500
+                                ) 
+                            },
                             shape = RoundedCornerShape(24.dp),
                             colors = OutlinedTextFieldDefaults.colors(
                                 focusedTextColor = White,
@@ -403,17 +419,43 @@ fun ChatScreen(
                 }
             }
             
-            // Reaction picker overlay
+            // Message context menu (replaces simple reaction picker)
             selectedMessageForReaction?.let { message ->
-                ReactionPicker(
+                MessageContextMenu(
+                    message = message,
                     onReactionSelected = { emoji ->
                         viewModel.sendReaction(message, emoji)
                         selectedMessageForReaction = null
+                    },
+                    onReplyClick = {
+                        viewModel.setReplyingTo(message)
+                        selectedMessageForReaction = null
+                    },
+                    onCopyClick = {
+                        selectedMessageForReaction = null
+                    },
+                    onShowMoreEmojis = {
+                        selectedMessageForReaction = null
+                        viewModel.showEmojiPicker()
                     },
                     onDismiss = { selectedMessageForReaction = null }
                 )
             }
         }
+    }
+    
+    // Emoji picker bottom sheet
+    if (uiState.showEmojiPicker) {
+        EmojiPickerSheet(
+            onEmojiSelected = { emoji ->
+                // Find the last message to react to (for general emoji picker)
+                uiState.messages.lastOrNull()?.let { msg ->
+                    viewModel.sendReaction(msg, emoji)
+                }
+                viewModel.hideEmojiPicker()
+            },
+            onDismiss = { viewModel.hideEmojiPicker() }
+        )
     }
 }
 
@@ -492,10 +534,77 @@ private fun AttachmentOption(
 }
 
 @Composable
-private fun ReactionPicker(
+private fun ReplyPreviewBar(
+    message: Message,
+    onClose: () -> Unit
+) {
+    Surface(
+        color = Surface800,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Purple accent bar
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(40.dp)
+                    .background(Purple500, RoundedCornerShape(2.dp))
+            )
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Replying to ${message.sender?.username ?: "Unknown"}",
+                    color = Purple500,
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = when (message.type) {
+                        MessageType.IMAGE -> "📷 Photo"
+                        MessageType.GIF -> "🎬 GIF"
+                        MessageType.FILE -> "📄 ${message.attachment?.fileName ?: "Document"}"
+                        else -> message.originalContent.take(50) + if (message.originalContent.length > 50) "..." else ""
+                    },
+                    color = Surface400,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            
+            IconButton(onClick = onClose) {
+                Icon(
+                    Icons.Default.Close,
+                    contentDescription = "Cancel reply",
+                    tint = Surface400,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MessageContextMenu(
+    message: Message,
     onReactionSelected: (String) -> Unit,
+    onReplyClick: () -> Unit,
+    onCopyClick: () -> Unit,
+    onShowMoreEmojis: () -> Unit,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
+    val frequentManager = remember { FrequentEmojiManager(context) }
+    val frequentEmojis = remember { frequentManager.getTopFrequent(5) }
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -504,27 +613,153 @@ private fun ReactionPicker(
         contentAlignment = Alignment.Center
     ) {
         Surface(
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(16.dp),
             color = Surface800,
-            modifier = Modifier.clickable(enabled = false) {} // Prevent dismiss when clicking on picker
+            modifier = Modifier
+                .widthIn(max = 300.dp)
+                .clickable(enabled = false) {} // Prevent dismiss when clicking on menu
         ) {
-            Row(
-                modifier = Modifier.padding(12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                REACTION_EMOJIS.forEach { emoji ->
+            Column {
+                // Quick emoji reactions row
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    frequentEmojis.forEach { emoji ->
+                        Surface(
+                            shape = CircleShape,
+                            color = Surface700,
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clickable { 
+                                    frequentManager.recordUsage(emoji)
+                                    onReactionSelected(emoji) 
+                                }
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text(emoji, fontSize = 22.sp)
+                            }
+                        }
+                    }
+                    
+                    // More emojis button
                     Surface(
                         shape = CircleShape,
-                        color = Surface700,
+                        color = Purple500.copy(alpha = 0.3f),
                         modifier = Modifier
-                            .size(48.dp)
-                            .clickable { onReactionSelected(emoji) }
+                            .size(44.dp)
+                            .clickable { onShowMoreEmojis() }
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text(emoji, fontSize = 24.sp)
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = "More emojis",
+                                tint = Purple500,
+                                modifier = Modifier.size(20.dp)
+                            )
                         }
                     }
                 }
+                
+                Divider(color = Surface700, thickness = 1.dp)
+                
+                // Reply option
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onReplyClick() }
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        Icons.Default.Reply,
+                        contentDescription = null,
+                        tint = White,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text("Reply", color = White, style = MaterialTheme.typography.bodyMedium)
+                }
+                
+                // Copy option (only for text messages)
+                if (message.type == null || message.type == MessageType.TEXT) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                clipboardManager.setText(AnnotatedString(message.originalContent))
+                                Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                                onCopyClick()
+                            }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.ContentCopy,
+                            contentDescription = null,
+                            tint = White,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Copy", color = White, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuotedMessageView(
+    replyTo: com.intokapp.app.data.models.ReplyTo,
+    isOwnMessage: Boolean
+) {
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = if (isOwnMessage) Purple600.copy(alpha = 0.5f) else Surface700.copy(alpha = 0.5f),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.Top
+        ) {
+            // Purple accent bar
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(36.dp)
+                    .background(
+                        if (isOwnMessage) White.copy(alpha = 0.7f) else Purple500,
+                        RoundedCornerShape(2.dp)
+                    )
+            )
+            
+            Spacer(modifier = Modifier.width(8.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = replyTo.senderName,
+                    color = if (isOwnMessage) White else Purple500,
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = when (replyTo.type?.lowercase()) {
+                        "image" -> "📷 Photo"
+                        "gif" -> "🎬 GIF"
+                        "file" -> "📄 Document"
+                        else -> replyTo.content
+                    },
+                    color = if (isOwnMessage) White.copy(alpha = 0.8f) else Surface400,
+                    style = MaterialTheme.typography.bodySmall,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
         }
     }
@@ -738,6 +973,15 @@ private fun MessageBubble(
                 color = if (isOwnMessage) Purple500 else Surface800
             ) {
                 Column(modifier = Modifier.padding(if (message.type == MessageType.IMAGE || message.type == MessageType.GIF) 4.dp else 12.dp)) {
+                    // Quoted message view (if replying)
+                    message.replyTo?.let { replyTo ->
+                        QuotedMessageView(
+                            replyTo = replyTo,
+                            isOwnMessage = isOwnMessage
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    
                     // Content based on message type
                     when (message.type) {
                         MessageType.IMAGE -> {

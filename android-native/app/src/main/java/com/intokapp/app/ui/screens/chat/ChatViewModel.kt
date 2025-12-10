@@ -33,6 +33,7 @@ data class ChatUiState(
     val uploadProgress: Float = 0f,
     val showAttachmentPicker: Boolean = false,
     val showGifPicker: Boolean = false,
+    val showEmojiPicker: Boolean = false,
     val errorMessage: String? = null,
     // GIF state
     val gifs: List<GiphyGif> = emptyList(),
@@ -40,7 +41,9 @@ data class ChatUiState(
     val gifSearchQuery: String = "",
     // Document translation dialog state
     val showDocumentTranslationDialog: Boolean = false,
-    val pendingDocumentAttachment: Attachment? = null
+    val pendingDocumentAttachment: Attachment? = null,
+    // Reply state
+    val replyingTo: Message? = null
 )
 
 @HiltViewModel
@@ -117,8 +120,34 @@ class ChatViewModel @Inject constructor(
         }
     }
     
-    fun sendMessage(content: String) {
-        chatRepository.sendMessage(content)
+    fun sendMessage(content: String, replyTo: Message? = null) {
+        chatRepository.sendMessage(content, replyToMessage = replyTo ?: _uiState.value.replyingTo)
+        // Clear reply state after sending
+        _uiState.update { it.copy(replyingTo = null) }
+    }
+    
+    // ============================================
+    // Reply to Message
+    // ============================================
+    
+    fun setReplyingTo(message: Message?) {
+        _uiState.update { it.copy(replyingTo = message) }
+    }
+    
+    fun clearReply() {
+        _uiState.update { it.copy(replyingTo = null) }
+    }
+    
+    // ============================================
+    // Emoji Picker
+    // ============================================
+    
+    fun showEmojiPicker() {
+        _uiState.update { it.copy(showEmojiPicker = true) }
+    }
+    
+    fun hideEmojiPicker() {
+        _uiState.update { it.copy(showEmojiPicker = false) }
     }
     
     fun setTyping(isTyping: Boolean) {

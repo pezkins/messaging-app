@@ -59,6 +59,9 @@ struct ChatView: View {
     @State private var showError = false
     @State private var showDocumentTranslationAlert = false
     @State private var pendingDocumentAttachment: UploadedAttachment?
+    @State private var replyingTo: Message?
+    @State private var showEmojiPicker = false
+    @State private var selectedMessageForReaction: Message?
     @FocusState private var isInputFocused: Bool
     
     var displayName: String {
@@ -89,6 +92,15 @@ struct ChatView: View {
                 // Upload Progress
                 if isUploading {
                     uploadProgressView
+                }
+                
+                // Reply Preview Bar
+                if let replyTo = replyingTo {
+                    ReplyPreviewBar(replyTo: replyTo) {
+                        withAnimation {
+                            replyingTo = nil
+                        }
+                    }
                 }
                 
                 // Input
@@ -127,6 +139,19 @@ struct ChatView: View {
             GifPickerView { gifUrl in
                 sendGif(gifUrl)
             }
+        }
+        .sheet(isPresented: $showEmojiPicker) {
+            EmojiPickerView { emoji in
+                if let message = selectedMessageForReaction {
+                    chatStore.sendReaction(
+                        messageId: message.id,
+                        messageTimestamp: message.createdAt,
+                        emoji: emoji
+                    )
+                }
+                selectedMessageForReaction = nil
+            }
+            .presentationDetents([.medium, .large])
         }
         .fileImporter(
             isPresented: $showingDocumentPicker,
@@ -183,8 +208,27 @@ struct ChatView: View {
                                     emoji: emoji
                                 )
                             },
+                            onShowFullEmojiPicker: {
+                                selectedMessageForReaction = message
+                                showEmojiPicker = true
+                            },
+                            onReply: {
+                                withAnimation {
+                                    replyingTo = message
+                                    isInputFocused = true
+                                }
+                            },
+                            onCopy: {
+                                UIPasteboard.general.string = message.translatedContent ?? message.originalContent
+                            },
                             onImageTap: { url in
                                 previewURL = url
+                            },
+                            onScrollToMessage: { messageId in
+                                // Scroll to the replied message
+                                withAnimation {
+                                    // Proxy scrollTo happens here
+                                }
                             }
                         )
                         .id(message.id)
@@ -316,8 +360,21 @@ struct ChatView: View {
         let text = messageText.trimmingCharacters(in: .whitespaces)
         guard !text.isEmpty else { return }
         
-        chatStore.sendMessage(text)
+        // Build replyTo if replying
+        var replyToData: ReplyTo?
+        if let replyMessage = replyingTo {
+            replyToData = ReplyTo(
+                messageId: replyMessage.id,
+                content: replyMessage.originalContent,
+                senderId: replyMessage.senderId,
+                senderName: replyMessage.sender?.username ?? "Unknown",
+                type: replyMessage.type
+            )
+        }
+        
+        chatStore.sendMessage(text, replyTo: replyToData)
         messageText = ""
+        replyingTo = nil
         chatStore.setTyping(false)
     }
     
@@ -440,13 +497,16 @@ struct MessageBubble: View {
     let message: Message
     let isOwnMessage: Bool
     let onReaction: (String) -> Void
+    let onShowFullEmojiPicker: () -> Void
+    let onReply: () -> Void
+    let onCopy: () -> Void
     let onImageTap: (URL) -> Void
+    let onScrollToMessage: ((String) -> Void)?
     
     @State private var showTranslation = true
-    @State private var showReactionPicker = false
+    @State private var showReactionBar = false
     @State private var downloadedImageURL: URL?
-    
-    private let reactionEmojis = ["👍", "❤️", "😂", "😮", "😢", "🔥"]
+    @StateObject private var frequentManager = FrequentEmojiManager.shared
     
     var body: some View {
         HStack(alignment: .bottom, spacing: 8) {
@@ -473,17 +533,39 @@ struct MessageBubble: View {
                 }
                 
                 // Message Content with long-press for reactions
-                ZStack(alignment: .topTrailing) {
+                ZStack(alignment: isOwnMessage ? .topLeading : .topTrailing) {
                     messageContent
                         .onLongPressGesture {
-                            showReactionPicker = true
+                            withAnimation(.spring(response: 0.3)) {
+                                showReactionBar = true
+                            }
                         }
                     
-                    // Reaction Picker Popup
-                    if showReactionPicker {
-                        reactionPicker
-                            .offset(y: -50)
-                            .transition(.scale.combined(with: .opacity))
+                    // Quick Reaction Bar Popup
+                    if showReactionBar {
+                        QuickReactionBar(
+                            onEmojiSelected: { emoji in
+                                onReaction(emoji)
+                                withAnimation {
+                                    showReactionBar = false
+                                }
+                            },
+                            onShowFullPicker: {
+                                showReactionBar = false
+                                onShowFullEmojiPicker()
+                            },
+                            onReply: {
+                                showReactionBar = false
+                                onReply()
+                            },
+                            onCopy: {
+                                showReactionBar = false
+                                onCopy()
+                            }
+                        )
+                        .frame(width: 280)
+                        .offset(y: -120)
+                        .transition(.scale.combined(with: .opacity))
                     }
                 }
                 
@@ -511,13 +593,31 @@ struct MessageBubble: View {
             }
         }
         .padding(.vertical, 2)
-        .animation(.spring(response: 0.3), value: showReactionPicker)
+        .animation(.spring(response: 0.3), value: showReactionBar)
+        .onTapGesture {
+            if showReactionBar {
+                withAnimation {
+                    showReactionBar = false
+                }
+            }
+        }
     }
     
     // MARK: - Message Content
     @ViewBuilder
     var messageContent: some View {
         VStack(alignment: .leading, spacing: 4) {
+            // Quoted message (reply)
+            if let replyTo = message.replyTo {
+                QuotedMessageView(
+                    replyTo: replyTo,
+                    isOwnMessage: isOwnMessage,
+                    onTap: {
+                        onScrollToMessage?(replyTo.messageId)
+                    }
+                )
+            }
+            
             // Image/GIF Attachment
             if message.type == .image || message.type == .gif {
                 imageContent
@@ -622,35 +722,6 @@ struct MessageBubble: View {
             }
         }
         .padding(4)
-    }
-    
-    // MARK: - Reaction Picker
-    var reactionPicker: some View {
-        HStack(spacing: 8) {
-            ForEach(reactionEmojis, id: \.self) { emoji in
-                Button(action: {
-                    onReaction(emoji)
-                    showReactionPicker = false
-                }) {
-                    Text(emoji)
-                        .font(.title2)
-                }
-                .buttonStyle(.plain)
-            }
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Color(hex: "2A2A2A"))
-        .cornerRadius(20)
-        .shadow(color: .black.opacity(0.3), radius: 10)
-        .onTapGesture {} // Capture taps on the picker itself
-        .background(
-            Color.clear
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    showReactionPicker = false
-                }
-        )
     }
     
     // MARK: - Reactions Display

@@ -213,7 +213,8 @@ class WebSocketService @Inject constructor(
         type: String = "TEXT",
         tempId: String? = null,
         attachment: Map<String, Any>? = null,
-        translateDocument: Boolean? = null
+        translateDocument: Boolean? = null,
+        replyTo: Map<String, Any>? = null
     ) {
         val data = mutableMapOf<String, Any>(
             "conversationId" to conversationId,
@@ -224,6 +225,8 @@ class WebSocketService @Inject constructor(
         attachment?.let { data["attachment"] = it }
         // Only include for documents
         translateDocument?.let { data["translateDocument"] = it }
+        // Include reply reference if replying to a message
+        replyTo?.let { data["replyTo"] = it }
         
         send("message:send", data)
     }

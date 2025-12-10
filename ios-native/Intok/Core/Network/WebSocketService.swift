@@ -342,7 +342,7 @@ class WebSocketService: ObservableObject {
         }
     }
     
-    func sendMessage(conversationId: String, content: String, type: String = "text", tempId: String? = nil, attachment: [String: Any]? = nil, translateDocument: Bool? = nil) {
+    func sendMessage(conversationId: String, content: String, type: String = "text", tempId: String? = nil, attachment: [String: Any]? = nil, translateDocument: Bool? = nil, replyTo: [String: Any]? = nil) {
         wsLog("sendMessage called - conversationId: \(conversationId), content: \(content.prefix(50)), type: \(type)")
         wsLog("isConnected: \(isConnected), webSocket state: \(String(describing: webSocket?.state))")
         
@@ -362,6 +362,10 @@ class WebSocketService: ObservableObject {
         
         if let translateDocument = translateDocument {
             data["translateDocument"] = translateDocument
+        }
+        
+        if let replyTo = replyTo {
+            data["replyTo"] = replyTo
         }
         
         send(action: WebSocketEvent.messageSend.rawValue, data: data)

@@ -66,6 +66,42 @@ struct CreateConversationRequest: Codable {
     let name: String?
 }
 
+// MARK: - Reply To Model
+struct ReplyTo: Codable, Equatable {
+    let messageId: String
+    let content: String
+    let senderId: String
+    let senderName: String
+    let type: MessageType
+    
+    enum CodingKeys: String, CodingKey {
+        case messageId, content, senderId, senderName, type
+    }
+    
+    init(messageId: String, content: String, senderId: String, senderName: String, type: MessageType = .text) {
+        self.messageId = messageId
+        self.content = content
+        self.senderId = senderId
+        self.senderName = senderName
+        self.type = type
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        messageId = try container.decode(String.self, forKey: .messageId)
+        content = try container.decode(String.self, forKey: .content)
+        senderId = try container.decode(String.self, forKey: .senderId)
+        senderName = try container.decode(String.self, forKey: .senderName)
+        
+        // Handle type - default to .text if missing or invalid
+        if let typeValue = try? container.decode(MessageType.self, forKey: .type) {
+            type = typeValue
+        } else {
+            type = .text
+        }
+    }
+}
+
 // MARK: - Message Models
 enum MessageStatus: String, Codable {
     case sending
@@ -118,6 +154,7 @@ struct Message: Codable, Identifiable {
     let attachment: Attachment?
     var readBy: [String]?  // Array of user IDs who have read
     var readAt: String?    // Timestamp when read
+    var replyTo: ReplyTo?  // Reply to another message
     
     // Custom decoding to handle backend variations
     enum CodingKeys: String, CodingKey {
@@ -126,7 +163,7 @@ struct Message: Codable, Identifiable {
         case translatedContent, targetLanguage
         case status, createdAt, reactions, attachment
         case content  // Backend might use 'content' instead of 'originalContent'
-        case readBy, readAt
+        case readBy, readAt, replyTo
     }
     
     init(from decoder: Decoder) throws {
@@ -162,6 +199,7 @@ struct Message: Codable, Identifiable {
         attachment = try container.decodeIfPresent(Attachment.self, forKey: .attachment)
         readBy = try container.decodeIfPresent([String].self, forKey: .readBy)
         readAt = try container.decodeIfPresent(String.self, forKey: .readAt)
+        replyTo = try container.decodeIfPresent(ReplyTo.self, forKey: .replyTo)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -181,9 +219,10 @@ struct Message: Codable, Identifiable {
         try container.encodeIfPresent(attachment, forKey: .attachment)
         try container.encodeIfPresent(readBy, forKey: .readBy)
         try container.encodeIfPresent(readAt, forKey: .readAt)
+        try container.encodeIfPresent(replyTo, forKey: .replyTo)
     }
     
-    init(id: String, conversationId: String, senderId: String, sender: UserPublic?, type: MessageType = .text, originalContent: String, originalLanguage: String?, translatedContent: String? = nil, targetLanguage: String? = nil, status: MessageStatus? = .sent, createdAt: String, reactions: [String: [String]]? = nil, attachment: Attachment? = nil, readBy: [String]? = nil, readAt: String? = nil) {
+    init(id: String, conversationId: String, senderId: String, sender: UserPublic?, type: MessageType = .text, originalContent: String, originalLanguage: String?, translatedContent: String? = nil, targetLanguage: String? = nil, status: MessageStatus? = .sent, createdAt: String, reactions: [String: [String]]? = nil, attachment: Attachment? = nil, readBy: [String]? = nil, readAt: String? = nil, replyTo: ReplyTo? = nil) {
         self.id = id
         self.conversationId = conversationId
         self.senderId = senderId
@@ -199,6 +238,7 @@ struct Message: Codable, Identifiable {
         self.attachment = attachment
         self.readBy = readBy
         self.readAt = readAt
+        self.replyTo = replyTo
     }
 }
 

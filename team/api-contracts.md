@@ -876,6 +876,25 @@ Send a new message to a conversation.
 }
 ```
 
+**Reply to Message:**
+```json
+{
+  "action": "message:send",
+  "data": {
+    "conversationId": "conv_abc123",
+    "content": "I agree with you!",
+    "type": "text",
+    "replyTo": {
+      "messageId": "msg_original123",
+      "content": "What do you think about the new feature?",
+      "senderId": "user_xyz789",
+      "senderName": "Jane Smith",
+      "type": "text"
+    }
+  }
+}
+```
+
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | conversationId | string | Yes | Target conversation |
@@ -883,6 +902,17 @@ Send a new message to a conversation.
 | type | string | No | "text" (default), "image", "gif", "file", "voice", "video" |
 | attachment | object | No | Attachment metadata (from upload-url response) |
 | translateDocument | boolean | No | If true, translate document content (only for type: "file") |
+| replyTo | object | No | Reference to the message being replied to |
+
+**ReplyTo Object:**
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| messageId | string | Yes | ID of the original message |
+| content | string | Yes | Preview of original message (truncated to 100 chars) |
+| senderId | string | Yes | Original message sender's ID |
+| senderName | string | Yes | Original message sender's display name |
+| type | string | Yes | Original message type (text, image, gif, file) |
 
 **Translation Behavior by Type:**
 
@@ -1005,6 +1035,7 @@ Received when a new message is sent to a conversation.
     "targetLanguage": "es",
     "status": "sent",
     "attachment": null,
+    "replyTo": null,
     "timestamp": "2024-12-08T12:00:00.000Z",
     "createdAt": "2024-12-08T12:00:00.000Z"
   }
@@ -1038,8 +1069,42 @@ Received when a new message is sent to a conversation.
       "fileSize": 1024000,
       "category": "image"
     },
+    "replyTo": null,
     "timestamp": "2024-12-08T12:00:00.000Z",
     "createdAt": "2024-12-08T12:00:00.000Z"
+  }
+}
+```
+
+**Reply Message:**
+```json
+{
+  "action": "message:receive",
+  "message": {
+    "id": "msg_reply456",
+    "conversationId": "conv_abc123",
+    "senderId": "user_abc123",
+    "sender": {
+      "id": "user_abc123",
+      "username": "johnsmith",
+      "preferredLanguage": "en"
+    },
+    "type": "text",
+    "originalContent": "I agree with you!",
+    "originalLanguage": "en",
+    "translatedContent": "I agree with you!",
+    "targetLanguage": "en",
+    "status": "sent",
+    "attachment": null,
+    "replyTo": {
+      "messageId": "msg_original123",
+      "content": "What do you think about the new feature?",
+      "senderId": "user_xyz789",
+      "senderName": "Jane Smith",
+      "type": "text"
+    },
+    "timestamp": "2024-12-08T12:05:00.000Z",
+    "createdAt": "2024-12-08T12:05:00.000Z"
   }
 }
 ```
@@ -1049,6 +1114,7 @@ Received when a new message is sent to a conversation.
 - `targetLanguage` matches receiver's `preferredLanguage`
 - Translations are cached for future retrieval
 - `attachment` is null for text-only messages
+- `replyTo` is null for non-reply messages; contains original message reference for replies
 - Use `GET /api/attachments/download-url?key={attachment.key}` to get download URL
 
 ---
@@ -1169,7 +1235,19 @@ interface Message {
   status: 'sent' | 'delivered' | 'read';
   reactions: Record<string, string[]>; // emoji -> userIds
   attachment: Attachment | null; // null for text-only messages
+  replyTo: ReplyTo | null; // null for non-reply messages
   createdAt: string; // ISO 8601
+}
+```
+
+### ReplyTo
+```typescript
+interface ReplyTo {
+  messageId: string; // ID of the original message
+  content: string; // Preview text (max 100 chars)
+  senderId: string; // Original message sender's ID
+  senderName: string; // Original message sender's display name
+  type: 'text' | 'image' | 'file' | 'gif' | 'voice' | 'video'; // Original message type
 }
 ```
 
