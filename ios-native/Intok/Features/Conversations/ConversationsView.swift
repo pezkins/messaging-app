@@ -7,6 +7,9 @@ struct ConversationsView: View {
     @State private var searchText = ""
     @State private var showingSettings = false
     @State private var showingNewChat = false
+    @State private var showDeleteConfirmation = false
+    @State private var conversationToDelete: Conversation?
+    @State private var isDeletingConversation = false
     
     var filteredConversations: [Conversation] {
         if searchText.isEmpty {
@@ -86,7 +89,50 @@ struct ConversationsView: View {
             .refreshable {
                 await chatStore.loadConversations()
             }
+            .confirmationDialog(
+                "Delete Conversation",
+                isPresented: $showDeleteConfirmation,
+                titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive) {
+                    if let conversation = conversationToDelete {
+                        Task { await deleteConversation(conversation) }
+                    }
+                }
+                Button("Cancel", role: .cancel) {
+                    conversationToDelete = nil
+                }
+            } message: {
+                Text("Delete this conversation? This cannot be undone.")
+            }
+            .overlay {
+                if isDeletingConversation {
+                    Color.black.opacity(0.3)
+                        .ignoresSafeArea()
+                        .overlay {
+                            ProgressView("Deleting...")
+                                .padding()
+                                .background(Color(hex: "2A2A2A"))
+                                .cornerRadius(12)
+                        }
+                }
+            }
         }
+    }
+    
+    // MARK: - Delete Conversation
+    func deleteConversation(_ conversation: Conversation) async {
+        isDeletingConversation = true
+        
+        do {
+            try await chatStore.deleteConversation(conversation)
+            conversationToDelete = nil
+        } catch {
+            // Could show error alert here
+            print("Failed to delete conversation: \(error)")
+        }
+        
+        isDeletingConversation = false
     }
     
     // MARK: - Search Bar
@@ -202,7 +248,23 @@ struct ConversationsView: View {
                         ConversationRow(conversation: conversation)
                     }
                     .buttonStyle(.plain)
-                    
+                    .contextMenu {
+                        Button(role: .destructive) {
+                            conversationToDelete = conversation
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label("Delete Conversation", systemImage: "trash")
+                        }
+                    }
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        Button(role: .destructive) {
+                            conversationToDelete = conversation
+                            showDeleteConfirmation = true
+                        } label: {
+                            Label("Delete", systemImage: "trash")
+                        }
+                    }
+
                     Divider()
                         .background(Color.white.opacity(0.1))
                         .padding(.leading, 76)

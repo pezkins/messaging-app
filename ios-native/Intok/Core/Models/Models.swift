@@ -224,7 +224,13 @@ struct Message: Codable, Identifiable {
     var readBy: [String]?  // Array of user IDs who have read
     var readAt: String?    // Timestamp when read
     var replyTo: ReplyTo?  // Reply to another message
+    var deletedAt: String?  // Timestamp when deleted
+    var deletedBy: String?  // User ID who deleted the message
     
+    var isDeleted: Bool {
+        deletedAt != nil
+    }
+
     // Custom decoding to handle backend variations
     enum CodingKeys: String, CodingKey {
         case id, conversationId, senderId, sender, type
@@ -233,6 +239,7 @@ struct Message: Codable, Identifiable {
         case status, createdAt, reactions, attachment
         case content  // Backend might use 'content' instead of 'originalContent'
         case readBy, readAt, replyTo
+        case deletedAt, deletedBy
     }
     
     init(from decoder: Decoder) throws {
@@ -269,6 +276,8 @@ struct Message: Codable, Identifiable {
         readBy = try container.decodeIfPresent([String].self, forKey: .readBy)
         readAt = try container.decodeIfPresent(String.self, forKey: .readAt)
         replyTo = try container.decodeIfPresent(ReplyTo.self, forKey: .replyTo)
+        deletedAt = try container.decodeIfPresent(String.self, forKey: .deletedAt)
+        deletedBy = try container.decodeIfPresent(String.self, forKey: .deletedBy)
     }
     
     func encode(to encoder: Encoder) throws {
@@ -289,9 +298,11 @@ struct Message: Codable, Identifiable {
         try container.encodeIfPresent(readBy, forKey: .readBy)
         try container.encodeIfPresent(readAt, forKey: .readAt)
         try container.encodeIfPresent(replyTo, forKey: .replyTo)
+        try container.encodeIfPresent(deletedAt, forKey: .deletedAt)
+        try container.encodeIfPresent(deletedBy, forKey: .deletedBy)
     }
     
-    init(id: String, conversationId: String, senderId: String, sender: UserPublic?, type: MessageType = .text, originalContent: String, originalLanguage: String?, translatedContent: String? = nil, targetLanguage: String? = nil, status: MessageStatus? = .sent, createdAt: String, reactions: [String: [String]]? = nil, attachment: Attachment? = nil, readBy: [String]? = nil, readAt: String? = nil, replyTo: ReplyTo? = nil) {
+    init(id: String, conversationId: String, senderId: String, sender: UserPublic?, type: MessageType = .text, originalContent: String, originalLanguage: String?, translatedContent: String? = nil, targetLanguage: String? = nil, status: MessageStatus? = .sent, createdAt: String, reactions: [String: [String]]? = nil, attachment: Attachment? = nil, readBy: [String]? = nil, readAt: String? = nil, replyTo: ReplyTo? = nil, deletedAt: String? = nil, deletedBy: String? = nil) {
         self.id = id
         self.conversationId = conversationId
         self.senderId = senderId
@@ -308,6 +319,8 @@ struct Message: Codable, Identifiable {
         self.readBy = readBy
         self.readAt = readAt
         self.replyTo = replyTo
+        self.deletedAt = deletedAt
+        self.deletedBy = deletedBy
     }
 }
 

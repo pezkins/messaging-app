@@ -1,7 +1,9 @@
 package com.intokapp.app.ui.screens.conversations
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -173,10 +175,11 @@ fun ConversationsScreen(
                             ConversationRow(
                                 conversation = conversation,
                                 currentUserId = uiState.user?.id,
-                                onClick = { onConversationClick(conversation.id) }
+                                onClick = { onConversationClick(conversation.id) },
+                                onLongClick = { viewModel.showDeleteConversationDialog(conversation) }
                             )
                             
-                            Divider(
+                            HorizontalDivider(
                                 color = Surface700,
                                 modifier = Modifier.padding(start = 76.dp)
                             )
@@ -185,6 +188,17 @@ fun ConversationsScreen(
                 }
             }
         }
+    }
+    
+    // Delete conversation confirmation dialog
+    if (uiState.showDeleteDialog && uiState.conversationToDelete != null) {
+        DeleteConversationDialog(
+            conversation = uiState.conversationToDelete!!,
+            currentUserId = uiState.user?.id,
+            isDeleting = uiState.isDeletingConversation,
+            onDelete = { viewModel.deleteConversation() },
+            onDismiss = { viewModel.dismissDeleteDialog() }
+        )
     }
 }
 
@@ -230,11 +244,13 @@ private fun EmptyConversationsView(onNewChatClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun ConversationRow(
     conversation: Conversation,
     currentUserId: String?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
     val displayName = remember(conversation) {
         if (conversation.type == "group") {
@@ -271,7 +287,10 @@ private fun ConversationRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            )
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -407,4 +426,92 @@ private fun formatTime(isoString: String): String {
     } catch (e: Exception) {
         ""
     }
+}
+
+@Composable
+private fun DeleteConversationDialog(
+    conversation: Conversation,
+    currentUserId: String?,
+    isDeleting: Boolean,
+    onDelete: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val displayName = remember(conversation) {
+        if (conversation.type == "group") {
+            conversation.name ?: "Group Chat"
+        } else {
+            conversation.participants
+                .firstOrNull { it.id != currentUserId }
+                ?.username ?: "Unknown"
+        }
+    }
+    
+    AlertDialog(
+        onDismissRequest = { if (!isDeleting) onDismiss() },
+        icon = {
+            Icon(
+                Icons.Default.Delete,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(40.dp)
+            )
+        },
+        title = {
+            Text(
+                "Delete conversation?",
+                color = White,
+                fontWeight = FontWeight.SemiBold
+            )
+        },
+        text = {
+            Column {
+                if (isDeleting) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Deleting...", color = Surface300)
+                    }
+                } else {
+                    Text(
+                        "Delete your conversation with \"$displayName\"? This action cannot be undone.",
+                        color = Surface300
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Note: This only removes the conversation from your view. Other participants will still have access to the conversation.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Surface500
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            if (!isDeleting) {
+                TextButton(onClick = onDelete) {
+                    Text(
+                        "Delete",
+                        color = MaterialTheme.colorScheme.error,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        },
+        dismissButton = {
+            if (!isDeleting) {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel", color = Surface400)
+                }
+            }
+        },
+        containerColor = Surface800,
+        titleContentColor = White,
+        textContentColor = Surface300
+    )
 }

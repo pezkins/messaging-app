@@ -39,6 +39,19 @@ class ChatStore: ObservableObject {
         WebSocketService.shared.onReaction = { [weak self] data in
             self?.handleReaction(data)
         }
+        
+        WebSocketService.shared.onMessageDeleted = { [weak self] data in
+            self?.handleMessageDeleted(data)
+        }
+    }
+    
+    private func handleMessageDeleted(_ data: MessageDeletedData) {
+        // Find and update the message as deleted
+        if let index = messages.firstIndex(where: { $0.id == data.messageId }) {
+            messages[index].deletedAt = data.deletedAt
+            messages[index].deletedBy = data.deletedBy
+            logger.info("🗑️ Message marked as deleted: \(data.messageId, privacy: .public)")
+        }
     }
     
     private func handleMessageReceive(_ data: MessageReceiveData) {
@@ -363,6 +376,46 @@ class ChatStore: ObservableObject {
             logger.error("❌ User search failed: \(error.localizedDescription, privacy: .public)")
             return []
         }
+    }
+    
+    // MARK: - Delete Message
+    func deleteMessage(_ message: Message, forEveryone: Bool) async throws {
+        try await APIService.shared.deleteMessage(
+            conversationId: message.conversationId,
+            messageId: message.id,
+            messageTimestamp: message.createdAt,
+            forEveryone: forEveryone
+        )
+        
+        // Update local state
+        if forEveryone {
+            // Mark as deleted for everyone
+            if let index = messages.firstIndex(where: { $0.id == message.id }) {
+                messages[index].deletedAt = ISO8601DateFormatter().string(from: Date())
+                messages[index].deletedBy = AuthManager.shared.currentUser?.id
+            }
+        } else {
+            // Remove from local view only
+            messages.removeAll { $0.id == message.id }
+        }
+        
+        logger.info("🗑️ Message deleted: \(message.id, privacy: .public), forEveryone: \(forEveryone)")
+    }
+    
+    // MARK: - Delete Conversation
+    func deleteConversation(_ conversation: Conversation) async throws {
+        try await APIService.shared.deleteConversation(conversationId: conversation.id)
+        
+        // Remove from local state
+        conversations.removeAll { $0.id == conversation.id }
+        
+        // Clear active conversation if it was deleted
+        if activeConversation?.id == conversation.id {
+            activeConversation = nil
+            messages = []
+        }
+        
+        logger.info("🗑️ Conversation deleted: \(conversation.id, privacy: .public)")
     }
 }
 

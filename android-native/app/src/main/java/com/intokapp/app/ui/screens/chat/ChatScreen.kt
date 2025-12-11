@@ -132,6 +132,17 @@ fun ChatScreen(
         }
     }
     
+    // Show download success messages via Snackbar
+    LaunchedEffect(uiState.downloadSuccess) {
+        uiState.downloadSuccess?.let { message ->
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Short
+            )
+            viewModel.clearDownloadSuccess()
+        }
+    }
+    
     LaunchedEffect(conversationId) {
         viewModel.loadConversation(conversationId)
     }
@@ -427,6 +438,7 @@ fun ChatScreen(
             selectedMessageForReaction?.let { message ->
                 MessageContextMenu(
                     message = message,
+                    isOwnMessage = message.senderId == uiState.currentUserId || message.id.startsWith("temp-"),
                     onReactionSelected = { emoji ->
                         viewModel.sendReaction(message, emoji)
                         selectedMessageForReaction = null
@@ -438,6 +450,18 @@ fun ChatScreen(
                     onCopyClick = {
                         selectedMessageForReaction = null
                     },
+                    onDeleteClick = {
+                        viewModel.showDeleteMessageDialog(message)
+                        selectedMessageForReaction = null
+                    },
+                    onSaveToGallery = {
+                        viewModel.saveImageToGallery(message)
+                        selectedMessageForReaction = null
+                    },
+                    onDownloadDocument = {
+                        viewModel.downloadDocument(message)
+                        selectedMessageForReaction = null
+                    },
                     onShowMoreEmojis = {
                         selectedMessageForReaction = null
                         viewModel.showEmojiPicker()
@@ -446,6 +470,18 @@ fun ChatScreen(
                 )
             }
         }
+    }
+    
+    // Delete message confirmation dialog
+    if (uiState.showDeleteDialog && uiState.messageToDelete != null) {
+        DeleteMessageDialog(
+            message = uiState.messageToDelete!!,
+            isOwnMessage = uiState.messageToDelete!!.senderId == uiState.currentUserId,
+            isDeleting = uiState.isDeletingMessage,
+            onDeleteForMe = { viewModel.deleteMessage(forEveryone = false) },
+            onDeleteForEveryone = { viewModel.deleteMessage(forEveryone = true) },
+            onDismiss = { viewModel.dismissDeleteDialog() }
+        )
     }
     
     // Emoji picker bottom sheet
@@ -598,9 +634,13 @@ private fun ReplyPreviewBar(
 @Composable
 private fun MessageContextMenu(
     message: Message,
+    isOwnMessage: Boolean,
     onReactionSelected: (String) -> Unit,
     onReplyClick: () -> Unit,
     onCopyClick: () -> Unit,
+    onDeleteClick: () -> Unit,
+    onSaveToGallery: () -> Unit,
+    onDownloadDocument: () -> Unit,
     onShowMoreEmojis: () -> Unit,
     onDismiss: () -> Unit
 ) {
@@ -608,6 +648,13 @@ private fun MessageContextMenu(
     val clipboardManager = LocalClipboardManager.current
     val frequentManager = remember { FrequentEmojiManager(context) }
     val frequentEmojis = remember { frequentManager.getTopFrequent(5) }
+    
+    // Check if message is deleted
+    val isDeleted = message.originalContent == "This message was deleted"
+    
+    // Check message type for download options
+    val isImage = message.type == MessageType.IMAGE || message.type == MessageType.GIF
+    val isDocument = message.type == MessageType.FILE || message.type == MessageType.ATTACHMENT
     
     Box(
         modifier = Modifier
@@ -624,91 +671,153 @@ private fun MessageContextMenu(
                 .clickable(enabled = false) {} // Prevent dismiss when clicking on menu
         ) {
             Column {
-                // Quick emoji reactions row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    frequentEmojis.forEach { emoji ->
+                // Quick emoji reactions row (hide for deleted messages)
+                if (!isDeleted) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        frequentEmojis.forEach { emoji ->
+                            Surface(
+                                shape = CircleShape,
+                                color = Surface700,
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clickable { 
+                                        frequentManager.recordUsage(emoji)
+                                        onReactionSelected(emoji) 
+                                    }
+                            ) {
+                                Box(contentAlignment = Alignment.Center) {
+                                    Text(emoji, fontSize = 22.sp)
+                                }
+                            }
+                        }
+                        
+                        // More emojis button
                         Surface(
                             shape = CircleShape,
-                            color = Surface700,
+                            color = Purple500.copy(alpha = 0.3f),
                             modifier = Modifier
                                 .size(44.dp)
-                                .clickable { 
-                                    frequentManager.recordUsage(emoji)
-                                    onReactionSelected(emoji) 
-                                }
+                                .clickable { onShowMoreEmojis() }
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Text(emoji, fontSize = 22.sp)
+                                Icon(
+                                    Icons.Default.Add,
+                                    contentDescription = "More emojis",
+                                    tint = Purple500,
+                                    modifier = Modifier.size(20.dp)
+                                )
                             }
                         }
                     }
                     
-                    // More emojis button
-                    Surface(
-                        shape = CircleShape,
-                        color = Purple500.copy(alpha = 0.3f),
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clickable { onShowMoreEmojis() }
-                    ) {
-                        Box(contentAlignment = Alignment.Center) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = "More emojis",
-                                tint = Purple500,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
-                    }
-                }
-                
-                Divider(color = Surface700, thickness = 1.dp)
-                
-                // Reply option
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onReplyClick() }
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        Icons.Default.Reply,
-                        contentDescription = null,
-                        tint = White,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text("Reply", color = White, style = MaterialTheme.typography.bodyMedium)
-                }
-                
-                // Copy option (only for text messages)
-                if (message.type == null || message.type == MessageType.TEXT) {
+                    HorizontalDivider(color = Surface700, thickness = 1.dp)
+                    
+                    // Reply option
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable {
-                                clipboardManager.setText(AnnotatedString(message.originalContent))
-                                Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
-                                onCopyClick()
-                            }
+                            .clickable { onReplyClick() }
                             .padding(horizontal = 16.dp, vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            Icons.Default.ContentCopy,
+                            Icons.Default.Reply,
                             contentDescription = null,
                             tint = White,
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Copy", color = White, style = MaterialTheme.typography.bodyMedium)
+                        Text("Reply", color = White, style = MaterialTheme.typography.bodyMedium)
+                    }
+                    
+                    // Copy option (only for text messages)
+                    if (message.type == null || message.type == MessageType.TEXT) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    clipboardManager.setText(AnnotatedString(message.originalContent))
+                                    Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+                                    onCopyClick()
+                                }
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.ContentCopy,
+                                contentDescription = null,
+                                tint = White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("Copy", color = White, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                    
+                    // Save to Gallery option (for images and GIFs)
+                    if (isImage) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSaveToGallery() }
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.SaveAlt,
+                                contentDescription = null,
+                                tint = White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("Save to Gallery", color = White, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                    
+                    // Download option (for documents)
+                    if (isDocument) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onDownloadDocument() }
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                Icons.Default.Download,
+                                contentDescription = null,
+                                tint = White,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text("Download", color = White, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
+                
+                // Delete option (always show unless message is already deleted)
+                if (!isDeleted) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onDeleteClick() }
+                            .padding(horizontal = 16.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Delete", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
@@ -1380,6 +1489,105 @@ private fun DocumentTranslationDialog(
                 }
                 TextButton(onClick = onSendWithoutTranslation) {
                     Text("Send Without Translation", color = Surface300)
+                }
+            }
+        },
+        containerColor = Surface800,
+        titleContentColor = White,
+        textContentColor = Surface300
+    )
+}
+
+@Composable
+private fun DeleteMessageDialog(
+    message: Message,
+    isOwnMessage: Boolean,
+    isDeleting: Boolean,
+    onDeleteForMe: () -> Unit,
+    onDeleteForEveryone: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = { if (!isDeleting) onDismiss() },
+        icon = {
+            Icon(
+                Icons.Default.Delete,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(40.dp)
+            )
+        },
+        title = {
+            Text(
+                "Delete this message?",
+                color = White,
+                fontWeight = FontWeight.SemiBold
+            )
+        },
+        text = {
+            Column {
+                if (isDeleting) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Deleting...", color = Surface300)
+                    }
+                } else {
+                    if (isOwnMessage) {
+                        Text(
+                            "You can delete this message for yourself or for everyone in this conversation.",
+                            color = Surface300
+                        )
+                    } else {
+                        Text(
+                            "This message will be removed from your view only.",
+                            color = Surface300
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            if (!isDeleting) {
+                Column {
+                    if (isOwnMessage) {
+                        // Delete for Everyone button (only for own messages)
+                        TextButton(
+                            onClick = onDeleteForEveryone,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                "Delete for Everyone",
+                                color = MaterialTheme.colorScheme.error,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                    
+                    // Delete for Me button
+                    TextButton(
+                        onClick = onDeleteForMe,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            "Delete for Me",
+                            color = if (isOwnMessage) Surface300 else MaterialTheme.colorScheme.error
+                        )
+                    }
+                }
+            }
+        },
+        dismissButton = {
+            if (!isDeleting) {
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel", color = Surface400)
                 }
             }
         },

@@ -412,6 +412,20 @@ class APIService {
     func markAsRead(conversationId: String) async throws {
         let _: EmptyResponse = try await request(endpoint: "/api/conversations/\(conversationId)/read", method: "POST")
     }
+    
+    // MARK: - Delete Message
+    func deleteMessage(conversationId: String, messageId: String, messageTimestamp: String, forEveryone: Bool) async throws {
+        var endpoint = "/api/conversations/\(conversationId)/messages/\(messageId)?timestamp=\(messageTimestamp)"
+        if forEveryone {
+            endpoint += "&forEveryone=true"
+        }
+        let _: EmptyResponse = try await request(endpoint: endpoint, method: "DELETE")
+    }
+    
+    // MARK: - Delete Conversation
+    func deleteConversation(conversationId: String) async throws {
+        let _: EmptyResponse = try await request(endpoint: "/api/conversations/\(conversationId)", method: "DELETE")
+    }
 }
 
 // MARK: - Empty Response for void endpoints

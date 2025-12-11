@@ -3,6 +3,7 @@ package com.intokapp.app.data.repository
 import android.util.Log
 import com.intokapp.app.data.models.*
 import com.intokapp.app.data.network.ApiService
+import com.intokapp.app.data.network.DeleteMessageRequest
 import com.intokapp.app.data.network.TokenManager
 import com.intokapp.app.data.network.WebSocketEvent
 import com.intokapp.app.data.network.WebSocketService
@@ -73,6 +74,7 @@ class ChatRepository @Inject constructor(
                         }
                         is WebSocketEvent.Typing -> handleTyping(event.conversationId, event.userId, event.isTyping)
                         is WebSocketEvent.Reaction -> handleReaction(event)
+                        is WebSocketEvent.MessageDeleted -> handleMessageDeleted(event)
                         is WebSocketEvent.Connected -> Log.d(TAG, "🔌 WebSocket connected event received")
                         is WebSocketEvent.Disconnected -> Log.d(TAG, "🔌 WebSocket disconnected event received")
                     }
@@ -190,6 +192,26 @@ class ChatRepository @Inject constructor(
         if (index >= 0) {
             val message = currentMessages[index]
             currentMessages[index] = message.copy(reactions = event.reactions)
+            _messages.value = currentMessages
+        }
+    }
+    
+    private fun handleMessageDeleted(event: WebSocketEvent.MessageDeleted) {
+        Log.d(TAG, "🗑️ Message deleted: ${event.messageId} in ${event.conversationId}")
+        
+        // Update message list to show deleted placeholder
+        val currentMessages = _messages.value.toMutableList()
+        val index = currentMessages.indexOfFirst { it.id == event.messageId }
+        if (index >= 0) {
+            val message = currentMessages[index]
+            // Mark message as deleted - UI will show "This message was deleted"
+            currentMessages[index] = message.copy(
+                type = MessageType.TEXT,
+                originalContent = "This message was deleted",
+                translatedContent = "This message was deleted",
+                attachment = null,
+                reactions = emptyMap()
+            )
             _messages.value = currentMessages
         }
     }
@@ -464,6 +486,79 @@ class ChatRepository @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "❌ User search failed: ${e.message}")
             emptyList()
+        }
+    }
+    
+    /**
+     * Delete a message
+     * @param messageId The ID of the message to delete
+     * @param forEveryone If true, deletes for all participants; if false, only for current user
+     */
+    suspend fun deleteMessage(messageId: String, forEveryone: Boolean): Result<Unit> {
+        val conversation = _activeConversation.value ?: return Result.failure(Exception("No active conversation"))
+        
+        return try {
+            val response = apiService.deleteMessage(
+                conversationId = conversation.id,
+                messageId = messageId,
+                request = DeleteMessageRequest(forEveryone = forEveryone)
+            )
+            
+            if (response.success) {
+                if (forEveryone) {
+                    // For "delete for everyone", mark as deleted (will be broadcast via WebSocket)
+                    val currentMessages = _messages.value.toMutableList()
+                    val index = currentMessages.indexOfFirst { it.id == messageId }
+                    if (index >= 0) {
+                        val message = currentMessages[index]
+                        currentMessages[index] = message.copy(
+                            type = MessageType.TEXT,
+                            originalContent = "This message was deleted",
+                            translatedContent = "This message was deleted",
+                            attachment = null,
+                            reactions = emptyMap()
+                        )
+                        _messages.value = currentMessages
+                    }
+                } else {
+                    // For "delete for me", remove from local list only
+                    _messages.value = _messages.value.filter { it.id != messageId }
+                }
+                Log.d(TAG, "🗑️ Message deleted: $messageId (forEveryone: $forEveryone)")
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed to delete message"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to delete message: ${e.message}")
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Delete a conversation (removes from user's view only)
+     */
+    suspend fun deleteConversation(conversationId: String): Result<Unit> {
+        return try {
+            val response = apiService.deleteConversation(conversationId)
+            
+            if (response.success) {
+                // Remove from local list
+                _conversations.value = _conversations.value.filter { it.id != conversationId }
+                
+                // If this was the active conversation, clear it
+                if (_activeConversation.value?.id == conversationId) {
+                    clearActiveConversation()
+                }
+                
+                Log.d(TAG, "🗑️ Conversation deleted: $conversationId")
+                Result.success(Unit)
+            } else {
+                Result.failure(Exception("Failed to delete conversation"))
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to delete conversation: ${e.message}")
+            Result.failure(e)
         }
     }
 }

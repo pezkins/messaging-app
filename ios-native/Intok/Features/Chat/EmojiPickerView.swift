@@ -141,9 +141,11 @@ struct QuickReactionBar: View {
     let onShowFullPicker: () -> Void
     let onReply: () -> Void
     let onCopy: () -> Void
-    
+    let onDelete: () -> Void
+    let showDeleteForEveryone: Bool
+
     @StateObject private var frequentManager = FrequentEmojiManager.shared
-    
+
     var body: some View {
         VStack(spacing: 0) {
             // Quick reactions row
@@ -158,7 +160,7 @@ struct QuickReactionBar: View {
                     }
                     .buttonStyle(.plain)
                 }
-                
+
                 // Plus button for full picker
                 Button {
                     onShowFullPicker()
@@ -171,10 +173,10 @@ struct QuickReactionBar: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 12)
-            
+
             Divider()
                 .background(Color.white.opacity(0.1))
-            
+
             // Action buttons row
             HStack(spacing: 0) {
                 // Reply button
@@ -190,7 +192,7 @@ struct QuickReactionBar: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                 }
-                
+
                 Divider()
                     .frame(height: 20)
                     .background(Color.white.opacity(0.1))
@@ -205,6 +207,24 @@ struct QuickReactionBar: View {
                     }
                     .font(.subheadline)
                     .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                }
+                
+                Divider()
+                    .frame(height: 20)
+                    .background(Color.white.opacity(0.1))
+                
+                // Delete button
+                Button {
+                    onDelete()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "trash")
+                        Text("Delete")
+                    }
+                    .font(.subheadline)
+                    .foregroundColor(.red)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                 }

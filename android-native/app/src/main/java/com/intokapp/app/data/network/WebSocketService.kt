@@ -30,6 +30,12 @@ sealed class WebSocketEvent {
         val userId: String,
         val emoji: String
     ) : WebSocketEvent()
+    data class MessageDeleted(
+        val conversationId: String,
+        val messageId: String,
+        val deletedBy: String,
+        val deletedAt: String
+    ) : WebSocketEvent()
     object Connected : WebSocketEvent()
     object Disconnected : WebSocketEvent()
 }
@@ -182,6 +188,16 @@ class WebSocketService @Inject constructor(
                     }
                     scope.launch {
                         _events.emit(WebSocketEvent.Reaction(conversationId, messageId, messageTimestamp, reactions, userId, emoji))
+                    }
+                }
+                
+                "message:deleted" -> {
+                    val conversationId = json.get("conversationId")?.asString ?: return
+                    val messageId = json.get("messageId")?.asString ?: return
+                    val deletedBy = json.get("deletedBy")?.asString ?: return
+                    val deletedAt = json.get("deletedAt")?.asString ?: return
+                    scope.launch {
+                        _events.emit(WebSocketEvent.MessageDeleted(conversationId, messageId, deletedBy, deletedAt))
                     }
                 }
             }

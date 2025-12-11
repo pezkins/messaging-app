@@ -10,6 +10,7 @@ import com.intokapp.app.data.models.Message
 import com.intokapp.app.data.network.GiphyGif
 import com.intokapp.app.data.network.GiphyService
 import com.intokapp.app.data.repository.AttachmentRepository
+import com.intokapp.app.data.repository.AttachmentUtils
 import com.intokapp.app.data.repository.AuthRepository
 import com.intokapp.app.data.repository.AuthState
 import com.intokapp.app.data.repository.ChatRepository
@@ -43,7 +44,14 @@ data class ChatUiState(
     val showDocumentTranslationDialog: Boolean = false,
     val pendingDocumentAttachment: Attachment? = null,
     // Reply state
-    val replyingTo: Message? = null
+    val replyingTo: Message? = null,
+    // Delete message state
+    val showDeleteDialog: Boolean = false,
+    val messageToDelete: Message? = null,
+    val isDeletingMessage: Boolean = false,
+    // Download state
+    val isDownloading: Boolean = false,
+    val downloadSuccess: String? = null
 )
 
 @HiltViewModel
@@ -374,5 +382,123 @@ class ChatViewModel @Inject constructor(
     
     suspend fun getDownloadUrl(key: String): String? {
         return attachmentRepository.getDownloadUrl(key)
+    }
+    
+    // ============================================
+    // Delete Messages
+    // ============================================
+    
+    fun showDeleteMessageDialog(message: Message) {
+        _uiState.update { it.copy(showDeleteDialog = true, messageToDelete = message) }
+    }
+    
+    fun dismissDeleteDialog() {
+        _uiState.update { it.copy(showDeleteDialog = false, messageToDelete = null) }
+    }
+    
+    fun deleteMessage(forEveryone: Boolean) {
+        val message = _uiState.value.messageToDelete ?: return
+        
+        viewModelScope.launch {
+            _uiState.update { it.copy(isDeletingMessage = true) }
+            
+            val result = chatRepository.deleteMessage(message.id, forEveryone)
+            
+            result.fold(
+                onSuccess = {
+                    _uiState.update { it.copy(
+                        isDeletingMessage = false,
+                        showDeleteDialog = false,
+                        messageToDelete = null
+                    ) }
+                },
+                onFailure = { error ->
+                    _uiState.update { it.copy(
+                        isDeletingMessage = false,
+                        errorMessage = "Failed to delete message: ${error.message}"
+                    ) }
+                }
+            )
+        }
+    }
+    
+    // ============================================
+    // Download Attachments
+    // ============================================
+    
+    fun saveImageToGallery(message: Message) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isDownloading = true) }
+            
+            try {
+                // Get the image URL - either from attachment or directly from key
+                val imageUrl = message.attachment?.url 
+                    ?: message.attachment?.key?.let { key ->
+                        if (key.startsWith("http")) key else getDownloadUrl(key)
+                    }
+                    ?: message.originalContent.takeIf { it.startsWith("http") }
+                
+                if (imageUrl == null) {
+                    _uiState.update { it.copy(
+                        isDownloading = false,
+                        errorMessage = "Unable to get image URL"
+                    ) }
+                    return@launch
+                }
+                
+                val fileName = message.attachment?.fileName 
+                    ?: "intok_image_${System.currentTimeMillis()}.jpg"
+                
+                val success = AttachmentUtils.saveImageToGallery(context, imageUrl, fileName)
+                
+                if (success) {
+                    _uiState.update { it.copy(
+                        isDownloading = false,
+                        downloadSuccess = "Image saved to Gallery"
+                    ) }
+                } else {
+                    _uiState.update { it.copy(
+                        isDownloading = false,
+                        errorMessage = "Failed to save image"
+                    ) }
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(
+                    isDownloading = false,
+                    errorMessage = "Failed to save image: ${e.message}"
+                ) }
+            }
+        }
+    }
+    
+    fun downloadDocument(message: Message) {
+        viewModelScope.launch {
+            try {
+                // Get the document URL - either from attachment or directly from key
+                val downloadUrl = message.attachment?.url 
+                    ?: message.attachment?.key?.let { key ->
+                        if (key.startsWith("http")) key else getDownloadUrl(key)
+                    }
+                
+                if (downloadUrl == null) {
+                    _uiState.update { it.copy(errorMessage = "Unable to get download URL") }
+                    return@launch
+                }
+                
+                val fileName = message.attachment?.fileName 
+                    ?: "intok_document_${System.currentTimeMillis()}"
+                
+                // Use DownloadManager for documents (shows notification)
+                AttachmentUtils.downloadDocument(context, downloadUrl, fileName)
+                
+                _uiState.update { it.copy(downloadSuccess = "Download started") }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = "Failed to start download: ${e.message}") }
+            }
+        }
+    }
+    
+    fun clearDownloadSuccess() {
+        _uiState.update { it.copy(downloadSuccess = null) }
     }
 }

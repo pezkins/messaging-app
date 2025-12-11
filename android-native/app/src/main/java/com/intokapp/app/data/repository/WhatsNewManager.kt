@@ -24,6 +24,16 @@ class WhatsNewManager @Inject constructor(
     
     val changelog = listOf(
         ChangelogEntry(
+            version = "0.1.16",
+            title = "Message Management Update",
+            changes = listOf(
+                "🗑️ Delete individual messages",
+                "🗑️ Delete entire conversations",
+                "💾 Save images to gallery",
+                "📥 Download documents to device"
+            )
+        ),
+        ChangelogEntry(
             version = "0.1.15",
             title = "Stability & Fixes Update",
             changes = listOf(

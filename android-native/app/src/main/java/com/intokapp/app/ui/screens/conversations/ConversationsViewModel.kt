@@ -22,7 +22,11 @@ data class ConversationsUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val showWhatsNew: Boolean = false,
-    val whatsNewEntries: List<ChangelogEntry> = emptyList()
+    val whatsNewEntries: List<ChangelogEntry> = emptyList(),
+    // Delete conversation state
+    val showDeleteDialog: Boolean = false,
+    val conversationToDelete: Conversation? = null,
+    val isDeletingConversation: Boolean = false
 )
 
 @HiltViewModel
@@ -77,6 +81,44 @@ class ConversationsViewModel @Inject constructor(
     fun loadConversations() {
         viewModelScope.launch {
             chatRepository.loadConversations()
+        }
+    }
+    
+    // ============================================
+    // Delete Conversations
+    // ============================================
+    
+    fun showDeleteConversationDialog(conversation: Conversation) {
+        _uiState.update { it.copy(showDeleteDialog = true, conversationToDelete = conversation) }
+    }
+    
+    fun dismissDeleteDialog() {
+        _uiState.update { it.copy(showDeleteDialog = false, conversationToDelete = null) }
+    }
+    
+    fun deleteConversation() {
+        val conversation = _uiState.value.conversationToDelete ?: return
+        
+        viewModelScope.launch {
+            _uiState.update { it.copy(isDeletingConversation = true) }
+            
+            val result = chatRepository.deleteConversation(conversation.id)
+            
+            result.fold(
+                onSuccess = {
+                    _uiState.update { it.copy(
+                        isDeletingConversation = false,
+                        showDeleteDialog = false,
+                        conversationToDelete = null
+                    ) }
+                },
+                onFailure = { error ->
+                    _uiState.update { it.copy(
+                        isDeletingConversation = false,
+                        error = "Failed to delete conversation: ${error.message}"
+                    ) }
+                }
+            )
         }
     }
 }

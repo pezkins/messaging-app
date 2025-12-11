@@ -102,6 +102,22 @@ interface ApiService {
     
     @POST("api/conversations/{conversationId}/read")
     suspend fun markConversationAsRead(@Path("conversationId") conversationId: String)
+    
+    // ============================================
+    // Delete Endpoints
+    // ============================================
+    
+    @HTTP(method = "DELETE", path = "api/conversations/{conversationId}", hasBody = true)
+    suspend fun deleteConversation(
+        @Path("conversationId") conversationId: String
+    ): DeleteConversationResponse
+    
+    @HTTP(method = "DELETE", path = "api/conversations/{conversationId}/messages/{messageId}", hasBody = true)
+    suspend fun deleteMessage(
+        @Path("conversationId") conversationId: String,
+        @Path("messageId") messageId: String,
+        @Body request: DeleteMessageRequest
+    ): DeleteMessageResponse
 }
 
 // ============================================
@@ -205,6 +221,26 @@ data class ProfilePictureUploadResponse(
     val uploadUrl: String,
     val key: String,
     val expiresIn: Int
+)
+
+data class DeleteMessageRequest(
+    val forEveryone: Boolean = false
+)
+
+data class DeleteMessageResponse(
+    val success: Boolean,
+    val messageId: String,
+    val conversationId: String,
+    val deletedAt: String? = null,
+    val deletedForEveryone: Boolean? = null,
+    val deletedForMe: Boolean? = null,
+    val participantIds: List<String>? = null
+)
+
+data class DeleteConversationResponse(
+    val success: Boolean,
+    val message: String,
+    val conversationId: String
 )
 
 

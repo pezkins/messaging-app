@@ -15,6 +15,7 @@ enum WebSocketEvent: String {
     case messageReaction = "message:reaction"
     case messageSend = "message:send"
     case messageRead = "message:read"
+    case messageDeleted = "message:deleted"
     case conversationJoin = "conversation:join"
     case conversationLeave = "conversation:leave"
 }
@@ -38,6 +39,14 @@ struct ReactionData: Codable {
     let reactions: [String: [String]]
     let userId: String
     let emoji: String
+}
+
+struct MessageDeletedData: Codable {
+    let conversationId: String
+    let messageId: String
+    let deletedBy: String
+    let deletedAt: String
+    let forEveryone: Bool?
 }
 
 // MARK: - Pending Message for retry
@@ -67,6 +76,7 @@ class WebSocketService: ObservableObject {
     var onMessageReceive: ((MessageReceiveData) -> Void)?
     var onTyping: ((TypingData) -> Void)?
     var onReaction: ((ReactionData) -> Void)?
+    var onMessageDeleted: ((MessageDeletedData) -> Void)?
     var onConnected: (() -> Void)?
     var onDisconnected: (() -> Void)?
     
@@ -263,6 +273,17 @@ class WebSocketService: ObservableObject {
                         }
                     } catch {
                         wsLog("❌ Failed to decode message:reaction - \(error)")
+                    }
+                    
+                case WebSocketEvent.messageDeleted.rawValue:
+                    do {
+                        let deletedData = try JSONDecoder().decode(MessageDeletedData.self, from: data)
+                        wsLog("🗑️ Message deleted: \(deletedData.messageId)")
+                        DispatchQueue.main.async {
+                            self.onMessageDeleted?(deletedData)
+                        }
+                    } catch {
+                        wsLog("❌ Failed to decode message:deleted - \(error)")
                     }
                     
                 default:

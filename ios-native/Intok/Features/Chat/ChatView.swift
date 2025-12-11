@@ -1,5 +1,6 @@
 import SwiftUI
 import PhotosUI
+import Photos
 import QuickLook
 import UniformTypeIdentifiers
 import os.log
@@ -62,6 +63,15 @@ struct ChatView: View {
     @State private var replyingTo: Message?
     @State private var showEmojiPicker = false
     @State private var selectedMessageForReaction: Message?
+    @State private var showDeleteConfirmation = false
+    @State private var messageToDelete: Message?
+    @State private var isDeletingMessage = false
+    @State private var showSaveSuccess = false
+    @State private var showSaveError = false
+    @State private var saveErrorMessage: String?
+    @State private var isDownloading = false
+    @State private var showShareSheet = false
+    @State private var downloadedFileURL: URL?
     @FocusState private var isInputFocused: Bool
     
     var displayName: String {
@@ -182,6 +192,68 @@ struct ChatView: View {
         } message: {
             Text("Would you like to translate \"\(pendingDocumentAttachment?.fileName ?? "this document")\" for recipients who speak other languages?")
         }
+        .confirmationDialog(
+            "Delete Message",
+            isPresented: $showDeleteConfirmation,
+            titleVisibility: .visible
+        ) {
+            if let message = messageToDelete {
+                let isOwnMessage = message.senderId == authManager.currentUser?.id
+                
+                Button("Delete for Me", role: .destructive) {
+                    Task { await deleteMessage(message, forEveryone: false) }
+                }
+                
+                if isOwnMessage {
+                    Button("Delete for Everyone", role: .destructive) {
+                        Task { await deleteMessage(message, forEveryone: true) }
+                    }
+                }
+                
+                Button("Cancel", role: .cancel) {
+                    messageToDelete = nil
+                }
+            }
+        } message: {
+            Text("This action cannot be undone.")
+        }
+        .alert("Saved!", isPresented: $showSaveSuccess) {
+            Button("OK") { }
+        } message: {
+            Text("Image saved to Photos")
+        }
+        .alert("Error", isPresented: $showSaveError) {
+            Button("OK") { }
+        } message: {
+            Text(saveErrorMessage ?? "Failed to save image")
+        }
+        .overlay {
+            if isDeletingMessage {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .overlay {
+                        ProgressView("Deleting...")
+                            .padding()
+                            .background(Color(hex: "2A2A2A"))
+                            .cornerRadius(12)
+                    }
+            }
+            if isDownloading {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .overlay {
+                        ProgressView("Downloading...")
+                            .padding()
+                            .background(Color(hex: "2A2A2A"))
+                            .cornerRadius(12)
+                    }
+            }
+        }
+        .sheet(isPresented: $showShareSheet) {
+            if let fileURL = downloadedFileURL {
+                ShareSheet(activityItems: [fileURL])
+            }
+        }
     }
     
     // MARK: - Messages View
@@ -220,6 +292,20 @@ struct ChatView: View {
                             },
                             onCopy: {
                                 UIPasteboard.general.string = message.translatedContent ?? message.originalContent
+                            },
+                            onDelete: {
+                                messageToDelete = message
+                                showDeleteConfirmation = true
+                            },
+                            onSaveImage: { urlString in
+                                Task {
+                                    await saveImageToPhotos(from: urlString)
+                                }
+                            },
+                            onDownloadDocument: { attachment in
+                                Task {
+                                    await downloadDocument(attachment)
+                                }
                             },
                             onImageTap: { url in
                                 previewURL = url
@@ -490,6 +576,101 @@ struct ChatView: View {
         
         pendingDocumentAttachment = nil
     }
+    
+    // MARK: - Delete Message
+    func deleteMessage(_ message: Message, forEveryone: Bool) async {
+        isDeletingMessage = true
+        
+        do {
+            try await chatStore.deleteMessage(message, forEveryone: forEveryone)
+            messageToDelete = nil
+        } catch {
+            errorMessage = "Failed to delete message: \(error.localizedDescription)"
+            showError = true
+        }
+        
+        isDeletingMessage = false
+    }
+    
+    // MARK: - Save Image to Photos
+    func saveImageToPhotos(from urlString: String) async {
+        guard let url = URL(string: urlString) else {
+            saveErrorMessage = "Invalid image URL"
+            showSaveError = true
+            return
+        }
+        
+        do {
+            // Download image data
+            let (data, _) = try await URLSession.shared.data(from: url)
+            guard let image = UIImage(data: data) else {
+                saveErrorMessage = "Could not load image"
+                showSaveError = true
+                return
+            }
+            
+            // Request photo library permission
+            let status = await PHPhotoLibrary.requestAuthorization(for: .addOnly)
+            guard status == .authorized || status == .limited else {
+                saveErrorMessage = "Photo library access denied. Please enable in Settings."
+                showSaveError = true
+                return
+            }
+            
+            // Save to photo library
+            try await PHPhotoLibrary.shared().performChanges {
+                PHAssetChangeRequest.creationRequestForAsset(from: image)
+            }
+            
+            await MainActor.run {
+                showSaveSuccess = true
+            }
+        } catch {
+            await MainActor.run {
+                saveErrorMessage = "Failed to save image: \(error.localizedDescription)"
+                showSaveError = true
+            }
+        }
+    }
+    
+    // MARK: - Download Document
+    func downloadDocument(_ attachment: Attachment) async {
+        guard let urlString = attachment.url, let downloadUrl = URL(string: urlString) else {
+            errorMessage = "No download URL available"
+            showError = true
+            return
+        }
+        
+        await MainActor.run {
+            isDownloading = true
+        }
+        
+        do {
+            // Download file to temporary location
+            let (tempURL, _) = try await URLSession.shared.download(from: downloadUrl)
+            
+            // Move to documents directory with proper filename
+            let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            let destinationURL = documentsPath.appendingPathComponent(attachment.fileName)
+            
+            // Remove existing file if present
+            try? FileManager.default.removeItem(at: destinationURL)
+            try FileManager.default.moveItem(at: tempURL, to: destinationURL)
+            
+            // Present share sheet
+            await MainActor.run {
+                isDownloading = false
+                downloadedFileURL = destinationURL
+                showShareSheet = true
+            }
+        } catch {
+            await MainActor.run {
+                isDownloading = false
+                errorMessage = "Failed to download: \(error.localizedDescription)"
+                showError = true
+            }
+        }
+    }
 }
 
 // MARK: - Message Bubble
@@ -500,6 +681,9 @@ struct MessageBubble: View {
     let onShowFullEmojiPicker: () -> Void
     let onReply: () -> Void
     let onCopy: () -> Void
+    let onDelete: () -> Void
+    let onSaveImage: ((String) -> Void)?
+    let onDownloadDocument: ((Attachment) -> Void)?
     let onImageTap: (URL) -> Void
     let onScrollToMessage: ((String) -> Void)?
     
@@ -572,8 +756,8 @@ struct MessageBubble: View {
                                 }
                             }
                         
-                        // Quick Reaction Bar Popup
-                        if showReactionBar {
+                        // Quick Reaction Bar Popup (only for non-deleted messages)
+                        if showReactionBar && !message.isDeleted {
                             QuickReactionBar(
                                 onEmojiSelected: { emoji in
                                     onReaction(emoji)
@@ -592,9 +776,14 @@ struct MessageBubble: View {
                                 onCopy: {
                                     showReactionBar = false
                                     onCopy()
-                                }
+                                },
+                                onDelete: {
+                                    showReactionBar = false
+                                    onDelete()
+                                },
+                                showDeleteForEveryone: isOwnMessage
                             )
-                            .frame(width: 280)
+                            .frame(width: 320)
                             .offset(y: -120)
                             .transition(.scale.combined(with: .opacity))
                         }
@@ -628,30 +817,42 @@ struct MessageBubble: View {
     @ViewBuilder
     var messageContent: some View {
         VStack(alignment: .leading, spacing: 4) {
-            // Quoted message (reply)
-            if let replyTo = message.replyTo {
-                QuotedMessageView(
-                    replyTo: replyTo,
-                    isOwnMessage: isOwnMessage,
-                    onTap: {
-                        onScrollToMessage?(replyTo.messageId)
-                    }
-                )
+            // Check if message is deleted
+            if message.isDeleted {
+                HStack(spacing: 4) {
+                    Image(systemName: "nosign")
+                        .font(.caption)
+                    Text("This message was deleted")
+                        .italic()
+                }
+                .foregroundColor(.gray)
+                .font(.subheadline)
+            } else {
+                // Quoted message (reply)
+                if let replyTo = message.replyTo {
+                    QuotedMessageView(
+                        replyTo: replyTo,
+                        isOwnMessage: isOwnMessage,
+                        onTap: {
+                            onScrollToMessage?(replyTo.messageId)
+                        }
+                    )
+                }
+
+                // Image/GIF Attachment
+                if message.type == .image || message.type == .gif {
+                    imageContent
+                }
+                // Document Attachment
+                else if message.type == .file, let attachment = message.attachment {
+                    documentContent(attachment)
+                }
+                // Text Content
+                else {
+                    textContent
+                }
             }
-            
-            // Image/GIF Attachment
-            if message.type == .image || message.type == .gif {
-                imageContent
-            }
-            // Document Attachment
-            else if message.type == .file, let attachment = message.attachment {
-                documentContent(attachment)
-            }
-            // Text Content
-            else {
-                textContent
-            }
-            
+
             // Timestamp inside bubble (bottom-right)
             HStack {
                 Spacer()
@@ -718,9 +919,25 @@ struct MessageBubble: View {
                         EmptyView()
                     }
                 }
+                .contextMenu {
+                    Button {
+                        onSaveImage?(message.originalContent)
+                    } label: {
+                        Label("Save to Photos", systemImage: "square.and.arrow.down")
+                    }
+                }
             } else if let attachment = message.attachment {
                 // Image from attachment
                 AttachmentImageView(attachment: attachment, onTap: onImageTap)
+                    .contextMenu {
+                        if let url = attachment.url {
+                            Button {
+                                onSaveImage?(url)
+                            } label: {
+                                Label("Save to Photos", systemImage: "square.and.arrow.down")
+                            }
+                        }
+                    }
             }
         }
         .cornerRadius(8)
@@ -757,8 +974,26 @@ struct MessageBubble: View {
                     .font(.caption)
                     .foregroundColor(.white.opacity(0.7))
             }
+            
+            Spacer()
+            
+            // Download button
+            Button {
+                onDownloadDocument?(attachment)
+            } label: {
+                Image(systemName: "arrow.down.circle")
+                    .font(.title2)
+                    .foregroundColor(isOwnMessage ? .white.opacity(0.7) : Color(hex: "8B5CF6"))
+            }
         }
         .padding(4)
+        .contextMenu {
+            Button {
+                onDownloadDocument?(attachment)
+            } label: {
+                Label("Download", systemImage: "arrow.down.circle")
+            }
+        }
     }
     
     // MARK: - Reactions Display
@@ -970,6 +1205,17 @@ struct RoundedCorner: Shape {
         )
         return Path(path.cgPath)
     }
+}
+
+// MARK: - Share Sheet
+struct ShareSheet: UIViewControllerRepresentable {
+    let activityItems: [Any]
+    
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+    
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
 
 #Preview {
