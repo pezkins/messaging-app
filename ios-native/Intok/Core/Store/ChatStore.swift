@@ -383,7 +383,6 @@ class ChatStore: ObservableObject {
         try await APIService.shared.deleteMessage(
             conversationId: message.conversationId,
             messageId: message.id,
-            messageTimestamp: message.createdAt,
             forEveryone: forEveryone
         )
         

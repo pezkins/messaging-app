@@ -112,17 +112,13 @@ interface ApiService {
         @Path("conversationId") conversationId: String
     ): DeleteConversationResponse
     
-    @HTTP(method = "DELETE", path = "api/conversations/{conversationId}/messages/{messageId}", hasBody = true)
+    @DELETE("api/conversations/{conversationId}/messages/{messageId}")
     suspend fun deleteMessage(
         @Path("conversationId") conversationId: String,
         @Path("messageId") messageId: String,
-        @Body request: DeleteMessageRequest
+        @Query("forEveryone") forEveryone: Boolean = false
     ): DeleteMessageResponse
 }
-
-data class DeleteMessageRequest(
-    val forEveryone: Boolean = false
-)
 
 // ============================================
 // Request Models

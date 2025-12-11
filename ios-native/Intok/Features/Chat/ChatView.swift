@@ -198,16 +198,12 @@ struct ChatView: View {
             titleVisibility: .visible
         ) {
             if let message = messageToDelete {
-                let isOwnMessage = message.senderId == authManager.currentUser?.id
-                
                 Button("Delete for Me", role: .destructive) {
                     Task { await deleteMessage(message, forEveryone: false) }
                 }
                 
-                if isOwnMessage {
-                    Button("Delete for Everyone", role: .destructive) {
-                        Task { await deleteMessage(message, forEveryone: true) }
-                    }
+                Button("Delete for Everyone", role: .destructive) {
+                    Task { await deleteMessage(message, forEveryone: true) }
                 }
                 
                 Button("Cancel", role: .cancel) {

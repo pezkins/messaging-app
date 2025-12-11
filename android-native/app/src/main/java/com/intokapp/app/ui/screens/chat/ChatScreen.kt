@@ -1540,35 +1540,26 @@ private fun DeleteMessageDialog(
                         Text("Deleting...", color = Surface300)
                     }
                 } else {
-                    if (isOwnMessage) {
-                        Text(
-                            "You can delete this message for yourself or for everyone in this conversation.",
-                            color = Surface300
-                        )
-                    } else {
-                        Text(
-                            "This message will be removed from your view only.",
-                            color = Surface300
-                        )
-                    }
+                    Text(
+                        "Choose how to delete this message:",
+                        color = Surface300
+                    )
                 }
             }
         },
         confirmButton = {
             if (!isDeleting) {
                 Column {
-                    if (isOwnMessage) {
-                        // Delete for Everyone button (only for own messages)
-                        TextButton(
-                            onClick = onDeleteForEveryone,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                "Delete for Everyone",
-                                color = MaterialTheme.colorScheme.error,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                        }
+                    // Delete for Everyone button
+                    TextButton(
+                        onClick = onDeleteForEveryone,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            "Delete for Everyone",
+                            color = MaterialTheme.colorScheme.error,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                     
                     // Delete for Me button
@@ -1578,7 +1569,7 @@ private fun DeleteMessageDialog(
                     ) {
                         Text(
                             "Delete for Me",
-                            color = if (isOwnMessage) Surface300 else MaterialTheme.colorScheme.error
+                            color = Surface300
                         )
                     }
                 }

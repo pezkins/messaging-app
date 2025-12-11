@@ -3,7 +3,6 @@ package com.intokapp.app.data.repository
 import android.util.Log
 import com.intokapp.app.data.models.*
 import com.intokapp.app.data.network.ApiService
-import com.intokapp.app.data.network.DeleteMessageRequest
 import com.intokapp.app.data.network.TokenManager
 import com.intokapp.app.data.network.WebSocketEvent
 import com.intokapp.app.data.network.WebSocketService
@@ -501,7 +500,7 @@ class ChatRepository @Inject constructor(
             val response = apiService.deleteMessage(
                 conversationId = conversation.id,
                 messageId = messageId,
-                request = DeleteMessageRequest(forEveryone = forEveryone)
+                forEveryone = forEveryone
             )
             
             if (response.success) {
