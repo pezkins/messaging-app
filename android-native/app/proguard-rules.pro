@@ -7,6 +7,7 @@
 -keepattributes *Annotation*
 -keepattributes EnclosingMethod
 -keepattributes InnerClasses
+-keepattributes Exceptions
 
 # Gson specific classes
 -dontwarn sun.misc.**
@@ -22,6 +23,9 @@
 -keep,allowobfuscation,allowshrinking class com.google.gson.TypeAdapterFactory
 -keep,allowobfuscation,allowshrinking class com.google.gson.JsonSerializer
 -keep,allowobfuscation,allowshrinking class com.google.gson.JsonDeserializer
+
+# Keep Gson's internal reflect package
+-keep class com.google.gson.reflect.** { *; }
 
 # ============================================
 # App Data Models - Keep all fields for serialization
@@ -62,10 +66,28 @@
 }
 
 # ============================================
-# Google Sign-In
+# Google Sign-In & Credentials API
 # ============================================
 -keep class com.google.android.gms.** { *; }
 -dontwarn com.google.android.gms.**
+
+# AndroidX Credentials API - Prevents ParameterizedType cast errors
+-keep class androidx.credentials.** { *; }
+-keep class androidx.credentials.playservices.** { *; }
+-keep interface androidx.credentials.** { *; }
+-dontwarn androidx.credentials.**
+
+# Google Identity library - Critical for Google Sign-In
+-keep class com.google.android.libraries.identity.** { *; }
+-keep class com.google.android.libraries.identity.googleid.** { *; }
+-dontwarn com.google.android.libraries.identity.**
+
+# Keep all classes that extend/implement ParameterizedType
+-keep class * implements java.lang.reflect.ParameterizedType { *; }
+
+# Keep all credential-related result types
+-keep class * extends androidx.credentials.Credential { *; }
+-keep class * extends androidx.credentials.CredentialOption { *; }
 
 # ============================================
 # Firebase
@@ -79,4 +101,16 @@
 -keep class kotlin.Metadata { *; }
 -keepclassmembers class * {
     @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# Keep Kotlin reflect for runtime type checks
+-keep class kotlin.reflect.** { *; }
+-dontwarn kotlin.reflect.**
+
+# ============================================
+# Java Reflection - Prevent ClassCastException
+# ============================================
+-keep class java.lang.reflect.** { *; }
+-keepclassmembers class * {
+    @kotlin.Metadata *;
 }
