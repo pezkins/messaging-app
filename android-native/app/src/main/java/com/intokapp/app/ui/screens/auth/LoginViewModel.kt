@@ -70,26 +70,22 @@ class LoginViewModel @Inject constructor(
         return authRepository.getGoogleSignInIntent()
     }
     
-    fun handleGoogleSignInResult(data: Intent?) {
-        Log.d("LoginViewModel", "📥 Handling Google Sign-In result")
+    fun handleGoogleSignInResult(data: Intent?, resultCode: Int) {
+        Log.d("LoginViewModel", "📥 Handling Google Sign-In result, resultCode=$resultCode, hasData=${data != null}")
         viewModelScope.launch {
             try {
-                val result = authRepository.handleGoogleSignInResult(data)
+                val result = authRepository.handleGoogleSignInResult(data, resultCode)
                 Log.d("LoginViewModel", "📥 Got result: $result")
                 result.onFailure { e ->
                     Log.e("LoginViewModel", "❌ Sign-in failed: ${e.message}", e)
-                    _uiState.update { it.copy(isLoading = false, error = e.message) }
+                    _uiState.update { it.copy(isLoading = false, error = e.message ?: "Sign-in failed") }
                 }
             } catch (e: Exception) {
                 Log.e("LoginViewModel", "💥 Exception handling result: ${e.message}", e)
-                _uiState.update { it.copy(isLoading = false, error = e.message) }
+                _uiState.update { it.copy(isLoading = false, error = e.message ?: "Sign-in failed") }
             }
             // Success handled by authState collector
         }
-    }
-    
-    fun cancelLoading() {
-        _uiState.update { it.copy(isLoading = false) }
     }
     
     // Email Auth Methods

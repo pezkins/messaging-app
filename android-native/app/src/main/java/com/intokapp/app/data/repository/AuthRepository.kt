@@ -130,14 +130,25 @@ class AuthRepository @Inject constructor(
     }
     
     // Handle the result from Google Sign-In activity
-    suspend fun handleGoogleSignInResult(data: Intent?): Result<Boolean> {
-        Log.d(TAG, "📥 Handling Google Sign-In result...")
+    suspend fun handleGoogleSignInResult(data: Intent?, resultCode: Int): Result<Boolean> {
+        Log.d(TAG, "📥 Handling Google Sign-In result... resultCode=$resultCode, hasData=${data != null}")
+        
+        // If no data at all, provide helpful error based on result code
+        if (data == null) {
+            val errorMessage = when (resultCode) {
+                android.app.Activity.RESULT_CANCELED -> "Sign-in was cancelled"
+                else -> "Google Sign-In failed - no response data (code: $resultCode)"
+            }
+            Log.e(TAG, "❌ Google Sign-In returned null data: $errorMessage")
+            _authState.value = AuthState.Error(errorMessage)
+            return Result.failure(Exception(errorMessage))
+        }
         
         return try {
             val task: Task<GoogleSignInAccount> = GoogleSignIn.getSignedInAccountFromIntent(data)
             val account = task.getResult(ApiException::class.java)
             
-            Log.d(TAG, "✅ Google Sign-In successful: ${account.email}")
+            Log.d(TAG, "✅ Google Sign-In successful: ${account.email}, idToken=${account.idToken?.take(20)}...")
             
             // Call backend OAuth
             val response = apiService.oauthLogin(
@@ -173,21 +184,24 @@ class AuthRepository @Inject constructor(
             Result.success(isNewUser)
             
         } catch (e: ApiException) {
-            Log.e(TAG, "❌ Google Sign-In failed with code: ${e.statusCode}, message: ${e.message}")
+            Log.e(TAG, "❌ Google Sign-In ApiException: code=${e.statusCode}, message=${e.message}")
             // Provide helpful error messages for common issues
             val errorMessage = when (e.statusCode) {
-                10 -> "Google Sign-In configuration error. Please contact support. (DEVELOPER_ERROR - SHA-1 fingerprint may not be registered)"
+                10 -> "Configuration error (DEVELOPER_ERROR). SHA-1 fingerprint not registered. Contact support."
+                12500 -> "Sign-in failed. Google Play Services error."
                 12501 -> "Sign-in was cancelled"
-                12502 -> "Sign-in failed. Please try again."
-                7 -> "Network error. Please check your connection."
-                else -> "Google Sign-In failed (code: ${e.statusCode})"
+                12502 -> "Sign-in currently in progress"
+                7 -> "Network error. Check your connection."
+                8 -> "Internal error. Try again."
+                else -> "Google Sign-In failed (error ${e.statusCode})"
             }
             _authState.value = AuthState.Error(errorMessage)
-            Result.failure(e)
+            Result.failure(Exception(errorMessage))
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Google Sign-In error: ${e.message}")
-            _authState.value = AuthState.Error(e.message ?: "Sign-in failed")
-            Result.failure(e)
+            Log.e(TAG, "❌ Google Sign-In Exception: ${e.javaClass.simpleName}: ${e.message}")
+            val errorMessage = e.message ?: "Sign-in failed unexpectedly"
+            _authState.value = AuthState.Error(errorMessage)
+            Result.failure(Exception(errorMessage))
         }
     }
     

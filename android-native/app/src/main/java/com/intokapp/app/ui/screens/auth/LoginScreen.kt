@@ -53,19 +53,10 @@ fun LoginScreen(
     val googleSignInLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        Log.d("LoginScreen", "📥 Google Sign-In result received: ${result.resultCode}")
-        if (result.resultCode == android.app.Activity.RESULT_OK) {
-            viewModel.handleGoogleSignInResult(result.data)
-        } else {
-            Log.d("LoginScreen", "⚠️ Google Sign-In cancelled or failed: ${result.resultCode}")
-            // Still try to handle the result to get the actual error message
-            // This helps diagnose issues like DEVELOPER_ERROR (SHA-1 mismatch)
-            if (result.data != null) {
-                viewModel.handleGoogleSignInResult(result.data)
-            } else {
-                viewModel.cancelLoading()
-            }
-        }
+        Log.d("LoginScreen", "📥 Google Sign-In result received: resultCode=${result.resultCode}, hasData=${result.data != null}")
+        // Always try to handle the result - error info is often in the intent data
+        // even when resultCode is not RESULT_OK
+        viewModel.handleGoogleSignInResult(result.data, result.resultCode)
     }
     
     // Track error for dialog
