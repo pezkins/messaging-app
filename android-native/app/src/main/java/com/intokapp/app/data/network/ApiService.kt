@@ -107,7 +107,7 @@ interface ApiService {
     // Delete Endpoints
     // ============================================
     
-    @HTTP(method = "DELETE", path = "api/conversations/{conversationId}", hasBody = true)
+    @DELETE("api/conversations/{conversationId}")
     suspend fun deleteConversation(
         @Path("conversationId") conversationId: String
     ): DeleteConversationResponse
@@ -119,6 +119,10 @@ interface ApiService {
         @Body request: DeleteMessageRequest
     ): DeleteMessageResponse
 }
+
+data class DeleteMessageRequest(
+    val forEveryone: Boolean = false
+)
 
 // ============================================
 // Request Models
@@ -221,10 +225,6 @@ data class ProfilePictureUploadResponse(
     val uploadUrl: String,
     val key: String,
     val expiresIn: Int
-)
-
-data class DeleteMessageRequest(
-    val forEveryone: Boolean = false
 )
 
 data class DeleteMessageResponse(

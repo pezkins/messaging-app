@@ -184,9 +184,10 @@ export const deleteMessage: APIGatewayProxyHandler = async (event) => {
       return response(400, { message: 'Conversation ID and Message ID required' });
     }
 
-    // Parse request body for delete options
+    // Parse delete options from body OR query params (iOS uses query params)
     const body = JSON.parse(event.body || '{}');
-    const forEveryone = body.forEveryone === true;
+    const queryParams = event.queryStringParameters || {};
+    const forEveryone = body.forEveryone === true || queryParams.forEveryone === 'true';
 
     // Verify user is participant of the conversation
     const convResult = await dynamodb.send(new QueryCommand({
