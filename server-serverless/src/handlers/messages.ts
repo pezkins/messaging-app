@@ -189,6 +189,10 @@ export const deleteMessage: APIGatewayProxyHandler = async (event) => {
     const queryParams = event.queryStringParameters || {};
     const forEveryone = body.forEveryone === true || queryParams.forEveryone === 'true';
 
+    console.log(`🗑️ DELETE REQUEST - conversationId: ${conversationId}, messageId: ${messageId}, forEveryone: ${forEveryone}`);
+    console.log(`🗑️ Query params:`, queryParams);
+    console.log(`🗑️ Body:`, body);
+
     // Verify user is participant of the conversation
     const convResult = await dynamodb.send(new QueryCommand({
       TableName: Tables.CONVERSATIONS,
@@ -208,6 +212,8 @@ export const deleteMessage: APIGatewayProxyHandler = async (event) => {
     const conversation = convResult.Items[0];
 
     // Find the message by scanning for the messageId
+    console.log(`🗑️ Looking for message with id: ${messageId} in conversation: ${conversationId}`);
+    
     const messagesResult = await dynamodb.send(new QueryCommand({
       TableName: Tables.MESSAGES,
       KeyConditionExpression: 'conversationId = :convId',
@@ -217,6 +223,22 @@ export const deleteMessage: APIGatewayProxyHandler = async (event) => {
         ':msgId': messageId,
       },
     }));
+
+    console.log(`🗑️ Query returned ${messagesResult.Items?.length || 0} messages`);
+    if (messagesResult.Items && messagesResult.Items.length > 0) {
+      console.log(`🗑️ First message found:`, JSON.stringify(messagesResult.Items[0], null, 2));
+    } else {
+      // Let's also query without filter to see what messages exist
+      const allMessages = await dynamodb.send(new QueryCommand({
+        TableName: Tables.MESSAGES,
+        KeyConditionExpression: 'conversationId = :convId',
+        ExpressionAttributeValues: {
+          ':convId': conversationId,
+        },
+        Limit: 5,
+      }));
+      console.log(`🗑️ Sample messages in conversation:`, JSON.stringify(allMessages.Items?.map(m => ({ id: m.id, timestamp: m.timestamp })), null, 2));
+    }
 
     const message = messagesResult.Items?.[0];
     if (!message) {
