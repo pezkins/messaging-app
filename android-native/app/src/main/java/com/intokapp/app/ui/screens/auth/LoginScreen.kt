@@ -68,10 +68,37 @@ fun LoginScreen(
         }
     }
     
+    // Track error for dialog
+    var showErrorDialog by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf("") }
+    
+    // Show error dialog when error occurs
+    LaunchedEffect(uiState.error) {
+        uiState.error?.let {
+            errorMessage = it
+            showErrorDialog = true
+        }
+    }
+    
     LaunchedEffect(uiState.isLoggedIn) {
         if (uiState.isLoggedIn) {
             onLoginSuccess(uiState.isNewUser)
         }
+    }
+    
+    // Error Dialog
+    if (showErrorDialog && errorMessage.isNotBlank()) {
+        AlertDialog(
+            onDismissRequest = { showErrorDialog = false },
+            title = { Text("Sign-In Error", color = White) },
+            text = { Text(errorMessage, color = Surface300) },
+            containerColor = Surface900,
+            confirmButton = {
+                TextButton(onClick = { showErrorDialog = false }) {
+                    Text("OK", color = Purple500)
+                }
+            }
+        )
     }
     
     Box(

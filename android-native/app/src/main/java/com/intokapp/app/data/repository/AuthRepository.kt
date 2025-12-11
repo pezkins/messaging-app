@@ -51,9 +51,15 @@ class AuthRepository @Inject constructor(
     
     val currentUser: Flow<User?> = tokenManager.userFlow
     
-    // Google Sign-In client - matching iOS approach (no ID token needed)
+    // Web Client ID from google-services.json (client_type: 3)
+    // This is required for Google Sign-In to work with multiple signing keys
+    private val webClientId = "75949298562-t5r741c9ud61cnbsrhc95eghutjo5h4m.apps.googleusercontent.com"
+    
+    // Google Sign-In client - using Web Client ID for multi-key support
+    // This validates against ALL registered SHA-1 fingerprints in Firebase
     private val googleSignInClient: GoogleSignInClient by lazy {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestIdToken(webClientId)  // Required for Play Store builds
             .requestEmail()
             .requestProfile()
             .build()
