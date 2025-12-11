@@ -10,6 +10,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -237,6 +240,7 @@ fun ChatScreen(
                     )
                 )
                 .padding(padding)
+                .imePadding() // Scroll content when keyboard appears
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 // Messages

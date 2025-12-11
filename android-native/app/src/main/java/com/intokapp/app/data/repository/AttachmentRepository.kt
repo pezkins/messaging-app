@@ -55,14 +55,21 @@ private class ProgressRequestBody(
 
 @Singleton
 class AttachmentRepository @Inject constructor(
-    private val apiService: ApiService,
-    private val okHttpClient: OkHttpClient
+    private val apiService: ApiService
 ) {
     private val TAG = "AttachmentRepository"
     
     // Cached download URLs to avoid repeated API calls
     private val downloadUrlCache = mutableMapOf<String, Pair<String, Long>>()
     private val CACHE_DURATION_MS = 30 * 60 * 1000L // 30 minutes
+    
+    // Plain OkHttpClient without auth interceptors for S3 uploads
+    // S3 presigned URLs have their own authentication via query params
+    private val s3Client = OkHttpClient.Builder()
+        .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .writeTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
+        .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+        .build()
     
     /**
      * Upload an image from URI to S3
@@ -132,26 +139,28 @@ class AttachmentRepository @Inject constructor(
             // Report progress after reading file
             onProgress?.invoke(0.3f)
             
-            // Upload to S3 with progress tracking
-            val requestBody = ProgressRequestBody(
-                bytes.toRequestBody(contentType.toMediaType()),
-                bytes.size.toLong()
-            ) { progress ->
-                // Scale progress from 30% to 90% during upload
-                onProgress?.invoke(0.3f + (progress * 0.6f))
-            }
+            // Simple upload without progress wrapper to avoid stream issues
+            // S3 presigned URLs include authentication in query params
+            val requestBody = bytes.toRequestBody("application/octet-stream".toMediaType())
             
             val request = Request.Builder()
                 .url(uploadUrlResponse.uploadUrl)
                 .put(requestBody)
                 .build()
             
-            val response = okHttpClient.newCall(request).execute()
+            Log.d(TAG, "📤 Uploading ${bytes.size} bytes to S3...")
+            
+            val response = s3Client.newCall(request).execute()
             
             if (!response.isSuccessful) {
-                Log.e(TAG, "❌ S3 upload failed: ${response.code}")
+                val errorBody = response.body?.string()
+                Log.e(TAG, "❌ S3 upload failed: ${response.code} - ${response.message}")
+                Log.e(TAG, "❌ S3 error body: $errorBody")
+                response.close()
                 return@withContext null
             }
+            
+            response.close()
             
             // Report completion
             onProgress?.invoke(1.0f)
