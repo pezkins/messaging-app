@@ -800,6 +800,105 @@ Authorization: Bearer <accessToken>
 
 ---
 
+### DELETE /api/conversations/{conversationId}
+
+Delete a conversation for the current user (soft delete).
+
+**Headers:**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Path Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| conversationId | string | The conversation ID to delete |
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Conversation deleted",
+  "conversationId": "conv_abc123"
+}
+```
+
+**Notes:**
+- Soft delete: removes conversation from user's view only
+- Other participants can still see the conversation
+- Messages are NOT deleted
+
+**Errors:**
+- `400` - Conversation ID required
+- `401` - Authentication required
+- `404` - Conversation not found
+
+---
+
+### DELETE /api/conversations/{conversationId}/messages/{messageId}
+
+Delete a message from a conversation.
+
+**Headers:**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Path Parameters:**
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| conversationId | string | The conversation ID |
+| messageId | string | The message ID to delete |
+
+**Request Body (optional):**
+```json
+{
+  "forEveryone": true
+}
+```
+
+| Field | Type | Required | Default | Description |
+|-------|------|----------|---------|-------------|
+| forEveryone | boolean | No | false | If true, deletes for all users; if false, deletes for current user only |
+
+**Response (200 OK) - Delete for everyone:**
+```json
+{
+  "success": true,
+  "messageId": "msg_abc123",
+  "conversationId": "conv_abc123",
+  "deletedAt": "2024-12-08T12:00:00.000Z",
+  "deletedForEveryone": true,
+  "participantIds": ["user_abc123", "user_xyz789"]
+}
+```
+
+**Response (200 OK) - Delete for me:**
+```json
+{
+  "success": true,
+  "messageId": "msg_abc123",
+  "conversationId": "conv_abc123",
+  "deletedForMe": true
+}
+```
+
+**Notes:**
+- `forEveryone: true` - Only the sender can delete for everyone
+- `forEveryone: false` - User removes message from their own view only
+- When deleted for everyone, message content is hidden but record remains
+- Attachments (images, docs) are deleted from S3 when deleted for everyone
+- A `message:deleted` WebSocket event is broadcast to all participants
+
+**Errors:**
+- `400` - Conversation ID and Message ID required
+- `401` - Authentication required
+- `403` - Only the sender can delete a message for everyone
+- `404` - Conversation not found
+- `404` - Message not found
+
+---
+
 ## Attachments
 
 ### POST /api/attachments/upload-url
@@ -1307,6 +1406,34 @@ Received when someone reads your message.
 
 ---
 
+#### message:deleted
+
+Received when a message is deleted for everyone.
+
+```json
+{
+  "action": "message:deleted",
+  "conversationId": "conv_abc123",
+  "messageId": "msg_abc123",
+  "deletedBy": "user_xyz789",
+  "deletedAt": "2024-12-08T12:10:00.000Z"
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| conversationId | Conversation containing the message |
+| messageId | Message that was deleted |
+| deletedBy | User ID who deleted the message |
+| deletedAt | When the message was deleted |
+
+**Notes:**
+- Only broadcast when `forEveryone: true`
+- Client should update message to show "This message was deleted"
+- Remove reactions and disable reply options
+
+---
+
 ## Data Schemas
 
 ### User
@@ -1449,7 +1576,9 @@ All errors follow this format:
 |--------|----------|------|-------------|
 | GET | `/api/conversations` | Yes | List conversations |
 | POST | `/api/conversations` | Yes | Create conversation |
+| DELETE | `/api/conversations/{id}` | Yes | Delete conversation |
 | GET | `/api/conversations/{id}/messages` | Yes | Get messages |
+| DELETE | `/api/conversations/{id}/messages/{msgId}` | Yes | Delete message |
 | POST | `/api/conversations/{id}/read` | Yes | Mark as read |
 
 ### Attachment Endpoints
@@ -1471,10 +1600,12 @@ All errors follow this format:
 | → Server | `message:typing` | Typing indicator |
 | → Server | `message:reaction` | Add/remove reaction |
 | → Server | `message:read` | Mark message as read |
+| → Server | `message:deleted` | Broadcast message deletion |
 | ← Client | `message:receive` | New message |
 | ← Client | `message:typing` | Someone typing |
 | ← Client | `message:reaction` | Reaction updated |
 | ← Client | `message:read` | Read receipt |
+| ← Client | `message:deleted` | Message was deleted |
 
 ---
 

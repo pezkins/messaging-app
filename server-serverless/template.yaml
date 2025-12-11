@@ -613,6 +613,46 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref MessagesTable
 
+  # Delete Conversation
+  DeleteConversationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/conversations.deleteConversation
+      CodeUri: .
+      Timeout: 10
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/conversations/{conversationId}
+            Method: DELETE
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConversationsTable
+
+  # Delete Message
+  DeleteMessageFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/messages.deleteMessage
+      CodeUri: .
+      Timeout: 10
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/conversations/{conversationId}/messages/{messageId}
+            Method: DELETE
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConversationsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref MessagesTable
+        - S3CrudPolicy:
+            BucketName: !Ref AttachmentsBucket
+
   # WebSocket Handlers
   WebSocketConnectFunction:
     Type: AWS::Serverless::Function

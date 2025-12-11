@@ -94,6 +94,8 @@ export const message: APIGatewayProxyHandler = async (event) => {
       await handleReaction(event, userId, data);
     } else if (action === 'message:read') {
       await handleReadReceipt(event, userId, data);
+    } else if (action === 'message:deleted') {
+      await handleMessageDeleted(event, userId, data);
     }
 
     return { statusCode: 200, body: 'OK' };
@@ -676,5 +678,58 @@ async function handleReadReceipt(event: any, userId: string, data: any) {
   }
 
   console.log(`✅ Read receipt: user ${userId} read message in ${conversationId}`);
+}
+
+/**
+ * Handle message deleted event - broadcast to all participants
+ */
+async function handleMessageDeleted(event: any, userId: string, data: any) {
+  const { conversationId, messageId, deletedAt, deletedForEveryone, participantIds } = data;
+
+  if (!conversationId || !messageId || !participantIds) {
+    console.error('Message deleted missing required fields');
+    return;
+  }
+
+  // Only broadcast if deleted for everyone
+  if (!deletedForEveryone) {
+    return;
+  }
+
+  const api = getApiClient(event);
+
+  // Broadcast to all participants
+  for (const participantId of participantIds) {
+    const connections = await dynamodb.send(new QueryCommand({
+      TableName: Tables.CONNECTIONS,
+      IndexName: 'user-connections-index',
+      KeyConditionExpression: 'userId = :userId',
+      ExpressionAttributeValues: { ':userId': participantId },
+    }));
+
+    for (const conn of connections.Items || []) {
+      try {
+        await api.send(new PostToConnectionCommand({
+          ConnectionId: conn.connectionId,
+          Data: JSON.stringify({
+            action: 'message:deleted',
+            conversationId,
+            messageId,
+            deletedBy: userId,
+            deletedAt,
+          }),
+        }));
+      } catch (err: any) {
+        if (err.statusCode === 410) {
+          await dynamodb.send(new DeleteCommand({
+            TableName: Tables.CONNECTIONS,
+            Key: { connectionId: conn.connectionId },
+          }));
+        }
+      }
+    }
+  }
+
+  console.log(`🗑️ Broadcast message:deleted for ${messageId} in ${conversationId}`);
 }
 
