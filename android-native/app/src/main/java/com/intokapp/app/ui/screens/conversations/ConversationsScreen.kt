@@ -179,7 +179,7 @@ fun ConversationsScreen(
                                 onLongClick = { viewModel.showDeleteConversationDialog(conversation) }
                             )
                             
-                            HorizontalDivider(
+                            Divider(
                                 color = Surface700,
                                 modifier = Modifier.padding(start = 76.dp)
                             )

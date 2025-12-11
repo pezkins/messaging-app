@@ -716,7 +716,7 @@ private fun MessageContextMenu(
                         }
                     }
                     
-                    HorizontalDivider(color = Surface700, thickness = 1.dp)
+                    Divider(color = Surface700, thickness = 1.dp)
                     
                     // Reply option
                     Row(
