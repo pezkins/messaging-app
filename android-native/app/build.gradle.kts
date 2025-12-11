@@ -36,8 +36,8 @@ android {
         applicationId = "com.intokapp.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 15
-        versionName = "0.1.13"
+        versionCode = 16
+        versionName = "0.1.14"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -67,8 +67,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = true
-            isShrinkResources = true
+            // Disabled minification to prevent Gson/Retrofit reflection issues
+            // This fixes "Class cannot be cast to ParameterizedType" crashes
+            isMinifyEnabled = false
+            isShrinkResources = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
