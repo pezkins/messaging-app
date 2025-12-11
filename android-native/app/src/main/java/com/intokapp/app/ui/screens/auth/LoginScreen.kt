@@ -58,7 +58,13 @@ fun LoginScreen(
             viewModel.handleGoogleSignInResult(result.data)
         } else {
             Log.d("LoginScreen", "⚠️ Google Sign-In cancelled or failed: ${result.resultCode}")
-            viewModel.cancelLoading()
+            // Still try to handle the result to get the actual error message
+            // This helps diagnose issues like DEVELOPER_ERROR (SHA-1 mismatch)
+            if (result.data != null) {
+                viewModel.handleGoogleSignInResult(result.data)
+            } else {
+                viewModel.cancelLoading()
+            }
         }
     }
     

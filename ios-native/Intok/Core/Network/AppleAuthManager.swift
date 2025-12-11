@@ -131,12 +131,15 @@ extension AppleAuthManager: ASAuthorizationControllerDelegate {
                     NSLog("❌ Apple Sign-In: Not interactive")
                     self.errorMessage = "Sign in with Apple requires interaction."
                 case .unknown:
-                    NSLog("❌ Apple Sign-In: Unknown error (code 1000)")
+                    NSLog("❌ Apple Sign-In: Unknown error (code 1000) - Full error: %@", String(describing: error))
                     // Error code 1000 typically means simulator or configuration issue
                     #if targetEnvironment(simulator)
                     self.errorMessage = "Sign in with Apple is not fully supported in the Simulator. Please test on a real device."
                     #else
-                    self.errorMessage = "Sign in with Apple is not available. Please ensure the app is properly configured."
+                    // Log more details for debugging
+                    let nsError = error as NSError
+                    NSLog("❌ Apple Sign-In: NSError domain=%@, code=%d, userInfo=%@", nsError.domain, nsError.code, String(describing: nsError.userInfo))
+                    self.errorMessage = "Sign in with Apple failed. Please check that Sign in with Apple is enabled for this App ID in Apple Developer Portal."
                     #endif
                 @unknown default:
                     NSLog("❌ Apple Sign-In: Unexpected error code")

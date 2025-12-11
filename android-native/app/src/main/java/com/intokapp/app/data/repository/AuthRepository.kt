@@ -168,7 +168,15 @@ class AuthRepository @Inject constructor(
             
         } catch (e: ApiException) {
             Log.e(TAG, "❌ Google Sign-In failed with code: ${e.statusCode}, message: ${e.message}")
-            _authState.value = AuthState.Error("Google Sign-In failed: ${e.statusCode}")
+            // Provide helpful error messages for common issues
+            val errorMessage = when (e.statusCode) {
+                10 -> "Google Sign-In configuration error. Please contact support. (DEVELOPER_ERROR - SHA-1 fingerprint may not be registered)"
+                12501 -> "Sign-in was cancelled"
+                12502 -> "Sign-in failed. Please try again."
+                7 -> "Network error. Please check your connection."
+                else -> "Google Sign-In failed (code: ${e.statusCode})"
+            }
+            _authState.value = AuthState.Error(errorMessage)
             Result.failure(e)
         } catch (e: Exception) {
             Log.e(TAG, "❌ Google Sign-In error: ${e.message}")

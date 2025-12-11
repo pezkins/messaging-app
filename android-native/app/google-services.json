@@ -15,7 +15,11 @@
       "oauth_client": [
         {
           "client_id": "75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2.apps.googleusercontent.com",
-          "client_type": 3
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.intokapp.app",
+            "certificate_hash": "c3a11de91cf597a1f123fc0c112d77bf56f3ee71"
+          }
         },
         {
           "client_id": "75949298562-t5r741c9ud61cnbsrhc95eghutjo5h4m.apps.googleusercontent.com",
@@ -30,10 +34,6 @@
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
-            {
-              "client_id": "75949298562-73qi3lq9l9kemosrhj0j33sos1mst7l2.apps.googleusercontent.com",
-              "client_type": 3
-            },
             {
               "client_id": "75949298562-t5r741c9ud61cnbsrhc95eghutjo5h4m.apps.googleusercontent.com",
               "client_type": 3
