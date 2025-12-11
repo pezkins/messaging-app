@@ -207,7 +207,7 @@ fun SettingsScreen(
                         )
                         
                         Text(
-                            text = "0.1.1",
+                            text = com.intokapp.app.BuildConfig.VERSION_NAME,
                             color = Surface400
                         )
                     }

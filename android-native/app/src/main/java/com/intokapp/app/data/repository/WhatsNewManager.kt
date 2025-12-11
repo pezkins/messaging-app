@@ -24,6 +24,25 @@ class WhatsNewManager @Inject constructor(
     
     val changelog = listOf(
         ChangelogEntry(
+            version = "0.1.14",
+            title = "Google Sign-In Fix",
+            changes = listOf(
+                "🔐 Fixed Google Sign-In authentication",
+                "🐛 Resolved app crashes after account selection",
+                "⚡ Improved app stability"
+            )
+        ),
+        ChangelogEntry(
+            version = "0.1.8",
+            title = "Profile & Reactions Update",
+            changes = listOf(
+                "😀 Emoji reactions on messages",
+                "↩️ Reply to specific messages",
+                "📷 Update profile picture in Settings",
+                "🎨 Improved chat UI layout"
+            )
+        ),
+        ChangelogEntry(
             version = "0.1.5",
             title = "Engagement Update",
             changes = listOf(
