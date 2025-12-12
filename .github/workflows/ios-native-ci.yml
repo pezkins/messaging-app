@@ -2,12 +2,12 @@ name: 🍎 iOS Native CI/CD
 
 on:
   push:
-    branches: [dev, stage, main]
+    branches: [stage, main]
     paths: 
       - 'ios-native/**'
       - '.github/workflows/ios-native-ci.yml'
   pull_request:
-    branches: [dev, stage, main]
+    branches: [stage, main]
     paths: 
       - 'ios-native/**'
       - '.github/workflows/ios-native-ci.yml'
@@ -16,9 +16,9 @@ on:
       environment:
         description: 'Deployment environment'
         required: true
-        default: 'dev'
+        default: 'stage'
         type: choice
-        options: [dev, stage, production]
+        options: [stage, production]
 
 env:
   RUBY_VERSION: '3.2'
@@ -50,10 +50,8 @@ jobs:
             ENV="${{ github.event.inputs.environment }}"
           elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
             ENV="production"
-          elif [ "${{ github.ref }}" == "refs/heads/stage" ]; then
-            ENV="stage"
           else
-            ENV="dev"
+            ENV="stage"
           fi
 
           echo "environment=$ENV" >> $GITHUB_OUTPUT
@@ -71,14 +69,8 @@ jobs:
               echo "xcode=26.1" >> $GITHUB_OUTPUT
               echo "simulator=iPhone 17 Pro" >> $GITHUB_OUTPUT
               ;;
-            stage)
-              echo "target=testflight" >> $GITHUB_OUTPUT
-              echo "runner=macos-15" >> $GITHUB_OUTPUT
-              echo "xcode=26.1" >> $GITHUB_OUTPUT
-              echo "simulator=iPhone 17 Pro" >> $GITHUB_OUTPUT
-              ;;
             *)
-              echo "target=simulator" >> $GITHUB_OUTPUT
+              echo "target=testflight" >> $GITHUB_OUTPUT
               echo "runner=macos-15" >> $GITHUB_OUTPUT
               echo "xcode=26.1" >> $GITHUB_OUTPUT
               echo "simulator=iPhone 17 Pro" >> $GITHUB_OUTPUT
@@ -219,7 +211,7 @@ jobs:
           fi
 
       - name: 🔐 Import Certificate
-        if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
+        if: needs.setup.outputs.should_deploy == 'true'
         env:
           APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -238,7 +230,7 @@ jobs:
           security default-keychain -s $KEYCHAIN_PATH
 
       - name: 📝 Install Provisioning Profile
-        if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
+        if: needs.setup.outputs.should_deploy == 'true'
         id: profile
         env:
           PROVISIONING_PROFILE_BASE64: ${{ secrets.APPLE_PROVISIONING_PROFILE_BASE64 }}
@@ -254,25 +246,8 @@ jobs:
           cp /tmp/profile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${PROFILE_UUID}.mobileprovision
           echo "✅ Provisioning profile installed: $PROFILE_UUID"
 
-      - name: 🏗️ Build Debug
-        if: needs.setup.outputs.environment == 'dev'
-        working-directory: ./ios-native
-        env:
-          GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
-        run: |
-          xcodebuild build \
-            -project Intok.xcodeproj \
-            -scheme Intok \
-            -configuration Debug \
-            -destination 'platform=iOS Simulator,name=${{ needs.setup.outputs.simulator }},OS=latest' \
-            -derivedDataPath build \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            GIPHY_API_KEY="$GIPHY_API_KEY"
-
       - name: 🔐 Setup App Store Connect API Key
-        if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
+        if: needs.setup.outputs.should_deploy == 'true'
         env:
           APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
           APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
@@ -281,7 +256,7 @@ jobs:
           echo "$APP_STORE_CONNECT_API_KEY" > ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8
 
       - name: 🏗️ Build Release
-        if: needs.setup.outputs.environment != 'dev' && needs.setup.outputs.should_deploy == 'true'
+        if: needs.setup.outputs.should_deploy == 'true'
         working-directory: ./ios-native
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}

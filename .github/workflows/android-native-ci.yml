@@ -2,19 +2,19 @@ name: 🤖 Android Native CI/CD
 
 on:
   push:
-    branches: [dev, stage, main]
+    branches: [stage, main]
     paths: ['android-native/**']
   pull_request:
-    branches: [dev, stage, main]
+    branches: [stage, main]
     paths: ['android-native/**']
   workflow_dispatch:
     inputs:
       environment:
         description: 'Deployment environment'
         required: true
-        default: 'dev'
+        default: 'stage'
         type: choice
-        options: [dev, stage, production]
+        options: [stage, production]
 
 env:
   JAVA_VERSION: '17'
@@ -44,10 +44,8 @@ jobs:
             ENV="${{ github.event.inputs.environment }}"
           elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
             ENV="production"
-          elif [ "${{ github.ref }}" == "refs/heads/stage" ]; then
-            ENV="stage"
           else
-            ENV="dev"
+            ENV="stage"
           fi
 
           echo "environment=$ENV" >> $GITHUB_OUTPUT
@@ -60,8 +58,7 @@ jobs:
 
           case $ENV in
             production) echo "track=production" >> $GITHUB_OUTPUT ;;
-            stage) echo "track=internal" >> $GITHUB_OUTPUT ;;
-            *) echo "track=none" >> $GITHUB_OUTPUT ;;
+            *) echo "track=internal" >> $GITHUB_OUTPUT ;;
           esac
 
       - name: 📋 Get Version
