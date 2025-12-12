@@ -233,6 +233,9 @@ jobs:
     environment: ${{ needs.setup.outputs.environment }}
 
     steps:
+      - name: 📥 Checkout (for release notes)
+        uses: actions/checkout@v4
+
       - name: 📥 Download AAB
         uses: actions/download-artifact@v4
         with:
@@ -270,7 +273,8 @@ jobs:
           packageName: com.intokapp.app
           releaseFiles: ${{ steps.find_aab.outputs.aab_file }}
           track: ${{ needs.setup.outputs.track }}
-          status: draft
+          status: inProgress
+          whatsNewDirectory: android-native/whatsnew
 
       - name: 🧹 Cleanup
         if: always()
