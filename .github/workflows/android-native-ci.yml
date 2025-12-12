@@ -274,7 +274,7 @@ jobs:
           releaseFiles: ${{ steps.find_aab.outputs.aab_file }}
           track: ${{ needs.setup.outputs.track }}
           status: inProgress
-          userFraction: 1
+          userFraction: 0.99
           whatsNewDirectory: android-native/whatsnew
 
       - name: 🧹 Cleanup
