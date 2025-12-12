@@ -58,7 +58,7 @@ jobs:
 
           case $ENV in
             production) echo "track=production" >> $GITHUB_OUTPUT ;;
-            *) echo "track=internal" >> $GITHUB_OUTPUT ;;
+            *) echo "track=qa" >> $GITHUB_OUTPUT ;;  # Internal Testing track per Google Play API docs
           esac
 
       - name: 📋 Get Version
@@ -271,7 +271,6 @@ jobs:
           releaseFiles: ${{ steps.find_aab.outputs.aab_file }}
           track: ${{ needs.setup.outputs.track }}
           status: completed
-          changesNotSentForReview: true
 
       - name: 🧹 Cleanup
         if: always()
