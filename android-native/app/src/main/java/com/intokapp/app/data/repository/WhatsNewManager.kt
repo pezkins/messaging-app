@@ -24,6 +24,17 @@ class WhatsNewManager @Inject constructor(
     
     val changelog = listOf(
         ChangelogEntry(
+            version = "0.1.19",
+            title = "Languages & Regional Translation",
+            changes = listOf(
+                "🌍 120+ languages now supported",
+                "🗺️ Regional language variants (Catalan, Welsh, Basque, etc.)",
+                "🎯 Regional translation targeting for maximum accuracy",
+                "📜 Classical languages (Latin, Sanskrit, Ancient Greek)",
+                "⚡ Real-time message sync improvements"
+            )
+        ),
+        ChangelogEntry(
             version = "0.1.16",
             title = "Message Management Update",
             changes = listOf(

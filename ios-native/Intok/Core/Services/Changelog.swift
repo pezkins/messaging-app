@@ -11,6 +11,29 @@ struct ChangelogEntry: Identifiable {
 struct Changelog {
     static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "0.1.19",
+            date: "December 2024",
+            title: "Languages & Regional Translation",
+            changes: [
+                "🌍 120+ languages now supported",
+                "🗺️ Regional language variants (Catalan, Welsh, Basque, etc.)",
+                "🎯 Regional translation targeting for maximum accuracy",
+                "📜 Classical languages (Latin, Sanskrit, Ancient Greek)",
+                "⚡ Real-time message sync improvements"
+            ]
+        ),
+        ChangelogEntry(
+            version: "0.1.18",
+            date: "December 2024",
+            title: "Message Management Update",
+            changes: [
+                "🗑️ Delete individual messages",
+                "🗑️ Delete entire conversations",
+                "💾 Save images to photos",
+                "📥 Download documents to device"
+            ]
+        ),
+        ChangelogEntry(
             version: "0.1.5",
             date: "December 2024",
             title: "Engagement Update",
