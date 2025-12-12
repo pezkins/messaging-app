@@ -1,7 +1,8 @@
-v0.1.20 - Languages & Regional Translation
+v0.1.21 - Authentication & CI/CD Improvements
 
+• Fixed Apple Sign-In authentication flow
+• Improved Google Play deployment pipeline
 • 120+ languages with regional categorization
 • Enhanced translation with country/region targeting
-• Message & conversation deletion (delete for me/everyone)
+• Message & conversation deletion
 • Download images and documents from messages
-• Improved real-time message synchronization

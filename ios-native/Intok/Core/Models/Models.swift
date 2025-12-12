@@ -115,6 +115,21 @@ struct OAuthRequest: Codable {
     let email: String
     let name: String?
     let avatarUrl: String?
+    
+    // Custom encoding to ensure null values are included in JSON
+    // (Backend Zod schema requires fields to be present, even if null)
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(provider, forKey: .provider)
+        try container.encode(providerId, forKey: .providerId)
+        try container.encode(email, forKey: .email)
+        try container.encode(name, forKey: .name)  // Encodes as null if nil
+        try container.encode(avatarUrl, forKey: .avatarUrl)  // Encodes as null if nil
+    }
+    
+    private enum CodingKeys: String, CodingKey {
+        case provider, providerId, email, name, avatarUrl
+    }
 }
 
 // MARK: - Conversation Models

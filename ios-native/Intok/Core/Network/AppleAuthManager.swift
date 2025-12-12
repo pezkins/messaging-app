@@ -107,12 +107,21 @@ extension AppleAuthManager: ASAuthorizationControllerDelegate {
         
         // Send to backend using OAuth endpoint (same as Google)
         Task { @MainActor in
-            await AuthManager.shared.signInWithAppleOAuth(
+            let errorMessage = await AuthManager.shared.signInWithAppleOAuth(
                 providerId: appleUserId,
                 email: finalEmail,
                 name: fullName.isEmpty ? nil : fullName
             )
+            
             self.isLoading = false
+            
+            if let errorMessage = errorMessage {
+                NSLog("❌ Apple Sign-In backend error: %@", errorMessage)
+                self.errorMessage = errorMessage
+                self.showError = true
+            } else {
+                NSLog("✅ Apple Sign-In complete - user authenticated")
+            }
         }
     }
     

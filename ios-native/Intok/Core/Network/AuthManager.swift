@@ -240,11 +240,12 @@ class AuthManager: ObservableObject {
     }
     
     // MARK: - Apple Sign-In (using OAuth flow)
-    func signInWithAppleOAuth(providerId: String, email: String, name: String?) async {
+    /// Returns nil on success, or an error message on failure
+    func signInWithAppleOAuth(providerId: String, email: String, name: String?) async -> String? {
         isLoading = true
         error = nil
         
-        logger.info("📤 Apple Sign-In: Calling backend OAuth - email: \(email, privacy: .public)")
+        logger.info("📤 Apple Sign-In: Calling backend OAuth - providerId: \(providerId.prefix(10), privacy: .public)..., email: \(email, privacy: .public)")
         
         do {
             let response = try await APIService.shared.oauthLogin(
@@ -274,22 +275,28 @@ class AuthManager: ObservableObject {
             saveAuth()
             logger.info("✅ Auth state updated - isAuthenticated: \(self.isAuthenticated), needsSetup: \(self.needsSetup)")
             
+            isLoading = false
+            return nil // Success
+            
         } catch APIError.serverError(let message) {
-            logger.error("❌ Apple Sign-In error: \(message, privacy: .public)")
+            logger.error("❌ Apple Sign-In server error: \(message, privacy: .public)")
             self.error = message
+            isLoading = false
+            return message
         } catch {
             logger.error("❌ Apple Sign-In failed: \(error.localizedDescription, privacy: .public)")
-            self.error = "Apple Sign-In failed. Please try again."
+            let errorMsg = "Apple Sign-In failed: \(error.localizedDescription)"
+            self.error = errorMsg
+            isLoading = false
+            return errorMsg
         }
-        
-        isLoading = false
     }
     
     // MARK: - Legacy Apple Sign-In (deprecated - kept for reference)
-    func signInWithApple(idToken: String, nonce: String, fullName: String?, email: String?) async {
+    func signInWithApple(idToken: String, nonce: String, fullName: String?, email: String?) async -> String? {
         // Redirect to OAuth flow
         logger.warning("⚠️ Using legacy signInWithApple - redirecting to OAuth flow")
-        await signInWithAppleOAuth(
+        return await signInWithAppleOAuth(
             providerId: idToken, // Use token as fallback providerId
             email: email ?? "unknown@apple.com",
             name: fullName

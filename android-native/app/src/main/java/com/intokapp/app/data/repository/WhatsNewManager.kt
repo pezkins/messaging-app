@@ -24,6 +24,15 @@ class WhatsNewManager @Inject constructor(
     
     val changelog = listOf(
         ChangelogEntry(
+            version = "0.1.21",
+            title = "Authentication & Stability",
+            changes = listOf(
+                "🍎 Fixed Apple Sign-In authentication flow",
+                "🚀 Improved CI/CD deployment pipeline",
+                "🔧 Bug fixes and performance improvements"
+            )
+        ),
+        ChangelogEntry(
             version = "0.1.19",
             title = "Languages & Regional Translation",
             changes = listOf(

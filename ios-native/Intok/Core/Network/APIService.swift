@@ -187,6 +187,12 @@ class APIService {
             avatarUrl: avatarUrl
         )
         let body = try JSONEncoder().encode(requestBody)
+        
+        // Log the request for debugging
+        if let jsonString = String(data: body, encoding: .utf8) {
+            NSLog("📤 OAuth Request Body: %@", jsonString)
+        }
+        
         return try await request(endpoint: "/api/auth/oauth", method: "POST", body: body)
     }
     
