@@ -58,7 +58,7 @@ jobs:
 
           case $ENV in
             production) echo "track=production" >> $GITHUB_OUTPUT ;;
-            *) echo "track=qa" >> $GITHUB_OUTPUT ;;  # Internal Testing track per Google Play API docs
+            *) echo "track=internal" >> $GITHUB_OUTPUT ;;
           esac
 
       - name: 📋 Get Version
