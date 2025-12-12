@@ -638,6 +638,10 @@ Resources:
       Handler: dist/messages.deleteMessage
       CodeUri: .
       Timeout: 10
+      Environment:
+        Variables:
+          WEBSOCKET_ENDPOINT: !Sub "https://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+          CONNECTIONS_TABLE: !Ref ConnectionsTable
       Events:
         Api:
           Type: HttpApi
@@ -650,8 +654,16 @@ Resources:
             TableName: !Ref ConversationsTable
         - DynamoDBCrudPolicy:
             TableName: !Ref MessagesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
         - S3CrudPolicy:
             BucketName: !Ref AttachmentsBucket
+        - Statement:
+            - Effect: Allow
+              Action:
+                - execute-api:ManageConnections
+              Resource:
+                - !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*"
 
   # WebSocket Handlers
   WebSocketConnectFunction:

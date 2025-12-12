@@ -1,10 +1,13 @@
 import type { APIGatewayProxyHandler } from 'aws-lambda';
 import { S3Client, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { ApiGatewayManagementApiClient, PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi';
 import { dynamodb, Tables, QueryCommand, GetCommand, UpdateCommand } from '../lib/dynamo';
 import { getUserIdFromEvent, response } from '../lib/auth';
 
 const s3 = new S3Client({ region: process.env.AWS_REGION });
 const BUCKET = process.env.ATTACHMENTS_BUCKET!;
+const WEBSOCKET_ENDPOINT = process.env.WEBSOCKET_ENDPOINT;
+const CONNECTIONS_TABLE = process.env.CONNECTIONS_TABLE || 'lingualink-connections';
 
 export const list: APIGatewayProxyHandler = async (event) => {
   try {
@@ -279,6 +282,53 @@ export const deleteMessage: APIGatewayProxyHandler = async (event) => {
       }));
 
       console.log(`🗑️ Message ${messageId} deleted for everyone by ${userId}`);
+
+      // Broadcast deletion to all participants via WebSocket
+      if (WEBSOCKET_ENDPOINT && conversation.participantIds) {
+        const wsClient = new ApiGatewayManagementApiClient({
+          endpoint: WEBSOCKET_ENDPOINT,
+        });
+
+        for (const participantId of conversation.participantIds as string[]) {
+          try {
+            // Get participant's WebSocket connections
+            const connections = await dynamodb.send(new QueryCommand({
+              TableName: CONNECTIONS_TABLE,
+              IndexName: 'user-connections-index',
+              KeyConditionExpression: 'visibleTo = :visibleTo',
+              ExpressionAttributeValues: {
+                ':visibleTo': participantId,
+              },
+            }));
+
+            // Send to all connections
+            for (const conn of connections.Items || []) {
+              try {
+                await wsClient.send(new PostToConnectionCommand({
+                  ConnectionId: conn.connectionId as string,
+                  Data: JSON.stringify({
+                    action: 'message:deleted',
+                    conversationId,
+                    messageId,
+                    deletedBy: userId,
+                    deletedAt: now,
+                  }),
+                }));
+              } catch (connError: any) {
+                if (connError.statusCode === 410) {
+                  // Connection is stale, delete it
+                  console.log(`🧹 Removing stale connection: ${conn.connectionId}`);
+                } else {
+                  console.warn(`Failed to send to ${conn.connectionId}:`, connError.message);
+                }
+              }
+            }
+          } catch (err) {
+            console.warn(`Failed to broadcast deletion to ${participantId}:`, err);
+          }
+        }
+        console.log(`📡 Broadcast message:deleted to ${conversation.participantIds.length} participants`);
+      }
 
       return response(200, {
         success: true,
