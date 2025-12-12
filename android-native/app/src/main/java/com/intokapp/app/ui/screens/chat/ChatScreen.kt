@@ -148,9 +148,14 @@ fun ChatScreen(
     }
     
     LaunchedEffect(uiState.messages.size) {
-        if (uiState.messages.isNotEmpty()) {
+        val messageCount = uiState.messages.size
+        if (messageCount > 0) {
             scope.launch {
-                listState.animateScrollToItem(uiState.messages.size - 1)
+                try {
+                    listState.animateScrollToItem(messageCount - 1)
+                } catch (e: Exception) {
+                    // Ignore scroll errors (e.g., if list is empty or index out of bounds)
+                }
             }
         }
     }
@@ -274,7 +279,10 @@ fun ChatScreen(
                         }
                     }
                     
-                    items(uiState.messages) { message ->
+                    items(
+                        items = uiState.messages,
+                        key = { it.id }  // Use message ID as key for proper recomposition
+                    ) { message ->
                         MessageBubble(
                             message = message,
                             isOwnMessage = message.senderId == uiState.currentUserId || message.id.startsWith("temp-"),

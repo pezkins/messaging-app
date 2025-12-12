@@ -190,13 +190,16 @@ class ChatStore: ObservableObject {
             WebSocketService.shared.leaveConversation(prev.id)
         }
         
-        // Join new conversation
-        WebSocketService.shared.joinConversation(conversation.id)
-        
+        // IMPORTANT: Set active conversation BEFORE joining WebSocket
+        // This prevents race conditions where incoming messages are filtered out
+        // because activeConversation wasn't set yet
         activeConversation = conversation
         messages = []
         hasMoreMessages = false
         nextCursor = nil
+        
+        // Join new conversation AFTER setting activeConversation
+        WebSocketService.shared.joinConversation(conversation.id)
         
         isLoadingMessages = true
         

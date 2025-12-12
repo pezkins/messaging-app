@@ -262,13 +262,16 @@ class ChatRepository @Inject constructor(
             webSocketService.leaveConversation(it.id)
         }
         
-        // Join new conversation
-        webSocketService.joinConversation(conversation.id)
-        
+        // IMPORTANT: Set active conversation BEFORE joining WebSocket
+        // This prevents race conditions where incoming messages are filtered out
+        // because activeConversation wasn't set yet
         _activeConversation.value = conversation
         _messages.value = emptyList()
         _hasMoreMessages.value = false
         nextCursor = null
+        
+        // Join new conversation AFTER setting activeConversation
+        webSocketService.joinConversation(conversation.id)
         
         _isLoadingMessages.value = true
         
@@ -532,7 +535,11 @@ class ChatRepository @Inject constructor(
                 Result.failure(Exception("Failed to delete message"))
             }
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to delete message: ${e.message}")
+            Log.e(TAG, "❌ Failed to delete message: ${e.message}", e)
+            // Log more details for HTTP errors
+            if (e is retrofit2.HttpException) {
+                Log.e(TAG, "❌ HTTP ${e.code()}: ${e.response()?.errorBody()?.string()}")
+            }
             Result.failure(e)
         }
     }
