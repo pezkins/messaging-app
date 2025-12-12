@@ -270,7 +270,7 @@ jobs:
           packageName: com.intokapp.app
           releaseFiles: ${{ steps.find_aab.outputs.aab_file }}
           track: ${{ needs.setup.outputs.track }}
-          status: completed
+          status: draft
 
       - name: 🧹 Cleanup
         if: always()
