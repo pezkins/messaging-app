@@ -322,6 +322,7 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
     }));
     const targetLanguage = participantResult.Item?.preferredLanguage || 'en';
     const targetCountry = participantResult.Item?.preferredCountry || 'US';
+    const targetRegion = participantResult.Item?.preferredRegion || undefined;
 
     // Translate based on message type
     let translatedContent = content || '';
@@ -329,17 +330,17 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
     if (originalLanguage !== targetLanguage && content) {
       switch (type) {
         case 'text':
-          // Regular text message - always translate
-          console.log(`🌐 Translating text message: ${originalLanguage} -> ${targetLanguage}`);
-          translatedContent = await translate(content, originalLanguage, targetLanguage, targetCountry);
+          // Regular text message - always translate with regional awareness
+          console.log(`🌐 Translating text message: ${originalLanguage} -> ${targetLanguage}${targetRegion ? ` [${targetRegion}]` : ''}`);
+          translatedContent = await translate(content, originalLanguage, targetLanguage, targetCountry, targetRegion);
           message.translations[targetLanguage] = translatedContent;
           break;
           
         case 'file':
           // Document - translate only if user requested
           if (translateDocument) {
-            console.log(`📄 Translating document content: ${originalLanguage} -> ${targetLanguage}`);
-            translatedContent = await translateDocumentContent(content, originalLanguage, targetLanguage, targetCountry);
+            console.log(`📄 Translating document content: ${originalLanguage} -> ${targetLanguage}${targetRegion ? ` [${targetRegion}]` : ''}`);
+            translatedContent = await translateDocumentContent(content, originalLanguage, targetLanguage, targetCountry, targetRegion);
             message.translations[targetLanguage] = translatedContent;
           } else {
             console.log(`📄 Skipping document translation (translateDocument: false)`);

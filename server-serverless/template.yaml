@@ -406,6 +406,22 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
 
+  UpdateRegionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/users.updateRegion
+      CodeUri: .
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/users/me/region
+            Method: PATCH
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
   # Profile Picture
   GetProfilePictureUploadUrlFunction:
     Type: AWS::Serverless::Function

@@ -1,6 +1,8 @@
 /**
  * Multi-provider Translation Service
  * Supports: OpenAI, Anthropic (Claude), DeepSeek
+ * 
+ * Features region-aware translation for maximum accuracy
  */
 
 const AI_PROVIDER = process.env.AI_PROVIDER || 'openai';
@@ -10,31 +12,77 @@ const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 
 console.log(`🤖 Translation AI Provider: ${AI_PROVIDER.toUpperCase()}`);
 
-// Simple language code to name mapping
+// Comprehensive language code to name mapping (120+ languages)
 const LANGUAGE_NAMES: Record<string, string> = {
+  // Major World Languages
   en: 'English', es: 'Spanish', fr: 'French', de: 'German',
-  it: 'Italian', pt: 'Portuguese', zh: 'Chinese', ja: 'Japanese',
-  ko: 'Korean', ar: 'Arabic', ru: 'Russian', hi: 'Hindi',
-  nl: 'Dutch', sv: 'Swedish', pl: 'Polish', tr: 'Turkish',
-  th: 'Thai', vi: 'Vietnamese', id: 'Indonesian', ms: 'Malay',
-  tl: 'Tagalog', uk: 'Ukrainian', cs: 'Czech', el: 'Greek',
-  he: 'Hebrew', ro: 'Romanian', hu: 'Hungarian', da: 'Danish',
-  fi: 'Finnish', no: 'Norwegian', sk: 'Slovak', bg: 'Bulgarian',
-  hr: 'Croatian', sr: 'Serbian', sl: 'Slovenian', et: 'Estonian',
-  lv: 'Latvian', lt: 'Lithuanian', bn: 'Bengali', ta: 'Tamil',
+  it: 'Italian', pt: 'Portuguese', ru: 'Russian', zh: 'Chinese (Mandarin)',
+  ja: 'Japanese', ko: 'Korean', ar: 'Arabic', nl: 'Dutch',
+  sv: 'Swedish', pl: 'Polish', tr: 'Turkish', uk: 'Ukrainian',
+  cs: 'Czech', el: 'Greek', he: 'Hebrew', ro: 'Romanian',
+  hu: 'Hungarian', da: 'Danish', fi: 'Finnish', no: 'Norwegian',
+  sk: 'Slovak', bg: 'Bulgarian', hr: 'Croatian', sr: 'Serbian',
+  sl: 'Slovenian', et: 'Estonian', lv: 'Latvian', lt: 'Lithuanian',
+  
+  // European Regional Languages
+  ca: 'Catalan', gl: 'Galician', eu: 'Basque', oc: 'Occitan',
+  ast: 'Asturian', sc: 'Sardinian', scn: 'Sicilian', nap: 'Neapolitan',
+  fur: 'Friulian', br: 'Breton', co: 'Corsican', gsw: 'Alsatian',
+  cy: 'Welsh', gd: 'Scottish Gaelic', ga: 'Irish', kw: 'Cornish',
+  fy: 'Frisian', wa: 'Walloon', li: 'Limburgish', rm: 'Romansh',
+  lb: 'Luxembourgish', nds: 'Low German', bar: 'Bavarian', hsb: 'Upper Sorbian',
+  is: 'Icelandic', fo: 'Faroese', be: 'Belarusian', mk: 'Macedonian',
+  sq: 'Albanian', bs: 'Bosnian', mt: 'Maltese',
+  
+  // Asian Languages
+  yue: 'Cantonese', bo: 'Tibetan', ug: 'Uyghur', mn: 'Mongolian',
+  vi: 'Vietnamese', th: 'Thai', id: 'Indonesian', ms: 'Malay',
+  tl: 'Filipino', km: 'Khmer', lo: 'Lao', my: 'Burmese',
+  jv: 'Javanese', su: 'Sundanese', ceb: 'Cebuano', ilo: 'Ilocano',
+  
+  // Indian Subcontinent Languages
+  hi: 'Hindi', bn: 'Bengali', pa: 'Punjabi', ta: 'Tamil',
   te: 'Telugu', mr: 'Marathi', gu: 'Gujarati', kn: 'Kannada',
-  ml: 'Malayalam', pa: 'Punjabi', ur: 'Urdu', fa: 'Persian',
-  sw: 'Swahili', af: 'Afrikaans',
+  ml: 'Malayalam', or: 'Odia', as: 'Assamese', ne: 'Nepali',
+  si: 'Sinhala', ur: 'Urdu', sd: 'Sindhi', ks: 'Kashmiri',
+  doi: 'Dogri', mai: 'Maithili', sat: 'Santali', kok: 'Konkani',
+  mni: 'Manipuri', dv: 'Dhivehi',
+  
+  // Middle Eastern Languages
+  fa: 'Persian', ku: 'Kurdish', ps: 'Pashto', az: 'Azerbaijani',
+  hy: 'Armenian', ka: 'Georgian', uz: 'Uzbek', kk: 'Kazakh',
+  tg: 'Tajik', tk: 'Turkmen', ky: 'Kyrgyz',
+  
+  // African Languages
+  sw: 'Swahili', af: 'Afrikaans', am: 'Amharic', ha: 'Hausa',
+  yo: 'Yoruba', ig: 'Igbo', zu: 'Zulu', xh: 'Xhosa',
+  so: 'Somali', rw: 'Kinyarwanda', rn: 'Kirundi', sn: 'Shona',
+  ny: 'Chichewa', mg: 'Malagasy', ti: 'Tigrinya', om: 'Oromo',
+  wo: 'Wolof', ff: 'Fulah', ln: 'Lingala', kg: 'Kongo',
+  st: 'Sesotho', tn: 'Setswana',
+  
+  // Americas Indigenous Languages
+  qu: 'Quechua', gn: 'Guaraní', ay: 'Aymara', nah: 'Nahuatl',
+  yua: 'Yucatec Maya', oj: 'Ojibwe', cr: 'Cree', iu: 'Inuktitut',
+  nv: 'Navajo', chr: 'Cherokee', ht: 'Haitian Creole', srn: 'Sranan Tongo',
+  
+  // Classical & Historical Languages
+  la: 'Latin', sa: 'Sanskrit', grc: 'Ancient Greek', cu: 'Church Slavonic',
+  pi: 'Pali', cop: 'Coptic', syr: 'Syriac',
 };
 
-// Country code to name mapping
+// Comprehensive country code to name mapping
 const COUNTRY_NAMES: Record<string, string> = {
+  // Americas
   US: 'United States', CA: 'Canada', MX: 'Mexico', BR: 'Brazil',
   AR: 'Argentina', CO: 'Colombia', PE: 'Peru', CL: 'Chile',
   VE: 'Venezuela', EC: 'Ecuador', BO: 'Bolivia', PY: 'Paraguay',
   UY: 'Uruguay', CR: 'Costa Rica', PA: 'Panama', GT: 'Guatemala',
   HN: 'Honduras', SV: 'El Salvador', NI: 'Nicaragua', CU: 'Cuba',
   DO: 'Dominican Republic', PR: 'Puerto Rico', JM: 'Jamaica', HT: 'Haiti',
+  TT: 'Trinidad and Tobago', SR: 'Suriname',
+  
+  // Europe
   GB: 'United Kingdom', FR: 'France', DE: 'Germany', IT: 'Italy',
   ES: 'Spain', PT: 'Portugal', NL: 'Netherlands', BE: 'Belgium',
   CH: 'Switzerland', AT: 'Austria', SE: 'Sweden', NO: 'Norway',
@@ -42,20 +90,38 @@ const COUNTRY_NAMES: Record<string, string> = {
   CZ: 'Czech Republic', SK: 'Slovakia', HU: 'Hungary', RO: 'Romania',
   BG: 'Bulgaria', GR: 'Greece', UA: 'Ukraine', RU: 'Russia',
   HR: 'Croatia', RS: 'Serbia', SI: 'Slovenia', EE: 'Estonia',
-  LV: 'Latvia', LT: 'Lithuania', CN: 'China', JP: 'Japan',
-  KR: 'South Korea', IN: 'India', ID: 'Indonesia', TH: 'Thailand',
-  VN: 'Vietnam', MY: 'Malaysia', SG: 'Singapore', PH: 'Philippines',
-  TW: 'Taiwan', HK: 'Hong Kong', PK: 'Pakistan', BD: 'Bangladesh',
-  NP: 'Nepal', LK: 'Sri Lanka', MM: 'Myanmar', KH: 'Cambodia',
+  LV: 'Latvia', LT: 'Lithuania', IS: 'Iceland', LU: 'Luxembourg',
+  MT: 'Malta', AL: 'Albania', MK: 'North Macedonia', BA: 'Bosnia and Herzegovina',
+  ME: 'Montenegro', XK: 'Kosovo', BY: 'Belarus', MD: 'Moldova',
+  
+  // Asia
+  CN: 'China', JP: 'Japan', KR: 'South Korea', IN: 'India',
+  ID: 'Indonesia', TH: 'Thailand', VN: 'Vietnam', MY: 'Malaysia',
+  SG: 'Singapore', PH: 'Philippines', TW: 'Taiwan', HK: 'Hong Kong',
+  PK: 'Pakistan', BD: 'Bangladesh', NP: 'Nepal', LK: 'Sri Lanka',
+  MM: 'Myanmar', KH: 'Cambodia', LA: 'Laos', MN: 'Mongolia',
+  MV: 'Maldives', BT: 'Bhutan',
+  
+  // Middle East & Central Asia
   TR: 'Turkey', SA: 'Saudi Arabia', AE: 'United Arab Emirates',
   IL: 'Israel', IR: 'Iran', IQ: 'Iraq', EG: 'Egypt', JO: 'Jordan',
   LB: 'Lebanon', SY: 'Syria', KW: 'Kuwait', QA: 'Qatar',
-  BH: 'Bahrain', OM: 'Oman', YE: 'Yemen', ZA: 'South Africa',
-  NG: 'Nigeria', KE: 'Kenya', ET: 'Ethiopia', GH: 'Ghana',
-  TZ: 'Tanzania', UG: 'Uganda', MA: 'Morocco', DZ: 'Algeria',
-  TN: 'Tunisia', SN: 'Senegal', CI: 'Ivory Coast', CM: 'Cameroon',
-  AO: 'Angola', MZ: 'Mozambique', AU: 'Australia', NZ: 'New Zealand',
-  FJ: 'Fiji', PG: 'Papua New Guinea',
+  BH: 'Bahrain', OM: 'Oman', YE: 'Yemen', AF: 'Afghanistan',
+  AZ: 'Azerbaijan', AM: 'Armenia', GE: 'Georgia', KZ: 'Kazakhstan',
+  UZ: 'Uzbekistan', TM: 'Turkmenistan', TJ: 'Tajikistan', KG: 'Kyrgyzstan',
+  
+  // Africa
+  ZA: 'South Africa', NG: 'Nigeria', KE: 'Kenya', ET: 'Ethiopia',
+  GH: 'Ghana', TZ: 'Tanzania', UG: 'Uganda', MA: 'Morocco',
+  DZ: 'Algeria', TN: 'Tunisia', SN: 'Senegal', CI: 'Ivory Coast',
+  CM: 'Cameroon', AO: 'Angola', MZ: 'Mozambique', ZW: 'Zimbabwe',
+  RW: 'Rwanda', BI: 'Burundi', MW: 'Malawi', MG: 'Madagascar',
+  SO: 'Somalia', ER: 'Eritrea', BW: 'Botswana', NA: 'Namibia',
+  LS: 'Lesotho', SZ: 'Eswatini', CD: 'DR Congo', CG: 'Congo',
+  
+  // Oceania
+  AU: 'Australia', NZ: 'New Zealand', FJ: 'Fiji', PG: 'Papua New Guinea',
+  WS: 'Samoa', TO: 'Tonga',
 };
 
 interface ChatMessage {
@@ -168,18 +234,109 @@ async function chat(messages: ChatMessage[], maxTokens = 1000): Promise<string> 
   }
 }
 
+// ============== Translation Prompt Builder ==============
+
+/**
+ * Build a region-aware translation prompt for maximum accuracy
+ */
+function buildTranslationPrompt(
+  targetLanguage: string,
+  targetCountry?: string,
+  targetRegion?: string
+): string {
+  const languageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
+  const countryName = targetCountry ? COUNTRY_NAMES[targetCountry] : null;
+
+  // Build the prompt based on available context
+  if (targetRegion && countryName) {
+    // Full regional context
+    return `Translate the following text with maximum accuracy into **${languageName}**,
+
+using the vocabulary, grammar, idioms, and tone that are natural for speakers
+from **${countryName}**, specifically the **${targetRegion}** region.
+
+If the source sentence is ambiguous, choose the meaning that would be most natural
+for native speakers of that region. Maintain the original tone (formal, informal,
+slang, emotional, etc.) and preserve the intent of the message.
+
+Do NOT explain the translation — only output the translated text.`;
+  } else if (countryName) {
+    // Country context only
+    return `Translate the following text with maximum accuracy into **${languageName}**,
+
+using the vocabulary, grammar, idioms, and tone that are natural for speakers
+from **${countryName}**.
+
+If the source sentence is ambiguous, choose the meaning that would be most natural
+for native speakers of that country. Maintain the original tone (formal, informal,
+slang, emotional, etc.) and preserve the intent of the message.
+
+Do NOT explain the translation — only output the translated text.`;
+  } else {
+    // Language only
+    return `Translate the following text with maximum accuracy into **${languageName}**.
+
+Maintain the original tone (formal, informal, slang, emotional, etc.) and preserve 
+the intent of the message.
+
+Do NOT explain the translation — only output the translated text.`;
+  }
+}
+
+/**
+ * Build a region-aware document translation prompt
+ */
+function buildDocumentTranslationPrompt(
+  targetLanguage: string,
+  targetCountry?: string,
+  targetRegion?: string
+): string {
+  const languageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
+  const countryName = targetCountry ? COUNTRY_NAMES[targetCountry] : null;
+
+  // Build the prompt based on available context
+  if (targetRegion && countryName) {
+    return `Translate the following document content with maximum accuracy into **${languageName}**,
+
+using the vocabulary, grammar, idioms, and tone that are natural for speakers
+from **${countryName}**, specifically the **${targetRegion}** region.
+
+Preserve any formatting, file paths, technical terms, or special notation.
+Maintain the original tone and intent of the document.
+
+Do NOT explain the translation — only output the translated text.`;
+  } else if (countryName) {
+    return `Translate the following document content with maximum accuracy into **${languageName}**,
+
+using the vocabulary and style natural for speakers from **${countryName}**.
+
+Preserve any formatting, file paths, technical terms, or special notation.
+Maintain the original tone and intent of the document.
+
+Do NOT explain the translation — only output the translated text.`;
+  } else {
+    return `Translate the following document content with maximum accuracy into **${languageName}**.
+
+Preserve any formatting, file paths, technical terms, or special notation.
+Maintain the original tone and intent of the document.
+
+Do NOT explain the translation — only output the translated text.`;
+  }
+}
+
 // ============== Translation Functions ==============
 
 export async function translate(
   text: string,
   sourceLanguage: string,
   targetLanguage: string,
-  targetCountry?: string
+  targetCountry?: string,
+  targetRegion?: string
 ): Promise<string> {
-  // Check if same language (ignore country for this check)
+  // Check if same language (ignore country/region for this check)
   const sourceBase = sourceLanguage.split('-')[0];
   const targetBase = targetLanguage.split('-')[0];
-  if (sourceBase === targetBase && !targetCountry) {
+  if (sourceBase === targetBase && !targetCountry && !targetRegion) {
     return text;
   }
 
@@ -187,21 +344,24 @@ export async function translate(
   const targetName = LANGUAGE_NAMES[targetLanguage] || LANGUAGE_NAMES[targetBase] || targetLanguage;
   const countryName = targetCountry ? COUNTRY_NAMES[targetCountry] : null;
 
-  const targetDescription = countryName 
-    ? `${targetName} from ${countryName}`
-    : targetName;
+  // Build log description
+  let targetDescription = targetName;
+  if (countryName) targetDescription += ` (${countryName})`;
+  if (targetRegion) targetDescription += ` [${targetRegion}]`;
 
   console.log(`🌐 Translating (${AI_PROVIDER}): ${sourceName} -> ${targetDescription}`);
 
   try {
+    const systemPrompt = buildTranslationPrompt(targetLanguage, targetCountry, targetRegion);
+    
     const result = await chat([
       {
         role: 'system',
-        content: `Please translate this for me into ${targetDescription}. Return only the translated text, nothing else.`,
+        content: systemPrompt,
       },
       {
         role: 'user',
-        content: text,
+        content: `Text to translate:\n"${text}"`,
       },
     ]);
 
@@ -220,12 +380,13 @@ export async function translateDocumentContent(
   text: string,
   sourceLanguage: string,
   targetLanguage: string,
-  targetCountry?: string
+  targetCountry?: string,
+  targetRegion?: string
 ): Promise<string> {
   // Check if same language
   const sourceBase = sourceLanguage.split('-')[0];
   const targetBase = targetLanguage.split('-')[0];
-  if (sourceBase === targetBase && !targetCountry) {
+  if (sourceBase === targetBase && !targetCountry && !targetRegion) {
     return text;
   }
 
@@ -233,21 +394,24 @@ export async function translateDocumentContent(
   const targetName = LANGUAGE_NAMES[targetLanguage] || LANGUAGE_NAMES[targetBase] || targetLanguage;
   const countryName = targetCountry ? COUNTRY_NAMES[targetCountry] : null;
 
-  const targetDescription = countryName 
-    ? `${targetName} from ${countryName}`
-    : targetName;
+  // Build log description
+  let targetDescription = targetName;
+  if (countryName) targetDescription += ` (${countryName})`;
+  if (targetRegion) targetDescription += ` [${targetRegion}]`;
 
   console.log(`📄 Translating document (${AI_PROVIDER}): ${sourceName} -> ${targetDescription}`);
 
   try {
+    const systemPrompt = buildDocumentTranslationPrompt(targetLanguage, targetCountry, targetRegion);
+    
     const result = await chat([
       {
         role: 'system',
-        content: `You are translating a document or file description. Translate the following content into ${targetDescription}. Preserve any formatting, file paths, or technical terms. Return only the translated text.`,
+        content: systemPrompt,
       },
       {
         role: 'user',
-        content: text,
+        content: `Document content to translate:\n"${text}"`,
       },
     ]);
 
@@ -287,3 +451,6 @@ export function getProviderInfo() {
          : 'deepseek-chat',
   };
 }
+
+// Export language/country mappings for use elsewhere
+export { LANGUAGE_NAMES, COUNTRY_NAMES };

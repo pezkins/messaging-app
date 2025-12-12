@@ -372,6 +372,64 @@ Authorization: Bearer <accessToken>
 
 ---
 
+### PATCH /api/users/me/region
+
+Update user's preferred region for hyper-local translation targeting.
+
+**Headers:**
+```
+Authorization: Bearer <accessToken>
+```
+
+**Request:**
+```json
+{
+  "preferredRegion": "Catalonia"
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| preferredRegion | string | No | Region name (max 100 chars), null to clear |
+
+**Response (200 OK):**
+```json
+{
+  "user": {
+    "id": "user_abc123",
+    "email": "user@example.com",
+    "username": "johndoe",
+    "preferredLanguage": "ca",
+    "preferredCountry": "ES",
+    "preferredRegion": "Catalonia",
+    "createdAt": "2024-12-08T00:00:00.000Z"
+  }
+}
+```
+
+**Use Case:**
+- Combined with language and country for maximum translation accuracy
+- Example: Catalan from Spain, specifically the Catalonia region
+- AI uses vocabulary, idioms, and tone natural for that specific region
+
+**Regional Examples:**
+| Language | Country | Region | Use Case |
+|----------|---------|--------|----------|
+| Catalan | Spain | Catalonia | Eastern Spain regional language |
+| Catalan | Spain | Valencia | Valencian dialect |
+| Galician | Spain | Galicia | Northwestern Spain |
+| Basque | Spain | Basque Country | Northern Spain |
+| Welsh | UK | Wales | Welsh language regional |
+| Scottish Gaelic | UK | Scotland | Scottish Highlands |
+| Cantonese | China | Hong Kong | vs Guangdong dialect |
+| Quechua | Peru | Cusco | vs Bolivian Quechua |
+
+**Errors:**
+- `400` - Validation error (max 100 characters)
+- `401` - Unauthorized
+
+---
+
 ### POST /api/users/profile-picture/upload-url
 
 Get a presigned URL to upload a profile picture.

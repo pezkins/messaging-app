@@ -235,6 +235,64 @@ export const updateCountry: APIGatewayProxyHandler = async (event) => {
 };
 
 /**
+ * Update user's preferred region for regional translation targeting
+ */
+export const updateRegion: APIGatewayProxyHandler = async (event) => {
+  try {
+    // Verify auth
+    const authHeader = event.headers.authorization || event.headers.Authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+      return response(401, { message: 'Unauthorized' });
+    }
+    
+    let userId: string;
+    try {
+      const payload = verifyToken(authHeader.split(' ')[1]);
+      userId = payload.userId;
+    } catch {
+      return response(401, { message: 'Invalid token' });
+    }
+
+    const body = JSON.parse(event.body || '{}');
+    const { preferredRegion } = z.object({
+      preferredRegion: z.string().max(100).optional().nullable(),
+    }).parse(body);
+
+    // Update user's preferred region (can be null to clear it)
+    if (preferredRegion) {
+      await dynamodb.send(new UpdateCommand({
+        TableName: Tables.USERS,
+        Key: { id: userId },
+        UpdateExpression: 'SET preferredRegion = :region, updatedAt = :now',
+        ExpressionAttributeValues: {
+          ':region': preferredRegion,
+          ':now': new Date().toISOString(),
+        },
+      }));
+    } else {
+      // Remove the region if null/empty
+      await dynamodb.send(new UpdateCommand({
+        TableName: Tables.USERS,
+        Key: { id: userId },
+        UpdateExpression: 'REMOVE preferredRegion SET updatedAt = :now',
+        ExpressionAttributeValues: {
+          ':now': new Date().toISOString(),
+        },
+      }));
+    }
+
+    const user = await getUser(userId);
+    return response(200, { user });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return response(400, { message: 'Validation error', details: error.errors });
+    }
+    console.error('Update region error:', error);
+    return response(500, { message: 'Internal server error' });
+  }
+};
+
+/**
  * Get presigned URL for profile picture upload
  */
 export const getProfilePictureUploadUrl: APIGatewayProxyHandler = async (event) => {
