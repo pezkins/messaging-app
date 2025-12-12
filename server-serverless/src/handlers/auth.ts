@@ -80,7 +80,7 @@ export const register: APIGatewayProxyHandler = async (event) => {
         username: user.username,
         preferredLanguage: user.preferredLanguage,
         preferredCountry: user.preferredCountry,
-        preferredRegion: user.preferredRegion || null,
+        preferredRegion: null, // New users don't have a region set yet
         profilePicture: null,
         createdAt: user.createdAt,
       },
