@@ -496,12 +496,15 @@ class ChatRepository @Inject constructor(
     suspend fun deleteMessage(messageId: String, forEveryone: Boolean): Result<Unit> {
         val conversation = _activeConversation.value ?: return Result.failure(Exception("No active conversation"))
         
+        Log.d(TAG, "🗑️ DELETE Message - conversationId: ${conversation.id}, messageId: $messageId, forEveryone: $forEveryone")
+        
         return try {
             val response = apiService.deleteMessage(
                 conversationId = conversation.id,
                 messageId = messageId,
                 forEveryone = forEveryone
             )
+            Log.d(TAG, "🗑️ DELETE Message - Success: ${response.success}")
             
             if (response.success) {
                 if (forEveryone) {

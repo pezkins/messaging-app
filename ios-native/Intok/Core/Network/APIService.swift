@@ -419,7 +419,9 @@ class APIService {
         if forEveryone {
             endpoint += "?forEveryone=true"
         }
+        NSLog("🗑️ DELETE Message - conversationId: %@, messageId: %@, endpoint: %@", conversationId, messageId, endpoint)
         let _: EmptyResponse = try await request(endpoint: endpoint, method: "DELETE")
+        NSLog("🗑️ DELETE Message - Success!")
     }
     
     // MARK: - Delete Conversation
