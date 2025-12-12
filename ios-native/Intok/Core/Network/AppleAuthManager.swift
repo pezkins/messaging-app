@@ -72,10 +72,7 @@ extension AppleAuthManager: ASAuthorizationControllerDelegate {
     func authorizationController(controller: ASAuthorizationController, didCompleteWithAuthorization authorization: ASAuthorization) {
         NSLog("🍎 Apple Sign-In: Authorization completed")
         
-        guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential,
-              let nonce = currentNonce,
-              let identityToken = appleIDCredential.identityToken,
-              let tokenString = String(data: identityToken, encoding: .utf8) else {
+        guard let appleIDCredential = authorization.credential as? ASAuthorizationAppleIDCredential else {
             NSLog("❌ Apple Sign-In: Missing credentials")
             DispatchQueue.main.async {
                 self.isLoading = false
@@ -85,25 +82,58 @@ extension AppleAuthManager: ASAuthorizationControllerDelegate {
             return
         }
         
+        // Apple's unique user identifier - this is stable across sign-ins
+        let appleUserId = appleIDCredential.user
+        
         let fullName = [
             appleIDCredential.fullName?.givenName,
             appleIDCredential.fullName?.familyName
         ].compactMap { $0 }.joined(separator: " ")
         
-        let email = appleIDCredential.email
+        // Email is only provided on first sign-in, after that it's nil
+        // We need to extract it from the identity token if not provided
+        var email = appleIDCredential.email
         
-        NSLog("✅ Apple Sign-In successful - email: %@", email ?? "hidden")
+        if email == nil, let identityToken = appleIDCredential.identityToken,
+           let tokenString = String(data: identityToken, encoding: .utf8) {
+            // Try to decode email from JWT token
+            email = decodeEmailFromJWT(tokenString)
+        }
         
-        // Send to backend for verification
+        // If still no email, use Apple user ID as placeholder (backend will use existing email)
+        let finalEmail = email ?? "\(appleUserId)@privaterelay.appleid.com"
+        
+        NSLog("✅ Apple Sign-In successful - userId: %@, email: %@", appleUserId, finalEmail)
+        
+        // Send to backend using OAuth endpoint (same as Google)
         Task { @MainActor in
-            await AuthManager.shared.signInWithApple(
-                idToken: tokenString,
-                nonce: nonce,
-                fullName: fullName.isEmpty ? nil : fullName,
-                email: email
+            await AuthManager.shared.signInWithAppleOAuth(
+                providerId: appleUserId,
+                email: finalEmail,
+                name: fullName.isEmpty ? nil : fullName
             )
             self.isLoading = false
         }
+    }
+    
+    /// Decode email from Apple's JWT identity token
+    private func decodeEmailFromJWT(_ token: String) -> String? {
+        let parts = token.split(separator: ".")
+        guard parts.count >= 2 else { return nil }
+        
+        var base64 = String(parts[1])
+        // Add padding if needed
+        while base64.count % 4 != 0 {
+            base64 += "="
+        }
+        
+        guard let data = Data(base64Encoded: base64),
+              let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let email = json["email"] as? String else {
+            return nil
+        }
+        
+        return email
     }
     
     func authorizationController(controller: ASAuthorizationController, didCompleteWithError error: Error) {

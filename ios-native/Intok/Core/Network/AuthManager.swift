@@ -239,20 +239,24 @@ class AuthManager: ObservableObject {
         isLoading = false
     }
     
-    // MARK: - Apple Sign-In
-    func signInWithApple(idToken: String, nonce: String, fullName: String?, email: String?) async {
+    // MARK: - Apple Sign-In (using OAuth flow)
+    func signInWithAppleOAuth(providerId: String, email: String, name: String?) async {
         isLoading = true
         error = nil
         
+        logger.info("📤 Apple Sign-In: Calling backend OAuth - email: \(email, privacy: .public)")
+        
         do {
-            let response = try await APIService.shared.appleSignIn(
-                idToken: idToken,
-                nonce: nonce,
-                fullName: fullName,
-                email: email
+            let response = try await APIService.shared.oauthLogin(
+                provider: "apple",
+                providerId: providerId,
+                email: email,
+                name: name,
+                avatarUrl: nil
             )
             
             logger.info("✅ Apple Sign-In successful: \(response.user.email, privacy: .public)")
+            logger.info("✅ isNewUser: \(String(describing: response.isNewUser)), username: \(response.user.username, privacy: .public)")
             
             // Store tokens
             accessToken = response.accessToken
@@ -265,7 +269,7 @@ class AuthManager: ObservableObject {
             // Update state
             currentUser = response.user
             isAuthenticated = true
-            needsSetup = response.isNewUser ?? false
+            needsSetup = response.isNewUser ?? (response.user.username.isEmpty || response.user.username == response.user.email)
             
             saveAuth()
             logger.info("✅ Auth state updated - isAuthenticated: \(self.isAuthenticated), needsSetup: \(self.needsSetup)")
@@ -279,6 +283,17 @@ class AuthManager: ObservableObject {
         }
         
         isLoading = false
+    }
+    
+    // MARK: - Legacy Apple Sign-In (deprecated - kept for reference)
+    func signInWithApple(idToken: String, nonce: String, fullName: String?, email: String?) async {
+        // Redirect to OAuth flow
+        logger.warning("⚠️ Using legacy signInWithApple - redirecting to OAuth flow")
+        await signInWithAppleOAuth(
+            providerId: idToken, // Use token as fallback providerId
+            email: email ?? "unknown@apple.com",
+            name: fullName
+        )
     }
     
     func signOut() async {
