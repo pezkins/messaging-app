@@ -271,6 +271,7 @@ jobs:
           releaseFiles: ${{ steps.find_aab.outputs.aab_file }}
           track: ${{ needs.setup.outputs.track }}
           status: completed
+          changesNotSentForReview: true
 
       - name: 🧹 Cleanup
         if: always()
