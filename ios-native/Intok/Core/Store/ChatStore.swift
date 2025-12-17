@@ -535,5 +535,3 @@ class ChatStore: ObservableObject {
         logger.info("➖ Removed participant \(userId, privacy: .public) from conversation: \(conversationId, privacy: .public)")
     }
 }
-
-

@@ -348,5 +348,3 @@ struct Attachment: Codable {
     let category: String // "image", "video", "document", "audio"
     let url: String?
 }
-
-
