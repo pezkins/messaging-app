@@ -411,6 +411,8 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
   }));
 
   // Send push notifications to offline users
+  console.log(`📱 [PUSH CHECK] Checking ${participantIds.length - 1} participants for push notifications`);
+  
   for (const participantId of participantIds) {
     if (participantId === senderId) continue;
     
@@ -422,22 +424,33 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
       ExpressionAttributeValues: { ':userId': participantId }
     }));
 
+    console.log(`📱 [PUSH CHECK] User ${participantId}: ${connections.Items?.length || 0} active connections`);
+
     // If no active connections, send push notification
     if (!connections.Items?.length) {
       const notificationBody = type === 'text' 
         ? truncateForNotification(content || '') 
         : `Sent ${type}`;
       
-      await sendPushNotification({
-        userId: participantId,
-        title: sender?.username || 'New Message',
-        body: notificationBody,
-        data: {
-          conversationId,
-          messageId: message.id,
-          type: 'new_message'
-        }
-      });
+      console.log(`📱 [PUSH] Sending push to offline user ${participantId}`);
+      
+      try {
+        await sendPushNotification({
+          userId: participantId,
+          title: sender?.username || 'New Message',
+          body: notificationBody,
+          data: {
+            conversationId,
+            messageId: message.id,
+            type: 'new_message'
+          }
+        });
+        console.log(`📱 [PUSH] Push sent successfully to ${participantId}`);
+      } catch (pushError: any) {
+        console.error(`📱 [PUSH] Failed to send push to ${participantId}:`, pushError.message);
+      }
+    } else {
+      console.log(`📱 [PUSH] Skipping push for ${participantId} - user is online`);
     }
   }
 }

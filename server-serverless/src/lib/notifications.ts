@@ -7,7 +7,7 @@
  * - intok/push/fcm: FCM credentials (projectId, serviceAccount)
  */
 
-import { dynamodb, Tables, QueryCommand } from './dynamo';
+import { dynamodb, Tables, QueryCommand, DeleteCommand } from './dynamo';
 import { SecretsManagerClient, GetSecretValueCommand } from '@aws-sdk/client-secrets-manager';
 import * as jwt from 'jsonwebtoken';
 import { GoogleAuth } from 'google-auth-library';
@@ -53,13 +53,18 @@ interface DeviceToken {
  * Fetch APNs credentials from AWS Secrets Manager
  */
 async function getAPNsCredentials(): Promise<typeof apnsCredentials> {
-  if (apnsCredentials) return apnsCredentials;
+  if (apnsCredentials) {
+    console.log('📱 [APNs] Using cached credentials');
+    return apnsCredentials;
+  }
   
   const secretName = process.env.APNS_SECRET_NAME;
   if (!secretName) {
-    console.log('📱 APNS_SECRET_NAME not configured');
+    console.log('📱 [APNs] APNS_SECRET_NAME not configured - iOS push disabled');
     return null;
   }
+  
+  console.log(`📱 [APNs] Fetching credentials from Secrets Manager: ${secretName}`);
   
   try {
     const response = await secretsManager.send(new GetSecretValueCommand({
@@ -68,11 +73,14 @@ async function getAPNsCredentials(): Promise<typeof apnsCredentials> {
     
     if (response.SecretString) {
       apnsCredentials = JSON.parse(response.SecretString);
-      console.log('✅ APNs credentials loaded from Secrets Manager');
+      console.log(`✅ [APNs] Credentials loaded - keyId: ${apnsCredentials?.keyId}, teamId: ${apnsCredentials?.teamId}`);
       return apnsCredentials;
+    } else {
+      console.error('❌ [APNs] Secret exists but has no string value');
     }
-  } catch (error) {
-    console.error('❌ Failed to fetch APNs credentials:', error);
+  } catch (error: any) {
+    console.error(`❌ [APNs] Failed to fetch credentials: ${error.message}`);
+    console.error(`❌ [APNs] Error code: ${error.code || error.name}`);
   }
   
   return null;
@@ -82,13 +90,18 @@ async function getAPNsCredentials(): Promise<typeof apnsCredentials> {
  * Fetch FCM credentials from AWS Secrets Manager
  */
 async function getFCMCredentials(): Promise<typeof fcmCredentials> {
-  if (fcmCredentials) return fcmCredentials;
+  if (fcmCredentials) {
+    console.log('📱 [FCM] Using cached credentials');
+    return fcmCredentials;
+  }
   
   const secretName = process.env.FCM_SECRET_NAME;
   if (!secretName) {
-    console.log('📱 FCM_SECRET_NAME not configured');
+    console.log('📱 [FCM] FCM_SECRET_NAME not configured - Android push disabled');
     return null;
   }
+  
+  console.log(`📱 [FCM] Fetching credentials from Secrets Manager: ${secretName}`);
   
   try {
     const response = await secretsManager.send(new GetSecretValueCommand({
@@ -103,14 +116,32 @@ async function getFCMCredentials(): Promise<typeof fcmCredentials> {
           ? JSON.parse(parsed.serviceAccount)
           : parsed.serviceAccount
       };
-      console.log('✅ FCM credentials loaded from Secrets Manager');
+      console.log(`✅ [FCM] Credentials loaded - projectId: ${fcmCredentials.projectId}`);
       return fcmCredentials;
+    } else {
+      console.error('❌ [FCM] Secret exists but has no string value');
     }
-  } catch (error) {
-    console.error('❌ Failed to fetch FCM credentials:', error);
+  } catch (error: any) {
+    console.error(`❌ [FCM] Failed to fetch credentials: ${error.message}`);
+    console.error(`❌ [FCM] Error code: ${error.code || error.name}`);
   }
   
   return null;
+}
+
+/**
+ * Remove an invalid device token from the database
+ */
+async function removeInvalidToken(userId: string, token: string, reason: string): Promise<void> {
+  try {
+    await dynamodb.send(new DeleteCommand({
+      TableName: Tables.DEVICE_TOKENS,
+      Key: { userId, token }
+    }));
+    console.log(`🧹 Removed invalid token for user ${userId}: ${reason}`);
+  } catch (error) {
+    console.error(`Failed to remove invalid token:`, error);
+  }
 }
 
 /**
@@ -118,6 +149,10 @@ async function getFCMCredentials(): Promise<typeof fcmCredentials> {
  */
 export async function sendPushNotification(payload: NotificationPayload): Promise<void> {
   const { userId, title, body, data } = payload;
+
+  console.log(`📱 [PUSH] Starting notification for user ${userId}`);
+  console.log(`📱 [PUSH] Title: "${title}", Body: "${body?.substring(0, 50)}..."`);
+  console.log(`📱 [PUSH] Data:`, JSON.stringify(data));
 
   // Get user's device tokens
   const tokens = await dynamodb.send(new QueryCommand({
@@ -127,24 +162,41 @@ export async function sendPushNotification(payload: NotificationPayload): Promis
   }));
 
   if (!tokens.Items?.length) {
-    console.log(`📱 No devices registered for user ${userId}`);
+    console.log(`📱 [PUSH] No devices registered for user ${userId} - skipping`);
     return;
   }
 
-  console.log(`📱 Sending push notification to ${tokens.Items.length} device(s) for user ${userId}`);
+  console.log(`📱 [PUSH] Found ${tokens.Items.length} device(s) for user ${userId}:`);
+  tokens.Items.forEach((device: any, i: number) => {
+    console.log(`📱 [PUSH]   ${i + 1}. ${device.platform}: ${device.token.substring(0, 20)}...`);
+  });
+
+  let successCount = 0;
+  let failCount = 0;
 
   for (const device of tokens.Items as DeviceToken[]) {
     try {
       if (device.platform === 'ios') {
-        await sendAPNS(device.token, title, body, data);
+        await sendAPNS(device.token, title, body, data, userId);
+        successCount++;
       } else if (device.platform === 'android') {
-        await sendFCMv1(device.token, title, body, data);
+        await sendFCMv1(device.token, title, body, data, userId);
+        successCount++;
+      } else {
+        console.warn(`📱 [PUSH] Unknown platform: ${device.platform}`);
       }
-    } catch (error) {
-      console.error(`Failed to send to ${device.platform} device:`, error);
-      // TODO: Consider removing invalid tokens (e.g., on 404/410 errors)
+    } catch (error: any) {
+      failCount++;
+      console.error(`📱 [PUSH] Failed to send to ${device.platform} device:`, error.message);
+      
+      // Check if we should remove the token
+      if (error.shouldRemoveToken) {
+        await removeInvalidToken(userId, device.token, error.message);
+      }
     }
   }
+
+  console.log(`📱 [PUSH] Completed for user ${userId}: ${successCount} success, ${failCount} failed`);
 }
 
 /**
@@ -184,25 +236,49 @@ async function getAPNsJWT(): Promise<string | null> {
 }
 
 /**
+ * Custom error class for push notification errors
+ */
+class PushNotificationError extends Error {
+  shouldRemoveToken: boolean;
+  
+  constructor(message: string, shouldRemoveToken: boolean = false) {
+    super(message);
+    this.shouldRemoveToken = shouldRemoveToken;
+  }
+}
+
+/**
  * Send notification via Apple Push Notification Service
  */
 async function sendAPNS(
   deviceToken: string, 
   title: string, 
   body: string, 
-  data?: Record<string, string>
+  data?: Record<string, string>,
+  userId?: string
 ): Promise<void> {
   const jwtToken = await getAPNsJWT();
   
   if (!jwtToken) {
-    console.log(`📱 APNs not configured, skipping iOS push to ${deviceToken.substring(0, 10)}...`);
+    console.log(`📱 [APNs] Not configured, skipping iOS push to ${deviceToken.substring(0, 20)}...`);
     return;
   }
 
-  console.log(`📱 Sending APNs to ${deviceToken.substring(0, 10)}...`);
+  console.log(`📱 [APNs] Sending to ${deviceToken.substring(0, 20)}...`);
   
   // Use production APNs endpoint
   const url = `https://api.push.apple.com/3/device/${deviceToken}`;
+  
+  const payload = {
+    aps: {
+      alert: { title, body },
+      badge: 1,
+      sound: 'default',
+    },
+    ...data
+  };
+  
+  console.log(`📱 [APNs] Payload:`, JSON.stringify(payload));
   
   const response = await fetch(url, {
     method: 'POST',
@@ -212,23 +288,28 @@ async function sendAPNS(
       'apns-push-type': 'alert',
       'apns-priority': '10',
     },
-    body: JSON.stringify({
-      aps: {
-        alert: { title, body },
-        badge: 1,
-        sound: 'default',
-      },
-      ...data
-    })
+    body: JSON.stringify(payload)
   });
   
   if (!response.ok) {
     const errorBody = await response.text();
-    console.error(`❌ APNs error: ${response.status} - ${errorBody}`);
-    throw new Error(`APNs error: ${response.status} - ${errorBody}`);
+    console.error(`❌ [APNs] Error ${response.status}: ${errorBody}`);
+    
+    // APNs error reasons that indicate invalid token
+    // See: https://developer.apple.com/documentation/usernotifications/handling-notification-responses-from-apns
+    const invalidTokenStatuses = [400, 410]; // BadDeviceToken, Unregistered
+    const shouldRemove = invalidTokenStatuses.includes(response.status) || 
+                         errorBody.includes('BadDeviceToken') ||
+                         errorBody.includes('Unregistered') ||
+                         errorBody.includes('DeviceTokenNotForTopic');
+    
+    throw new PushNotificationError(
+      `APNs error: ${response.status} - ${errorBody}`,
+      shouldRemove
+    );
   }
   
-  console.log(`✅ APNs notification sent to ${deviceToken.substring(0, 10)}...`);
+  console.log(`✅ [APNs] Notification sent to ${deviceToken.substring(0, 20)}...`);
 }
 
 /**
@@ -263,20 +344,40 @@ async function sendFCMv1(
   deviceToken: string, 
   title: string, 
   body: string, 
-  data?: Record<string, string>
+  data?: Record<string, string>,
+  userId?: string
 ): Promise<void> {
   const creds = await getFCMCredentials();
   const accessToken = await getFCMAccessToken();
   
   if (!creds || !accessToken) {
-    console.log(`📱 FCM not configured, skipping Android push to ${deviceToken.substring(0, 10)}...`);
+    console.log(`📱 [FCM] Not configured, skipping Android push to ${deviceToken.substring(0, 20)}...`);
     return;
   }
 
-  console.log(`📱 Sending FCM V1 to ${deviceToken.substring(0, 10)}...`);
+  console.log(`📱 [FCM] Sending to ${deviceToken.substring(0, 20)}...`);
+  console.log(`📱 [FCM] Project: ${creds.projectId}`);
   
   // FCM V1 API endpoint
   const url = `https://fcm.googleapis.com/v1/projects/${creds.projectId}/messages:send`;
+  
+  const payload = {
+    message: {
+      token: deviceToken,
+      notification: { title, body },
+      android: {
+        priority: 'high',
+        notification: {
+          sound: 'default',
+          click_action: 'FLUTTER_NOTIFICATION_CLICK', // Common for Flutter/native apps
+          channel_id: 'intok_messages', // Match Android app's notification channel
+        },
+      },
+      data: data || {},
+    }
+  };
+  
+  console.log(`📱 [FCM] Payload:`, JSON.stringify(payload));
   
   const response = await fetch(url, {
     method: 'POST',
@@ -284,30 +385,28 @@ async function sendFCMv1(
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${accessToken}`
     },
-    body: JSON.stringify({
-      message: {
-        token: deviceToken,
-        notification: { title, body },
-        android: {
-          priority: 'high',
-          notification: {
-            sound: 'default',
-            click_action: 'OPEN_ACTIVITY',
-          },
-        },
-        data: data || {},
-      }
-    })
+    body: JSON.stringify(payload)
   });
 
   if (!response.ok) {
     const errorBody = await response.text();
-    console.error(`❌ FCM V1 error: ${response.status} - ${errorBody}`);
-    throw new Error(`FCM V1 error: ${response.status} - ${errorBody}`);
+    console.error(`❌ [FCM] Error ${response.status}: ${errorBody}`);
+    
+    // FCM V1 API error codes that indicate invalid/unregistered token
+    // See: https://firebase.google.com/docs/cloud-messaging/send-message#rest
+    const shouldRemove = errorBody.includes('UNREGISTERED') ||
+                         errorBody.includes('INVALID_ARGUMENT') ||
+                         errorBody.includes('NOT_FOUND') ||
+                         errorBody.includes('Requested entity was not found');
+    
+    throw new PushNotificationError(
+      `FCM V1 error: ${response.status} - ${errorBody}`,
+      shouldRemove
+    );
   }
 
   const result = await response.json() as { name: string };
-  console.log(`✅ FCM V1 notification sent:`, result.name);
+  console.log(`✅ [FCM] Notification sent: ${result.name}`);
 }
 
 /**
