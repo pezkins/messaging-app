@@ -629,6 +629,46 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref MessagesTable
 
+  # Add Participants to Conversation
+  AddParticipantsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/conversations.addParticipants
+      CodeUri: .
+      Timeout: 10
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/conversations/{conversationId}/participants
+            Method: POST
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConversationsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
+  # Remove Participant from Conversation
+  RemoveParticipantFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/conversations.removeParticipant
+      CodeUri: .
+      Timeout: 10
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/conversations/{conversationId}/participants/{userId}
+            Method: DELETE
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConversationsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
   # Delete Conversation
   DeleteConversationFunction:
     Type: AWS::Serverless::Function

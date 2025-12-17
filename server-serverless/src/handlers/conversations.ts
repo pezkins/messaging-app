@@ -221,6 +221,233 @@ export const markAsRead: APIGatewayProxyHandler = async (event) => {
 };
 
 /**
+ * Add participants to a group conversation
+ */
+export const addParticipants: APIGatewayProxyHandler = async (event) => {
+  try {
+    const userId = getUserIdFromEvent(event);
+    if (!userId) {
+      return response(401, { message: 'Authentication required' });
+    }
+
+    const conversationId = event.pathParameters?.conversationId;
+    if (!conversationId) {
+      return response(400, { message: 'Conversation ID required' });
+    }
+
+    const body = JSON.parse(event.body || '{}');
+    const { userIds } = body;
+
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      return response(400, { message: 'userIds array is required' });
+    }
+
+    // Find the conversation to verify it exists and user is a participant
+    const convResult = await dynamodb.send(new QueryCommand({
+      TableName: Tables.CONVERSATIONS,
+      IndexName: 'user-conversations-index',
+      KeyConditionExpression: 'visibleTo = :userId',
+      FilterExpression: 'conversationId = :convId',
+      ExpressionAttributeValues: {
+        ':userId': userId,
+        ':convId': conversationId,
+      },
+    }));
+
+    const conversation = convResult.Items?.[0];
+    if (!conversation) {
+      return response(404, { message: 'Conversation not found' });
+    }
+
+    if (conversation.type !== 'group') {
+      return response(400, { message: 'Can only add participants to group conversations' });
+    }
+
+    const currentParticipantIds: string[] = conversation.participantIds || [];
+    const newParticipantIds = userIds.filter((id: string) => !currentParticipantIds.includes(id));
+
+    if (newParticipantIds.length === 0) {
+      return response(400, { message: 'All users are already participants' });
+    }
+
+    const allParticipantIds = [...currentParticipantIds, ...newParticipantIds];
+    const now = new Date().toISOString();
+
+    // Update existing conversation records for current participants
+    for (const participantId of currentParticipantIds) {
+      await dynamodb.send(new UpdateCommand({
+        TableName: Tables.CONVERSATIONS,
+        Key: { id: `${conversationId}#${participantId}` },
+        UpdateExpression: 'SET participantIds = :pIds, updatedAt = :now',
+        ExpressionAttributeValues: {
+          ':pIds': allParticipantIds,
+          ':now': now,
+        },
+      }));
+    }
+
+    // Create new conversation records for new participants
+    for (const participantId of newParticipantIds) {
+      await dynamodb.send(new PutCommand({
+        TableName: Tables.CONVERSATIONS,
+        Item: {
+          id: `${conversationId}#${participantId}`,
+          visibleTo: participantId,
+          sortKey: now,
+          conversationId: conversationId,
+          type: conversation.type,
+          name: conversation.name,
+          participantIds: allParticipantIds,
+          createdAt: conversation.createdAt,
+          updatedAt: now,
+        },
+      }));
+    }
+
+    // Get all participant details
+    const participants = await Promise.all(
+      allParticipantIds.map(async (pid: string) => {
+        const user = await dynamodb.send(new GetCommand({
+          TableName: Tables.USERS,
+          Key: { id: pid },
+        }));
+        return user.Item ? {
+          id: user.Item.id,
+          username: user.Item.username,
+          preferredLanguage: user.Item.preferredLanguage,
+          avatarUrl: user.Item.avatarUrl || null,
+          profilePicture: user.Item.profilePicture || null,
+        } : null;
+      })
+    );
+
+    console.log(`✅ Added ${newParticipantIds.length} participants to conversation ${conversationId}`);
+
+    return response(200, {
+      conversation: {
+        id: conversationId,
+        type: conversation.type,
+        name: conversation.name,
+        participants: participants.filter(Boolean),
+        createdAt: conversation.createdAt,
+        updatedAt: now,
+      },
+    });
+  } catch (error) {
+    console.error('Add participants error:', error);
+    return response(500, { message: 'Internal server error' });
+  }
+};
+
+/**
+ * Remove a participant from a group conversation
+ */
+export const removeParticipant: APIGatewayProxyHandler = async (event) => {
+  try {
+    const userId = getUserIdFromEvent(event);
+    if (!userId) {
+      return response(401, { message: 'Authentication required' });
+    }
+
+    const conversationId = event.pathParameters?.conversationId;
+    const targetUserId = event.pathParameters?.userId;
+
+    if (!conversationId) {
+      return response(400, { message: 'Conversation ID required' });
+    }
+    if (!targetUserId) {
+      return response(400, { message: 'User ID required' });
+    }
+
+    // Find the conversation to verify it exists and user is a participant
+    const convResult = await dynamodb.send(new QueryCommand({
+      TableName: Tables.CONVERSATIONS,
+      IndexName: 'user-conversations-index',
+      KeyConditionExpression: 'visibleTo = :userId',
+      FilterExpression: 'conversationId = :convId',
+      ExpressionAttributeValues: {
+        ':userId': userId,
+        ':convId': conversationId,
+      },
+    }));
+
+    const conversation = convResult.Items?.[0];
+    if (!conversation) {
+      return response(404, { message: 'Conversation not found' });
+    }
+
+    if (conversation.type !== 'group') {
+      return response(400, { message: 'Can only remove participants from group conversations' });
+    }
+
+    const currentParticipantIds: string[] = conversation.participantIds || [];
+
+    if (!currentParticipantIds.includes(targetUserId)) {
+      return response(400, { message: 'User is not a participant' });
+    }
+
+    if (currentParticipantIds.length <= 2) {
+      return response(400, { message: 'Cannot remove participant: group must have at least 2 members' });
+    }
+
+    const updatedParticipantIds = currentParticipantIds.filter((id: string) => id !== targetUserId);
+    const now = new Date().toISOString();
+
+    // Delete the removed user's conversation record
+    await dynamodb.send(new DeleteCommand({
+      TableName: Tables.CONVERSATIONS,
+      Key: { id: `${conversationId}#${targetUserId}` },
+    }));
+
+    // Update remaining participants' conversation records
+    for (const participantId of updatedParticipantIds) {
+      await dynamodb.send(new UpdateCommand({
+        TableName: Tables.CONVERSATIONS,
+        Key: { id: `${conversationId}#${participantId}` },
+        UpdateExpression: 'SET participantIds = :pIds, updatedAt = :now',
+        ExpressionAttributeValues: {
+          ':pIds': updatedParticipantIds,
+          ':now': now,
+        },
+      }));
+    }
+
+    // Get all remaining participant details
+    const participants = await Promise.all(
+      updatedParticipantIds.map(async (pid: string) => {
+        const user = await dynamodb.send(new GetCommand({
+          TableName: Tables.USERS,
+          Key: { id: pid },
+        }));
+        return user.Item ? {
+          id: user.Item.id,
+          username: user.Item.username,
+          preferredLanguage: user.Item.preferredLanguage,
+          avatarUrl: user.Item.avatarUrl || null,
+          profilePicture: user.Item.profilePicture || null,
+        } : null;
+      })
+    );
+
+    console.log(`✅ Removed user ${targetUserId} from conversation ${conversationId}`);
+
+    return response(200, {
+      conversation: {
+        id: conversationId,
+        type: conversation.type,
+        name: conversation.name,
+        participants: participants.filter(Boolean),
+        createdAt: conversation.createdAt,
+        updatedAt: now,
+      },
+    });
+  } catch (error) {
+    console.error('Remove participant error:', error);
+    return response(500, { message: 'Internal server error' });
+  }
+};
+
+/**
  * Delete a conversation for the current user (soft delete)
  * The conversation is hidden from the user's view but not deleted from other participants
  */
