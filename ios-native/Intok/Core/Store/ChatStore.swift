@@ -50,6 +50,10 @@ class ChatStore: ObservableObject {
         if let index = messages.firstIndex(where: { $0.id == data.messageId }) {
             messages[index].deletedAt = data.deletedAt
             messages[index].deletedBy = data.deletedBy
+            
+            // Update cache
+            ChatCacheManager.shared.updateMessage(messages[index])
+            
             logger.info("🗑️ Message marked as deleted: \(data.messageId, privacy: .public)")
         }
     }
@@ -62,6 +66,10 @@ class ChatStore: ObservableObject {
         if let tempId = data.tempId, let index = messages.firstIndex(where: { $0.id == tempId }) {
             // Server returned tempId, replace the optimistic message
             messages[index] = message
+            
+            // Save to cache
+            ChatCacheManager.shared.saveMessage(message)
+            
             logger.debug("📨 Replaced temp message \(tempId, privacy: .public) with \(message.id, privacy: .public)")
         } else if activeConversation?.id == message.conversationId {
             // Check for duplicates by ID first
@@ -87,6 +95,10 @@ class ChatStore: ObservableObject {
                     return false
                 }) {
                     messages[tempIndex] = message
+                    
+                    // Save to cache
+                    ChatCacheManager.shared.saveMessage(message)
+                    
                     logger.debug("📨 Replaced optimistic message with server message: \(message.id, privacy: .public)")
                     return
                 }
@@ -94,15 +106,19 @@ class ChatStore: ObservableObject {
             
             // New message from another user - add it
             messages.append(message)
+            
+            // Save to cache
+            ChatCacheManager.shared.saveMessage(message)
+            
             logger.debug("📨 Added new message: \(message.id, privacy: .public)")
         }
         
         // Update conversation's last message
         if let index = conversations.firstIndex(where: { $0.id == message.conversationId }) {
-            var updated = conversations[index]
+            let updated = conversations[index]
             // Create new conversation with updated lastMessage
             // Note: This is a workaround since Conversation is a struct
-            conversations[index] = Conversation(
+            let updatedConversation = Conversation(
                 id: updated.id,
                 type: updated.type,
                 name: updated.name,
@@ -111,6 +127,10 @@ class ChatStore: ObservableObject {
                 createdAt: updated.createdAt,
                 updatedAt: message.createdAt
             )
+            conversations[index] = updatedConversation
+            
+            // Save updated conversation to cache
+            ChatCacheManager.shared.saveConversations([updatedConversation])
             
             // Sort conversations by last message time
             conversations.sort { ($0.updatedAt) > ($1.updatedAt) }
@@ -133,9 +153,9 @@ class ChatStore: ObservableObject {
     
     private func handleReaction(_ data: ReactionData) {
         if let index = messages.firstIndex(where: { $0.id == data.messageId }) {
-            var message = messages[index]
+            let message = messages[index]
             // Update message with new reactions
-            messages[index] = Message(
+            let updatedMessage = Message(
                 id: message.id,
                 conversationId: message.conversationId,
                 senderId: message.senderId,
@@ -148,8 +168,17 @@ class ChatStore: ObservableObject {
                 status: message.status,
                 createdAt: message.createdAt,
                 reactions: data.reactions,
-                attachment: message.attachment
+                attachment: message.attachment,
+                readBy: message.readBy,
+                readAt: message.readAt,
+                replyTo: message.replyTo,
+                deletedAt: message.deletedAt,
+                deletedBy: message.deletedBy
             )
+            messages[index] = updatedMessage
+            
+            // Update cache
+            ChatCacheManager.shared.updateMessage(updatedMessage)
         }
     }
     
@@ -161,23 +190,41 @@ class ChatStore: ObservableObject {
         conversationsError = nil
         logger.info("📥 Loading conversations...")
         
+        // 1. Load from cache immediately
+        let cachedConversations = ChatCacheManager.shared.loadConversations()
+        if !cachedConversations.isEmpty {
+            conversations = cachedConversations
+            logger.info("📂 Showing \(cachedConversations.count) cached conversations")
+        }
+        
+        // 2. Fetch from API in background
         do {
             let response = try await APIService.shared.getConversations()
             conversations = response.conversations
             conversationsError = nil
-            logger.info("✅ Loaded \(response.conversations.count) conversations")
+            
+            // 3. Save to cache
+            ChatCacheManager.shared.saveConversations(response.conversations)
+            
+            logger.info("✅ Loaded \(response.conversations.count) conversations from API")
         } catch APIError.unauthorized {
             logger.error("❌ Unauthorized - token may be expired")
             conversationsError = "Session expired. Please sign in again."
         } catch APIError.networkError(let error) {
             logger.error("❌ Network error: \(error.localizedDescription, privacy: .public)")
-            conversationsError = "Unable to connect. Check your internet connection."
+            // Keep cached data on network error
+            if conversations.isEmpty {
+                conversationsError = "Unable to connect. Check your internet connection."
+            }
         } catch APIError.decodingError(let error) {
             logger.error("❌ Decoding error: \(String(describing: error), privacy: .public)")
             conversationsError = "Data format error. Please update the app."
         } catch {
             logger.error("❌ Failed to load conversations: \(String(describing: error), privacy: .public)")
-            conversationsError = "Failed to load conversations. Pull to retry."
+            // Keep cached data on error
+            if conversations.isEmpty {
+                conversationsError = "Failed to load conversations. Pull to retry."
+            }
         }
         
         isLoadingConversations = false
@@ -194,23 +241,39 @@ class ChatStore: ObservableObject {
         // This prevents race conditions where incoming messages are filtered out
         // because activeConversation wasn't set yet
         activeConversation = conversation
-        messages = []
         hasMoreMessages = false
         nextCursor = nil
+        
+        // 1. Load from cache immediately
+        let cachedMessages = ChatCacheManager.shared.loadMessages(conversationId: conversation.id)
+        if !cachedMessages.isEmpty {
+            messages = cachedMessages
+            isLoadingMessages = false // Show cached data immediately
+            logger.info("📂 Showing \(cachedMessages.count) cached messages")
+        } else {
+            messages = []
+            isLoadingMessages = true
+        }
         
         // Join new conversation AFTER setting activeConversation
         WebSocketService.shared.joinConversation(conversation.id)
         
-        isLoadingMessages = true
-        
+        // 2. Fetch from API in background
         do {
             let response = try await APIService.shared.getMessages(conversationId: conversation.id)
+            
+            // 3. Merge and update - API data takes precedence
             messages = response.messages
             hasMoreMessages = response.hasMore
             nextCursor = response.nextCursor
-            logger.info("✅ Loaded \(response.messages.count) messages")
+            
+            // 4. Save to cache
+            ChatCacheManager.shared.saveMessages(response.messages, conversationId: conversation.id)
+            
+            logger.info("✅ Loaded \(response.messages.count) messages from API")
         } catch {
             logger.error("❌ Failed to load messages: \(error.localizedDescription, privacy: .public)")
+            // Keep cached messages on error - they're already displayed
         }
         
         isLoadingMessages = false
@@ -246,6 +309,9 @@ class ChatStore: ObservableObject {
             messages = response.messages + messages
             hasMoreMessages = response.hasMore
             nextCursor = response.nextCursor
+            
+            // Save older messages to cache
+            ChatCacheManager.shared.saveMessages(response.messages, conversationId: conversation.id)
         } catch {
             logger.error("❌ Failed to load more messages: \(error.localizedDescription, privacy: .public)")
         }
@@ -395,10 +461,16 @@ class ChatStore: ObservableObject {
             if let index = messages.firstIndex(where: { $0.id == message.id }) {
                 messages[index].deletedAt = ISO8601DateFormatter().string(from: Date())
                 messages[index].deletedBy = AuthManager.shared.currentUser?.id
+                
+                // Update cache
+                ChatCacheManager.shared.updateMessage(messages[index])
             }
         } else {
             // Remove from local view only
             messages.removeAll { $0.id == message.id }
+            
+            // Remove from cache
+            ChatCacheManager.shared.deleteMessage(messageId: message.id)
         }
         
         logger.info("🗑️ Message deleted: \(message.id, privacy: .public), forEveryone: \(forEveryone)")
@@ -417,7 +489,50 @@ class ChatStore: ObservableObject {
             messages = []
         }
         
+        // Remove from cache (including all messages)
+        ChatCacheManager.shared.deleteConversation(conversationId: conversation.id)
+        
         logger.info("🗑️ Conversation deleted: \(conversation.id, privacy: .public)")
+    }
+    
+    // MARK: - Add Participants to Group
+    func addParticipants(conversationId: String, userIds: [String]) async throws {
+        let response = try await APIService.shared.addParticipants(
+            conversationId: conversationId,
+            userIds: userIds
+        )
+        
+        // Update local conversation
+        if let index = conversations.firstIndex(where: { $0.id == conversationId }) {
+            conversations[index] = response.conversation
+        }
+        
+        // Update active conversation if it's the same
+        if activeConversation?.id == conversationId {
+            activeConversation = response.conversation
+        }
+        
+        logger.info("➕ Added \(userIds.count) participants to conversation: \(conversationId, privacy: .public)")
+    }
+    
+    // MARK: - Remove Participant from Group
+    func removeParticipant(conversationId: String, userId: String) async throws {
+        let response = try await APIService.shared.removeParticipant(
+            conversationId: conversationId,
+            userId: userId
+        )
+        
+        // Update local conversation
+        if let index = conversations.firstIndex(where: { $0.id == conversationId }) {
+            conversations[index] = response.conversation
+        }
+        
+        // Update active conversation if it's the same
+        if activeConversation?.id == conversationId {
+            activeConversation = response.conversation
+        }
+        
+        logger.info("➖ Removed participant \(userId, privacy: .public) from conversation: \(conversationId, privacy: .public)")
     }
 }
 

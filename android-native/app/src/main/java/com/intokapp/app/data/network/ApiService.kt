@@ -104,6 +104,22 @@ interface ApiService {
     suspend fun markConversationAsRead(@Path("conversationId") conversationId: String)
     
     // ============================================
+    // Participant Management
+    // ============================================
+    
+    @POST("api/conversations/{conversationId}/participants")
+    suspend fun addParticipants(
+        @Path("conversationId") conversationId: String,
+        @Body request: AddParticipantsRequest
+    ): ConversationResponse
+    
+    @DELETE("api/conversations/{conversationId}/participants/{userId}")
+    suspend fun removeParticipant(
+        @Path("conversationId") conversationId: String,
+        @Path("userId") userId: String
+    ): ConversationResponse
+    
+    // ============================================
     // Delete Endpoints
     // ============================================
     
@@ -176,6 +192,10 @@ data class UpdateProfilePictureRequest(
 data class RegisterDeviceRequest(
     val token: String,
     val platform: String = "android"
+)
+
+data class AddParticipantsRequest(
+    val userIds: List<String>
 )
 
 data class UnregisterDeviceRequest(

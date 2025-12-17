@@ -1,8 +1,7 @@
-v0.1.21 - Authentication & CI/CD Improvements
+v0.1.22 - Performance & Group Chat
 
-• Fixed Apple Sign-In authentication flow
-• Improved Google Play deployment pipeline
-• 120+ languages with regional categorization
-• Enhanced translation with country/region targeting
-• Message & conversation deletion
-• Download images and documents from messages
+• Instant chat history loading with local caching
+• Add and remove participants from group chats
+• Enhanced push notification logging
+• Offline message support
+• Faster app performance

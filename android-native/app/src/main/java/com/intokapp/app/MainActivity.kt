@@ -14,13 +14,22 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
-import com.google.firebase.messaging.FirebaseMessaging
+import com.intokapp.app.data.network.ApiService
+import com.intokapp.app.data.network.IntokFirebaseMessagingService
+import com.intokapp.app.data.network.TokenManager
 import com.intokapp.app.ui.navigation.IntokNavigation
 import com.intokapp.app.ui.theme.IntokTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    
+    @Inject
+    lateinit var apiService: ApiService
+    
+    @Inject
+    lateinit var tokenManager: TokenManager
     
     companion object {
         private const val TAG = "MainActivity"
@@ -31,7 +40,7 @@ class MainActivity : ComponentActivity() {
     ) { isGranted ->
         if (isGranted) {
             Log.d(TAG, "✅ Notification permission granted")
-            getFCMToken()
+            registerFCMTokenIfLoggedIn()
         } else {
             Log.w(TAG, "⚠️ Notification permission denied")
         }
@@ -69,7 +78,7 @@ class MainActivity : ComponentActivity() {
                     this, Manifest.permission.POST_NOTIFICATIONS
                 ) == PackageManager.PERMISSION_GRANTED -> {
                     // Permission already granted
-                    getFCMToken()
+                    registerFCMTokenIfLoggedIn()
                 }
                 else -> {
                     // Request permission
@@ -78,20 +87,17 @@ class MainActivity : ComponentActivity() {
             }
         } else {
             // No runtime permission needed for Android < 13
-            getFCMToken()
+            registerFCMTokenIfLoggedIn()
         }
     }
     
-    private fun getFCMToken() {
-        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
-            if (task.isSuccessful) {
-                val token = task.result
-                Log.d(TAG, "📱 FCM Token: $token")
-                // TODO: Send token to backend via API
-            } else {
-                Log.e(TAG, "❌ Failed to get FCM token", task.exception)
-            }
-        }
+    /**
+     * Register FCM token with backend if user is logged in.
+     * This ensures push notifications work on app launch for returning users.
+     */
+    private fun registerFCMTokenIfLoggedIn() {
+        Log.d(TAG, "📱 Checking if user is logged in to register FCM token...")
+        IntokFirebaseMessagingService.registerCurrentToken(apiService, tokenManager)
     }
 }
 

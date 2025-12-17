@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		0633EFE7555A42DFD7050F66 /* AppleAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA73D112E6534B1F9BA1AA62 /* AppleAuthManager.swift */; };
 		0A4B0E687695C677BB093AC1 /* Languages.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5002939CE5BF5306ECCB5352 /* Languages.swift */; };
+		0B8497068DC4A46A42987012 /* AddParticipantsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B193BAD9544D91C019BFF44 /* AddParticipantsView.swift */; };
+		0DCB2BDFD08CCF460117F4BF /* RemoveParticipantsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EB5A76FCC18D0D960BC3363 /* RemoveParticipantsView.swift */; };
 		12B23CCA0F9EA70F3EFB6987 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 196D3B5805F957A909DAD1F2 /* SettingsView.swift */; };
 		13E97AF4558937103E093D31 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EF4B062A1B8C0B229E1A2F04 /* Assets.xcassets */; };
 		15C342AD2BE063F592274C8B /* WebSocketService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25FC0FD61CD1299ADD5DFE44 /* WebSocketService.swift */; };
@@ -36,7 +38,9 @@
 		C7CD3D311E159C1417642C45 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = EA5A736AC3C346F43BBF7EF9 /* GoogleSignIn */; };
 		C9858BF749563A4D1DE527A5 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2E66B7BEAC0BAC39B5363BEA /* ContentView.swift */; };
 		D3B53ECE9A66117777D3B991 /* EmojiData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98CCD6AC608B75822D689A1E /* EmojiData.swift */; };
+		D3FE839E0E42BFE71D06660A /* ChatCacheManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = ACC606559D3F3D5EDDE239A8 /* ChatCacheManager.swift */; };
 		D80DBE10FEA9DBBE5C16807B /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CFDA1A8F3BE2B1CA9ED2914 /* APIService.swift */; };
+		F4E7C21FE5DD01EFF397FAA2 /* GroupInfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 702AAFB95A72D656DF54444F /* GroupInfoView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,13 +56,16 @@
 		25FC0FD61CD1299ADD5DFE44 /* WebSocketService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketService.swift; sourceTree = "<group>"; };
 		2914665731456D97AF2A0E15 /* Intok.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Intok.entitlements; sourceTree = "<group>"; };
 		2E66B7BEAC0BAC39B5363BEA /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		2EB5A76FCC18D0D960BC3363 /* RemoveParticipantsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RemoveParticipantsView.swift; sourceTree = "<group>"; };
 		364BF34D67B234294D1DA2E4 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		3B193BAD9544D91C019BFF44 /* AddParticipantsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddParticipantsView.swift; sourceTree = "<group>"; };
 		41AD2AB1F0BBCAFDAC43013D /* EmailAuthView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmailAuthView.swift; sourceTree = "<group>"; };
 		41BA84E3D221AE506BEAEB0E /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		4554BD27029A3488D7FDAABB /* Changelog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Changelog.swift; sourceTree = "<group>"; };
 		496EF16EB9904288611E2AD5 /* WhatsNewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewView.swift; sourceTree = "<group>"; };
 		4CC88A0FBFB5A9E9B13C4D8C /* NewChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewChatView.swift; sourceTree = "<group>"; };
 		5002939CE5BF5306ECCB5352 /* Languages.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Languages.swift; sourceTree = "<group>"; };
+		702AAFB95A72D656DF54444F /* GroupInfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GroupInfoView.swift; sourceTree = "<group>"; };
 		72213156D4F6C402554165E6 /* .cursorrules */ = {isa = PBXFileReference; path = .cursorrules; sourceTree = "<group>"; };
 		73B0FEF31E6B420EE397F67C /* Intok.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Intok.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		74E42CB6C3BF8DC5EAD02DA0 /* WhatsNewManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhatsNewManager.swift; sourceTree = "<group>"; };
@@ -67,6 +74,7 @@
 		98CCD6AC608B75822D689A1E /* EmojiData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiData.swift; sourceTree = "<group>"; };
 		9A522ECCDFD7ADD30120CD01 /* CameraCaptureView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraCaptureView.swift; sourceTree = "<group>"; };
 		9D2E2DA7FC82BEE77F0F2738 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		ACC606559D3F3D5EDDE239A8 /* ChatCacheManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatCacheManager.swift; sourceTree = "<group>"; };
 		C49384489E813C691159E27D /* FrequentEmojiManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FrequentEmojiManager.swift; sourceTree = "<group>"; };
 		D6434847F516B1907B567A98 /* ChatStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatStore.swift; sourceTree = "<group>"; };
 		EA73D112E6534B1F9BA1AA62 /* AppleAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleAuthManager.swift; sourceTree = "<group>"; };
@@ -115,6 +123,14 @@
 			path = Utils;
 			sourceTree = "<group>";
 		};
+		1EA96FE509D95A40B3B2B845 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				ACC606559D3F3D5EDDE239A8 /* ChatCacheManager.swift */,
+			);
+			path = Data;
+			sourceTree = "<group>";
+		};
 		208D493040370C5AEF30C9C6 /* NewChat */ = {
 			isa = PBXGroup;
 			children = (
@@ -156,6 +172,7 @@
 		4E498C1834E6E9B379607780 /* Core */ = {
 			isa = PBXGroup;
 			children = (
+				1EA96FE509D95A40B3B2B845 /* Data */,
 				0B6D625C3BD4C26CCDE90D88 /* Models */,
 				691C26F0DFD2BCD692CA88C9 /* Network */,
 				AE12E0B98434EB69C6F0F84C /* Services */,
@@ -188,10 +205,13 @@
 		A9ACF8DE18A630409695FFD1 /* Chat */ = {
 			isa = PBXGroup;
 			children = (
+				3B193BAD9544D91C019BFF44 /* AddParticipantsView.swift */,
 				9A522ECCDFD7ADD30120CD01 /* CameraCaptureView.swift */,
 				F97FEA229E5E1F138D3CA8CE /* ChatView.swift */,
 				82E0E07B789383A9AFB8B662 /* EmojiPickerView.swift */,
 				20C10BF53BE53831AD3F6F5E /* GifPickerView.swift */,
+				702AAFB95A72D656DF54444F /* GroupInfoView.swift */,
+				2EB5A76FCC18D0D960BC3363 /* RemoveParticipantsView.swift */,
 				08941377839575115592BC7A /* ReplyViews.swift */,
 			);
 			path = Chat;
@@ -342,11 +362,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				D80DBE10FEA9DBBE5C16807B /* APIService.swift in Sources */,
+				0B8497068DC4A46A42987012 /* AddParticipantsView.swift in Sources */,
 				0633EFE7555A42DFD7050F66 /* AppleAuthManager.swift in Sources */,
 				5D675B632A07A97689E00610 /* AttachmentService.swift in Sources */,
 				17049A5BC0443C70F5DC9EEA /* AuthManager.swift in Sources */,
 				660031C94712ED0BF21C6D9A /* CameraCaptureView.swift in Sources */,
 				4DD964509EDC8DF8EF2D7BF6 /* Changelog.swift in Sources */,
+				D3FE839E0E42BFE71D06660A /* ChatCacheManager.swift in Sources */,
 				45C7FD107061FED125ED0AE0 /* ChatStore.swift in Sources */,
 				B98F38C0A33351099F429F3B /* ChatView.swift in Sources */,
 				C9858BF749563A4D1DE527A5 /* ContentView.swift in Sources */,
@@ -356,11 +378,13 @@
 				AEF0843BAD114440FE1DD192 /* EmojiPickerView.swift in Sources */,
 				26EE0048A39689045B64BE2F /* FrequentEmojiManager.swift in Sources */,
 				2D5EEE0393AE57A66D2B8D00 /* GifPickerView.swift in Sources */,
+				F4E7C21FE5DD01EFF397FAA2 /* GroupInfoView.swift in Sources */,
 				494574466F14DBD2B0A54797 /* IntokApp.swift in Sources */,
 				0A4B0E687695C677BB093AC1 /* Languages.swift in Sources */,
 				7D45E12CC3607427168D0CAF /* LoginView.swift in Sources */,
 				26B5FFD35D1066A90B174AAB /* Models.swift in Sources */,
 				83BF5C33236C3B64DB13D461 /* NewChatView.swift in Sources */,
+				0DCB2BDFD08CCF460117F4BF /* RemoveParticipantsView.swift in Sources */,
 				768054FC5A9120838669E112 /* ReplyViews.swift in Sources */,
 				12B23CCA0F9EA70F3EFB6987 /* SettingsView.swift in Sources */,
 				728AFB49D128CF8EF534C782 /* SetupView.swift in Sources */,
@@ -379,7 +403,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Intok/Intok.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Intok/Info.plist;
@@ -429,7 +452,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 22;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = "";
 				ENABLE_NS_ASSERTIONS = NO;
@@ -449,7 +472,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 0.1.21;
+				MARKETING_VERSION = 0.1.22;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -465,7 +488,6 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Intok/Intok.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Intok/Info.plist;
@@ -515,7 +537,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				CODE_SIGN_STYLE = Automatic;
 				COPY_PHASE_STRIP = NO;
-				CURRENT_PROJECT_VERSION = 21;
+				CURRENT_PROJECT_VERSION = 22;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = "";
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -541,7 +563,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 0.1.21;
+				MARKETING_VERSION = 0.1.22;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;

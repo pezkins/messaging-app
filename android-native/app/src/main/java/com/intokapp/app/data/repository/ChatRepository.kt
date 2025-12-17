@@ -1,7 +1,14 @@
 package com.intokapp.app.data.repository
 
 import android.util.Log
+import com.intokapp.app.data.local.dao.ConversationDao
+import com.intokapp.app.data.local.dao.MessageDao
+import com.intokapp.app.data.local.entities.toCachedConversation
+import com.intokapp.app.data.local.entities.toCachedMessage
+import com.intokapp.app.data.local.entities.toConversation
+import com.intokapp.app.data.local.entities.toMessage
 import com.intokapp.app.data.models.*
+import com.intokapp.app.data.network.AddParticipantsRequest
 import com.intokapp.app.data.network.ApiService
 import com.intokapp.app.data.network.TokenManager
 import com.intokapp.app.data.network.WebSocketEvent
@@ -21,7 +28,9 @@ import javax.inject.Singleton
 class ChatRepository @Inject constructor(
     private val apiService: ApiService,
     private val webSocketService: WebSocketService,
-    private val tokenManager: TokenManager
+    private val tokenManager: TokenManager,
+    private val conversationDao: ConversationDao,
+    private val messageDao: MessageDao
 ) {
     private val TAG = "ChatRepository"
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -54,6 +63,9 @@ class ChatRepository @Inject constructor(
     private val confirmedMessageIds = mutableSetOf<String>()
     private val MAX_CONFIRMED_IDS = 500
     
+    // Maximum number of messages to cache per conversation
+    private val MAX_CACHED_MESSAGES = 100
+    
     // Track pending optimistic messages for fallback matching
     // Maps tempId to (senderId, content, timestamp) for matching when server doesn't echo tempId
     private data class PendingMessage(val senderId: String, val content: String, val timestamp: Long)
@@ -74,6 +86,8 @@ class ChatRepository @Inject constructor(
                         is WebSocketEvent.Typing -> handleTyping(event.conversationId, event.userId, event.isTyping)
                         is WebSocketEvent.Reaction -> handleReaction(event)
                         is WebSocketEvent.MessageDeleted -> handleMessageDeleted(event)
+                        is WebSocketEvent.ParticipantsAdded -> handleParticipantsAdded(event)
+                        is WebSocketEvent.ParticipantRemoved -> handleParticipantRemoved(event)
                         is WebSocketEvent.Connected -> Log.d(TAG, "🔌 WebSocket connected event received")
                         is WebSocketEvent.Disconnected -> Log.d(TAG, "🔌 WebSocket disconnected event received")
                     }
@@ -158,6 +172,17 @@ class ChatRepository @Inject constructor(
         _messages.value = currentMessages
         Log.d(TAG, "📊 Messages count: ${currentMessages.size}, Active conv: ${_activeConversation.value?.id}")
         
+        // Cache the new message
+        scope.launch {
+            try {
+                messageDao.insert(message.toCachedMessage())
+                // Cleanup old messages to keep cache size bounded
+                messageDao.keepLatestMessages(message.conversationId, MAX_CACHED_MESSAGES)
+            } catch (e: Exception) {
+                Log.w(TAG, "⚠️ Failed to cache message: ${e.message}")
+            }
+        }
+        
         // Update conversation's last message
         val currentConvs = _conversations.value.toMutableList()
         val convIndex = currentConvs.indexOfFirst { it.id == message.conversationId }
@@ -166,6 +191,16 @@ class ChatRepository @Inject constructor(
             currentConvs[convIndex] = conv.copy(lastMessage = message, updatedAt = message.createdAt)
             currentConvs.sortByDescending { it.updatedAt }
             _conversations.value = currentConvs
+            
+            // Update cached conversation
+            scope.launch {
+                try {
+                    val cachedConv = currentConvs[convIndex].toCachedConversation()
+                    conversationDao.update(cachedConv)
+                } catch (e: Exception) {
+                    Log.w(TAG, "⚠️ Failed to update cached conversation: ${e.message}")
+                }
+            }
         }
         
         Log.d(TAG, "📨 Message received in ${message.conversationId}")
@@ -192,6 +227,16 @@ class ChatRepository @Inject constructor(
             val message = currentMessages[index]
             currentMessages[index] = message.copy(reactions = event.reactions)
             _messages.value = currentMessages
+            
+            // Update cache
+            scope.launch {
+                try {
+                    val gson = com.google.gson.Gson()
+                    messageDao.updateReactions(event.messageId, gson.toJson(event.reactions))
+                } catch (e: Exception) {
+                    Log.w(TAG, "⚠️ Failed to update cached reaction: ${e.message}")
+                }
+            }
         }
     }
     
@@ -212,6 +257,41 @@ class ChatRepository @Inject constructor(
                 reactions = emptyMap()
             )
             _messages.value = currentMessages
+            
+            // Update cache
+            scope.launch {
+                try {
+                    messageDao.markAsDeleted(event.messageId)
+                } catch (e: Exception) {
+                    Log.w(TAG, "⚠️ Failed to update cached deleted message: ${e.message}")
+                }
+            }
+        }
+    }
+    
+    private fun handleParticipantsAdded(event: WebSocketEvent.ParticipantsAdded) {
+        Log.d(TAG, "👥 Participants added to ${event.conversationId}: ${event.addedUserIds}")
+        
+        // Reload conversations to get updated participant list
+        scope.launch {
+            try {
+                loadConversations()
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to reload conversations after participants added: ${e.message}")
+            }
+        }
+    }
+    
+    private fun handleParticipantRemoved(event: WebSocketEvent.ParticipantRemoved) {
+        Log.d(TAG, "👥 Participant ${event.removedUserId} removed from ${event.conversationId}")
+        
+        // Reload conversations to get updated participant list
+        scope.launch {
+            try {
+                loadConversations()
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Failed to reload conversations after participant removed: ${e.message}")
+            }
         }
     }
     
@@ -245,12 +325,36 @@ class ChatRepository @Inject constructor(
         _isLoadingConversations.value = true
         Log.d(TAG, "📥 Loading conversations...")
         
+        // 1. Load from cache immediately for instant UI
+        try {
+            val cachedConversations = conversationDao.getAll()
+            if (cachedConversations.isNotEmpty()) {
+                _conversations.value = cachedConversations.map { it.toConversation() }
+                Log.d(TAG, "💾 Loaded ${cachedConversations.size} conversations from cache")
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "⚠️ Failed to load cached conversations: ${e.message}")
+        }
+        
+        // 2. Fetch from API in background
         try {
             val response = apiService.getConversations()
             _conversations.value = response.conversations
-            Log.d(TAG, "✅ Loaded ${response.conversations.size} conversations")
+            
+            // 3. Save to cache
+            scope.launch {
+                try {
+                    conversationDao.replaceAll(response.conversations.map { it.toCachedConversation() })
+                    Log.d(TAG, "💾 Cached ${response.conversations.size} conversations")
+                } catch (e: Exception) {
+                    Log.w(TAG, "⚠️ Failed to cache conversations: ${e.message}")
+                }
+            }
+            
+            Log.d(TAG, "✅ Loaded ${response.conversations.size} conversations from API")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to load conversations: ${e.message}")
+            Log.e(TAG, "❌ Failed to load conversations from API: ${e.message}")
+            // Keep cached data if API fails
         }
         
         _isLoadingConversations.value = false
@@ -266,23 +370,54 @@ class ChatRepository @Inject constructor(
         // This prevents race conditions where incoming messages are filtered out
         // because activeConversation wasn't set yet
         _activeConversation.value = conversation
-        _messages.value = emptyList()
         _hasMoreMessages.value = false
         nextCursor = null
+        
+        // 1. Load from cache immediately for instant UI
+        try {
+            val cachedMessages = messageDao.getByConversationId(conversation.id)
+            if (cachedMessages.isNotEmpty()) {
+                _messages.value = cachedMessages.map { it.toMessage() }
+                _isLoadingMessages.value = false
+                Log.d(TAG, "💾 Loaded ${cachedMessages.size} messages from cache")
+            } else {
+                _messages.value = emptyList()
+                _isLoadingMessages.value = true
+            }
+        } catch (e: Exception) {
+            Log.w(TAG, "⚠️ Failed to load cached messages: ${e.message}")
+            _messages.value = emptyList()
+            _isLoadingMessages.value = true
+        }
         
         // Join new conversation AFTER setting activeConversation
         webSocketService.joinConversation(conversation.id)
         
-        _isLoadingMessages.value = true
-        
+        // 2. Fetch from API in background
         try {
             val response = apiService.getMessages(conversation.id)
             _messages.value = response.messages
             _hasMoreMessages.value = response.hasMore
             nextCursor = response.nextCursor
-            Log.d(TAG, "✅ Loaded ${response.messages.size} messages")
+            
+            // 3. Save to cache (keep last 100 messages per conversation)
+            scope.launch {
+                try {
+                    messageDao.insertAndCleanup(
+                        conversationId = conversation.id,
+                        messages = response.messages.map { it.toCachedMessage() },
+                        maxMessages = MAX_CACHED_MESSAGES
+                    )
+                    Log.d(TAG, "💾 Cached ${response.messages.size} messages")
+                } catch (e: Exception) {
+                    Log.w(TAG, "⚠️ Failed to cache messages: ${e.message}")
+                }
+            }
+            
+            Log.d(TAG, "✅ Loaded ${response.messages.size} messages from API")
         } catch (e: Exception) {
-            Log.e(TAG, "❌ Failed to load messages: ${e.message}")
+            Log.e(TAG, "❌ Failed to load messages from API: ${e.message}")
+            // Keep cached data if API fails
         }
         
         _isLoadingMessages.value = false
@@ -298,6 +433,19 @@ class ChatRepository @Inject constructor(
         nextCursor = null
         confirmedMessageIds.clear()
         pendingMessages.clear()
+    }
+    
+    /**
+     * Clear all cached data. Call this on logout.
+     */
+    suspend fun clearCache() {
+        try {
+            conversationDao.deleteAll()
+            messageDao.deleteAll()
+            Log.d(TAG, "🧹 Cache cleared")
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to clear cache: ${e.message}")
+        }
     }
     
     suspend fun loadMoreMessages() {
@@ -550,16 +698,24 @@ class ChatRepository @Inject constructor(
     suspend fun deleteConversation(conversationId: String): Result<Unit> {
         return try {
             val response = apiService.deleteConversation(conversationId)
-            
+
             if (response.success) {
                 // Remove from local list
                 _conversations.value = _conversations.value.filter { it.id != conversationId }
-                
+
                 // If this was the active conversation, clear it
                 if (_activeConversation.value?.id == conversationId) {
                     clearActiveConversation()
                 }
                 
+                // Clear from cache
+                try {
+                    conversationDao.delete(conversationId)
+                    messageDao.deleteByConversationId(conversationId)
+                } catch (e: Exception) {
+                    Log.w(TAG, "⚠️ Failed to clear cached conversation: ${e.message}")
+                }
+
                 Log.d(TAG, "🗑️ Conversation deleted: $conversationId")
                 Result.success(Unit)
             } else {
@@ -568,6 +724,72 @@ class ChatRepository @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "❌ Failed to delete conversation: ${e.message}")
             Result.failure(e)
+        }
+    }
+    
+    // ============================================
+    // Participant Management
+    // ============================================
+    
+    /**
+     * Add participants to a group conversation
+     */
+    suspend fun addParticipants(conversationId: String, userIds: List<String>): Result<Conversation> {
+        return try {
+            val response = apiService.addParticipants(
+                conversationId = conversationId,
+                request = AddParticipantsRequest(userIds = userIds)
+            )
+            
+            // Update local conversation
+            val updatedConversation = response.conversation
+            updateLocalConversation(updatedConversation)
+            
+            Log.d(TAG, "✅ Added ${userIds.size} participants to $conversationId")
+            Result.success(updatedConversation)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to add participants: ${e.message}")
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Remove a participant from a group conversation
+     */
+    suspend fun removeParticipant(conversationId: String, userId: String): Result<Conversation> {
+        return try {
+            val response = apiService.removeParticipant(
+                conversationId = conversationId,
+                userId = userId
+            )
+            
+            // Update local conversation
+            val updatedConversation = response.conversation
+            updateLocalConversation(updatedConversation)
+            
+            Log.d(TAG, "✅ Removed participant $userId from $conversationId")
+            Result.success(updatedConversation)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to remove participant: ${e.message}")
+            Result.failure(e)
+        }
+    }
+    
+    /**
+     * Update a conversation in local state
+     */
+    private fun updateLocalConversation(conversation: Conversation) {
+        // Update in conversations list
+        val currentConvs = _conversations.value.toMutableList()
+        val index = currentConvs.indexOfFirst { it.id == conversation.id }
+        if (index >= 0) {
+            currentConvs[index] = conversation
+            _conversations.value = currentConvs
+        }
+        
+        // Update active conversation if it's the same one
+        if (_activeConversation.value?.id == conversation.id) {
+            _activeConversation.value = conversation
         }
     }
 }

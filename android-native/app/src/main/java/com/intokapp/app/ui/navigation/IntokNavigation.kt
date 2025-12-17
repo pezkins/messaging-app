@@ -16,7 +16,9 @@ import androidx.navigation.navArgument
 import com.intokapp.app.data.repository.AuthState
 import com.intokapp.app.ui.screens.auth.LoginScreen
 import com.intokapp.app.ui.screens.auth.SetupScreen
+import com.intokapp.app.ui.screens.chat.AddParticipantsScreen
 import com.intokapp.app.ui.screens.chat.ChatScreen
+import com.intokapp.app.ui.screens.chat.RemoveParticipantsScreen
 import com.intokapp.app.ui.screens.conversations.ConversationsScreen
 import com.intokapp.app.ui.screens.newchat.NewChatScreen
 import com.intokapp.app.ui.screens.settings.SettingsScreen
@@ -30,6 +32,12 @@ sealed class Screen(val route: String) {
     }
     object NewChat : Screen("new_chat")
     object Settings : Screen("settings")
+    object AddParticipants : Screen("add_participants/{conversationId}") {
+        fun createRoute(conversationId: String) = "add_participants/$conversationId"
+    }
+    object RemoveParticipants : Screen("remove_participants/{conversationId}") {
+        fun createRoute(conversationId: String) = "remove_participants/$conversationId"
+    }
 }
 
 @Composable
@@ -139,7 +147,41 @@ fun IntokNavigation(
             val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
             ChatScreen(
                 conversationId = conversationId,
-                onBackClick = { navController.popBackStack() }
+                onBackClick = { navController.popBackStack() },
+                onAddParticipants = { convId ->
+                    navController.navigate(Screen.AddParticipants.createRoute(convId))
+                },
+                onRemoveParticipants = { convId ->
+                    navController.navigate(Screen.RemoveParticipants.createRoute(convId))
+                }
+            )
+        }
+        
+        composable(
+            route = Screen.AddParticipants.route,
+            arguments = listOf(
+                navArgument("conversationId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
+            AddParticipantsScreen(
+                conversationId = conversationId,
+                onBackClick = { navController.popBackStack() },
+                onParticipantsAdded = { navController.popBackStack() }
+            )
+        }
+        
+        composable(
+            route = Screen.RemoveParticipants.route,
+            arguments = listOf(
+                navArgument("conversationId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
+            RemoveParticipantsScreen(
+                conversationId = conversationId,
+                onBackClick = { navController.popBackStack() },
+                onParticipantRemoved = { navController.popBackStack() }
             )
         }
         

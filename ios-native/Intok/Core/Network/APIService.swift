@@ -434,6 +434,20 @@ class APIService {
     func deleteConversation(conversationId: String) async throws {
         let _: EmptyResponse = try await request(endpoint: "/api/conversations/\(conversationId)", method: "DELETE")
     }
+    
+    // MARK: - Add Participants to Group
+    func addParticipants(conversationId: String, userIds: [String]) async throws -> ConversationResponse {
+        struct AddParticipantsRequest: Codable {
+            let userIds: [String]
+        }
+        let body = try JSONEncoder().encode(AddParticipantsRequest(userIds: userIds))
+        return try await request(endpoint: "/api/conversations/\(conversationId)/participants", method: "POST", body: body)
+    }
+    
+    // MARK: - Remove Participant from Group
+    func removeParticipant(conversationId: String, userId: String) async throws -> ConversationResponse {
+        return try await request(endpoint: "/api/conversations/\(conversationId)/participants/\(userId)", method: "DELETE")
+    }
 }
 
 // MARK: - Empty Response for void endpoints

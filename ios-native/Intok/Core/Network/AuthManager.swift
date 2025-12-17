@@ -114,6 +114,9 @@ class AuthManager: ObservableObject {
             saveAuth()
             logger.info("✅ Auth state updated - isAuthenticated: \(self.isAuthenticated), needsSetup: \(self.needsSetup)")
             
+            // Register push notification token now that user is authenticated
+            await registerPushToken()
+            
         } catch {
             logger.error("❌ Backend auth failed: \(error.localizedDescription, privacy: .public)")
             self.error = error.localizedDescription
@@ -173,6 +176,9 @@ class AuthManager: ObservableObject {
             saveAuth()
             logger.info("✅ Auth state updated - isAuthenticated: \(self.isAuthenticated)")
             
+            // Register push notification token now that user is authenticated
+            await registerPushToken()
+            
         } catch APIError.unauthorized {
             logger.error("❌ Invalid credentials")
             self.error = "Invalid email or password"
@@ -224,6 +230,9 @@ class AuthManager: ObservableObject {
             saveAuth()
             logger.info("✅ Auth state updated - isAuthenticated: \(self.isAuthenticated)")
             
+            // Register push notification token now that user is authenticated
+            await registerPushToken()
+            
         } catch APIError.serverError(let message) {
             logger.error("❌ Registration error: \(message, privacy: .public)")
             if message.contains("already registered") {
@@ -274,6 +283,9 @@ class AuthManager: ObservableObject {
             
             saveAuth()
             logger.info("✅ Auth state updated - isAuthenticated: \(self.isAuthenticated), needsSetup: \(self.needsSetup)")
+            
+            // Register push notification token now that user is authenticated
+            await registerPushToken()
             
             isLoading = false
             return nil // Success
@@ -333,6 +345,14 @@ class AuthManager: ObservableObject {
         saveAuth()
     }
     
+    // MARK: - Push Notifications
+    
+    /// Register APNs token with backend after authentication
+    private func registerPushToken() async {
+        logger.info("📱 Registering push notification token...")
+        await AppDelegate.registerStoredDeviceToken()
+    }
+    
     // MARK: - Private Methods
     
     private func loadStoredAuth() {
@@ -354,8 +374,10 @@ class AuthManager: ObservableObject {
             logger.info("✅ Restored auth for: \(user.email, privacy: .public)")
             
             // Validate token by fetching current user - this will catch expired tokens
+            // Also register push token if we have one stored
             Task {
                 await validateAndRefreshTokenIfNeeded()
+                await registerPushToken()
             }
         }
     }

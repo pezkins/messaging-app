@@ -36,6 +36,16 @@ sealed class WebSocketEvent {
         val deletedBy: String,
         val deletedAt: String
     ) : WebSocketEvent()
+    data class ParticipantsAdded(
+        val conversationId: String,
+        val addedUserIds: List<String>,
+        val addedBy: String
+    ) : WebSocketEvent()
+    data class ParticipantRemoved(
+        val conversationId: String,
+        val removedUserId: String,
+        val removedBy: String
+    ) : WebSocketEvent()
     object Connected : WebSocketEvent()
     object Disconnected : WebSocketEvent()
 }
@@ -198,6 +208,25 @@ class WebSocketService @Inject constructor(
                     val deletedAt = json.get("deletedAt")?.asString ?: return
                     scope.launch {
                         _events.emit(WebSocketEvent.MessageDeleted(conversationId, messageId, deletedBy, deletedAt))
+                    }
+                }
+                
+                "conversation:participants:added" -> {
+                    val conversationId = json.get("conversationId")?.asString ?: return
+                    val addedBy = json.get("addedBy")?.asString ?: return
+                    val addedUserIdsJson = json.getAsJsonArray("addedUserIds")
+                    val addedUserIds = addedUserIdsJson?.map { it.asString } ?: emptyList()
+                    scope.launch {
+                        _events.emit(WebSocketEvent.ParticipantsAdded(conversationId, addedUserIds, addedBy))
+                    }
+                }
+                
+                "conversation:participants:removed" -> {
+                    val conversationId = json.get("conversationId")?.asString ?: return
+                    val removedUserId = json.get("removedUserId")?.asString ?: return
+                    val removedBy = json.get("removedBy")?.asString ?: return
+                    scope.launch {
+                        _events.emit(WebSocketEvent.ParticipantRemoved(conversationId, removedUserId, removedBy))
                     }
                 }
             }

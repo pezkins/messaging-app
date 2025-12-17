@@ -64,6 +64,8 @@ import java.util.*
 fun ChatScreen(
     conversationId: String,
     onBackClick: () -> Unit,
+    onAddParticipants: ((String) -> Unit)? = null,
+    onRemoveParticipants: ((String) -> Unit)? = null,
     viewModel: ChatViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -81,6 +83,9 @@ fun ChatScreen(
     
     // Camera capture URI
     var cameraImageUri by remember { mutableStateOf<Uri?>(null) }
+    
+    // Chat menu dropdown
+    var showChatMenu by remember { mutableStateOf(false) }
     
     // Image picker launcher
     val imagePickerLauncher = rememberLauncherForActivityResult(
@@ -239,8 +244,67 @@ fun ChatScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { /* Menu */ }) {
-                        Icon(Icons.Default.MoreVert, null, tint = White)
+                    Box {
+                        IconButton(onClick = { showChatMenu = true }) {
+                            Icon(Icons.Default.MoreVert, null, tint = White)
+                        }
+                        
+                        DropdownMenu(
+                            expanded = showChatMenu,
+                            onDismissRequest = { showChatMenu = false },
+                            modifier = Modifier.background(Surface800)
+                        ) {
+                            // Check if it's a group chat
+                            val isGroupChat = uiState.conversation?.type == "group"
+                            
+                            if (isGroupChat) {
+                                // Group chat options
+                                DropdownMenuItem(
+                                    text = { Text("Add People", color = White) },
+                                    onClick = {
+                                        showChatMenu = false
+                                        onAddParticipants?.invoke(conversationId)
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.PersonAdd, null, tint = Purple500)
+                                    }
+                                )
+                                
+                                DropdownMenuItem(
+                                    text = { Text("Remove People", color = White) },
+                                    onClick = {
+                                        showChatMenu = false
+                                        onRemoveParticipants?.invoke(conversationId)
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.PersonOff, null, tint = Purple500)
+                                    }
+                                )
+                                
+                                DropdownMenuItem(
+                                    text = { Text("Group Info", color = White) },
+                                    onClick = {
+                                        showChatMenu = false
+                                        // TODO: Navigate to group info screen
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.Info, null, tint = Purple500)
+                                    }
+                                )
+                            } else {
+                                // Direct chat options
+                                DropdownMenuItem(
+                                    text = { Text("View Profile", color = White) },
+                                    onClick = {
+                                        showChatMenu = false
+                                        // TODO: Navigate to profile screen
+                                    },
+                                    leadingIcon = {
+                                        Icon(Icons.Default.Person, null, tint = Purple500)
+                                    }
+                                )
+                            }
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = Surface950)

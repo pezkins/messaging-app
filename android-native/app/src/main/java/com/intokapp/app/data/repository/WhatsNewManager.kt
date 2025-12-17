@@ -24,6 +24,17 @@ class WhatsNewManager @Inject constructor(
     
     val changelog = listOf(
         ChangelogEntry(
+            version = "0.1.22",
+            title = "Performance & Group Chat",
+            changes = listOf(
+                "⚡ Instant chat history loading with local caching",
+                "👥 Add and remove participants from group chats",
+                "🔔 Enhanced push notification logging",
+                "💾 Offline message support",
+                "🚀 Faster app performance"
+            )
+        ),
+        ChangelogEntry(
             version = "0.1.21",
             title = "Authentication & Stability",
             changes = listOf(

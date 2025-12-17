@@ -72,6 +72,9 @@ struct ChatView: View {
     @State private var isDownloading = false
     @State private var showShareSheet = false
     @State private var downloadedFileURL: URL?
+    @State private var showAddParticipants = false
+    @State private var showRemoveParticipants = false
+    @State private var showGroupInfo = false
     @FocusState private var isInputFocused: Bool
     
     var displayName: String {
@@ -122,9 +125,26 @@ struct ChatView: View {
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Menu {
-                    Button(action: {}) {
-                        Label("View Profile", systemImage: "person")
+                    if conversation.type == "group" {
+                        // Group chat options
+                        Button(action: { showAddParticipants = true }) {
+                            Label("Add People", systemImage: "person.badge.plus")
+                        }
+                        Button(action: { showRemoveParticipants = true }) {
+                            Label("Remove People", systemImage: "person.badge.minus")
+                        }
+                        Button(action: { showGroupInfo = true }) {
+                            Label("Group Info", systemImage: "info.circle")
+                        }
+                    } else {
+                        // Direct chat options
+                        Button(action: {}) {
+                            Label("View Profile", systemImage: "person")
+                        }
                     }
+                    
+                    Divider()
+                    
                     Button(action: {}) {
                         Label("Search in Chat", systemImage: "magnifyingglass")
                     }
@@ -133,6 +153,15 @@ struct ChatView: View {
                         .foregroundColor(Color(hex: "8B5CF6"))
                 }
             }
+        }
+        .sheet(isPresented: $showAddParticipants) {
+            AddParticipantsView(conversation: conversation)
+        }
+        .sheet(isPresented: $showRemoveParticipants) {
+            RemoveParticipantsView(conversation: conversation)
+        }
+        .sheet(isPresented: $showGroupInfo) {
+            GroupInfoView(conversation: conversation)
         }
         .task {
             await chatStore.selectConversation(conversation)

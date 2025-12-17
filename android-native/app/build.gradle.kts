@@ -36,8 +36,8 @@ android {
         applicationId = "com.intokapp.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 23
-        versionName = "0.1.21"
+        versionCode = 24
+        versionName = "0.1.22"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -157,6 +157,11 @@ dependencies {
 
     // DataStore (Local Storage)
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Room Database (Local Cache)
+    implementation("androidx.room:room-runtime:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
 
     // Firebase
     implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
