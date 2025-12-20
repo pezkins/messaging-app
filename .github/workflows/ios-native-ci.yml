@@ -261,24 +261,23 @@ jobs:
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
-          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
-          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
+          PROFILE_UUID: ${{ steps.profile.outputs.uuid }}
         run: |
           echo "📦 Building with Team: $APPLE_TEAM_ID"
+          echo "📝 Using Provisioning Profile: $PROFILE_UUID"
           
-          # Archive using automatic signing with App Store Connect API
-          # The imported certificate will be used, not creating new ones
+          # Archive using MANUAL signing with pre-imported certificate
+          # This prevents Xcode from creating new certificates on each build
           xcodebuild archive \
             -project Intok.xcodeproj \
             -scheme Intok \
             -configuration Release \
             -archivePath build/Intok.xcarchive \
             -destination 'generic/platform=iOS' \
-            -allowProvisioningUpdates \
-            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8 \
-            -authenticationKeyID "$APP_STORE_CONNECT_API_KEY_ID" \
-            -authenticationKeyIssuerID "$APP_STORE_CONNECT_API_ISSUER_ID" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Apple Distribution" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
             GIPHY_API_KEY="$GIPHY_API_KEY"
 
           if [ ! -d "build/Intok.xcarchive" ]; then
