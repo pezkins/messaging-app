@@ -1,3 +1,11 @@
+v0.1.24 - Regional Preferences
+
+• Region selection in profile settings
+• 20+ countries with regional options
+• Region-aware translation accuracy
+• Improved conversation list with translated previews
+• Enhanced setup flow with region step
+
 v0.1.23 - Push Notifications & Diagnostics
 
 • Push notification fixes and improvements
@@ -5,11 +13,3 @@ v0.1.23 - Push Notifications & Diagnostics
 • Comprehensive root cause analysis tools
 • Improved notification testing capabilities
 • Bug fixes and stability improvements
-
-v0.1.22 - Performance & Group Chat
-
-• Instant chat history loading with local caching
-• Add and remove participants from group chats
-• Enhanced push notification logging
-• Offline message support
-• Faster app performance

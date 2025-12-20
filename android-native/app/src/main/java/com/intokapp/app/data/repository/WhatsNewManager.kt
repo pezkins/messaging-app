@@ -24,6 +24,17 @@ class WhatsNewManager @Inject constructor(
     
     val changelog = listOf(
         ChangelogEntry(
+            version = "0.1.24",
+            title = "Regional Preferences",
+            changes = listOf(
+                "🗺️ Region selection in profile settings",
+                "🎯 20+ countries with regional options",
+                "📝 Region-aware translation accuracy",
+                "💬 Improved conversation list with translated previews",
+                "✨ Enhanced setup flow with region step"
+            )
+        ),
+        ChangelogEntry(
             version = "0.1.23",
             title = "Push Notifications & Diagnostics",
             changes = listOf(

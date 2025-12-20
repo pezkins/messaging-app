@@ -18,6 +18,7 @@ import com.intokapp.app.data.network.TokenManager
 import com.intokapp.app.data.network.UnregisterDeviceRequest
 import com.intokapp.app.data.network.UpdateCountryRequest
 import com.intokapp.app.data.network.UpdateLanguageRequest
+import com.intokapp.app.data.network.UpdateRegionRequest
 import com.intokapp.app.data.network.UpdateProfileRequest
 import com.intokapp.app.data.network.WebSocketService
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -260,6 +261,23 @@ class AuthRepository @Inject constructor(
             Result.success(response.user)
         } catch (e: Exception) {
             Log.e(TAG, "❌ Update country failed: ${e.message}")
+            Result.failure(e)
+        }
+    }
+    
+    suspend fun updateRegion(region: String): Result<User> {
+        return try {
+            val response = apiService.updateRegion(UpdateRegionRequest(region))
+            tokenManager.saveUser(response.user)
+
+            val currentState = _authState.value
+            if (currentState is AuthState.Authenticated) {
+                _authState.value = AuthState.Authenticated(response.user, currentState.needsSetup)
+            }
+
+            Result.success(response.user)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Update region failed: ${e.message}")
             Result.failure(e)
         }
     }

@@ -7,13 +7,14 @@ struct User: Codable, Identifiable {
     let username: String
     let preferredLanguage: String
     let preferredCountry: String?
+    let preferredRegion: String?
     let avatarUrl: String?
     let createdAt: String
     let updatedAt: String?
     
     // Custom decoding to handle both 'avatarUrl' and 'profilePicture' from backend
     enum CodingKeys: String, CodingKey {
-        case id, email, username, preferredLanguage, preferredCountry
+        case id, email, username, preferredLanguage, preferredCountry, preferredRegion
         case avatarUrl, profilePicture, createdAt, updatedAt
     }
     
@@ -24,6 +25,7 @@ struct User: Codable, Identifiable {
         username = try container.decode(String.self, forKey: .username)
         preferredLanguage = try container.decode(String.self, forKey: .preferredLanguage)
         preferredCountry = try container.decodeIfPresent(String.self, forKey: .preferredCountry)
+        preferredRegion = try container.decodeIfPresent(String.self, forKey: .preferredRegion)
         createdAt = try container.decode(String.self, forKey: .createdAt)
         updatedAt = try container.decodeIfPresent(String.self, forKey: .updatedAt)
         
@@ -42,6 +44,7 @@ struct User: Codable, Identifiable {
         try container.encode(username, forKey: .username)
         try container.encode(preferredLanguage, forKey: .preferredLanguage)
         try container.encodeIfPresent(preferredCountry, forKey: .preferredCountry)
+        try container.encodeIfPresent(preferredRegion, forKey: .preferredRegion)
         try container.encodeIfPresent(avatarUrl, forKey: .avatarUrl)
         try container.encode(createdAt, forKey: .createdAt)
         try container.encodeIfPresent(updatedAt, forKey: .updatedAt)

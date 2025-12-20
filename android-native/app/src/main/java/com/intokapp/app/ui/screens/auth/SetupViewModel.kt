@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.intokapp.app.data.constants.Country
 import com.intokapp.app.data.constants.Language
+import com.intokapp.app.data.constants.Region
+import com.intokapp.app.data.constants.hasRegions
 import com.intokapp.app.data.repository.AuthRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +18,7 @@ data class SetupUiState(
     val displayName: String = "",
     val selectedLanguage: Language? = null,
     val selectedCountry: Country? = null,
+    val selectedRegion: Region? = null,
     val isLoading: Boolean = false,
     val error: String? = null,
     val isComplete: Boolean = false
@@ -38,7 +41,15 @@ class SetupViewModel @Inject constructor(
     }
     
     fun setCountry(country: Country) {
-        _uiState.update { it.copy(selectedCountry = country, error = null) }
+        _uiState.update { it.copy(selectedCountry = country, selectedRegion = null, error = null) }
+    }
+    
+    fun setRegion(region: Region) {
+        _uiState.update { it.copy(selectedRegion = region, error = null) }
+    }
+    
+    fun countryHasRegions(): Boolean {
+        return _uiState.value.selectedCountry?.let { hasRegions(it.code) } ?: false
     }
     
     fun saveDisplayName(onSuccess: () -> Unit) {
@@ -79,6 +90,23 @@ class SetupViewModel @Inject constructor(
         }
     }
     
+    fun saveCountry(onSuccess: () -> Unit) {
+        val country = _uiState.value.selectedCountry ?: return
+        
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            
+            authRepository.updateCountry(country.code)
+                .onSuccess {
+                    _uiState.update { it.copy(isLoading = false) }
+                    onSuccess()
+                }
+                .onFailure { e ->
+                    _uiState.update { it.copy(isLoading = false, error = e.message) }
+                }
+        }
+    }
+    
     fun saveCountryAndComplete() {
         val country = _uiState.value.selectedCountry
         
@@ -87,6 +115,21 @@ class SetupViewModel @Inject constructor(
             
             if (country != null) {
                 authRepository.updateCountry(country.code)
+            }
+            
+            authRepository.completeSetup()
+            _uiState.update { it.copy(isLoading = false, isComplete = true) }
+        }
+    }
+    
+    fun saveRegionAndComplete() {
+        val region = _uiState.value.selectedRegion
+        
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            
+            if (region != null) {
+                authRepository.updateRegion(region.code)
             }
             
             authRepository.completeSetup()

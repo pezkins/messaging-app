@@ -46,6 +46,9 @@ interface ApiService {
     @PATCH("api/users/me/country")
     suspend fun updateCountry(@Body request: UpdateCountryRequest): UserResponse
     
+    @PATCH("api/users/me/region")
+    suspend fun updateRegion(@Body request: UpdateRegionRequest): UserResponse
+    
     @GET("api/users/search")
     suspend fun searchUsers(@Query("q") query: String): UsersSearchResponse
     
@@ -166,6 +169,10 @@ data class UpdateLanguageRequest(
 
 data class UpdateCountryRequest(
     val preferredCountry: String
+)
+
+data class UpdateRegionRequest(
+    val preferredRegion: String?
 )
 
 data class CheckEmailRequest(

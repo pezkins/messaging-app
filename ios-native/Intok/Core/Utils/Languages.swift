@@ -425,6 +425,224 @@ let COUNTRIES: [Country] = [
     Country(code: "TO", name: "Tonga", flag: "🇹🇴"),
 ]
 
+// MARK: - Region Type
+struct Region: Identifiable, Hashable {
+    let id: String
+    let code: String
+    let name: String
+    
+    init(code: String, name: String) {
+        self.id = code
+        self.code = code
+        self.name = name
+    }
+}
+
+// MARK: - Country Regions (Only for countries with significant regional variations)
+let COUNTRY_REGIONS: [String: [Region]] = [
+    // United States
+    "US": [
+        Region(code: "northeast", name: "Northeast (New York, Boston, etc.)"),
+        Region(code: "southeast", name: "Southeast (Atlanta, Miami, etc.)"),
+        Region(code: "midwest", name: "Midwest (Chicago, Detroit, etc.)"),
+        Region(code: "southwest", name: "Southwest (Texas, Arizona, etc.)"),
+        Region(code: "west_coast", name: "West Coast (California, Oregon, etc.)"),
+        Region(code: "pacific_northwest", name: "Pacific Northwest (Seattle, Portland)"),
+        Region(code: "mountain", name: "Mountain (Colorado, Utah, etc.)"),
+        Region(code: "alaska", name: "Alaska"),
+        Region(code: "hawaii", name: "Hawaii"),
+    ],
+    
+    // United Kingdom
+    "GB": [
+        Region(code: "england", name: "England"),
+        Region(code: "scotland", name: "Scotland"),
+        Region(code: "wales", name: "Wales"),
+        Region(code: "northern_ireland", name: "Northern Ireland"),
+    ],
+    
+    // Spain
+    "ES": [
+        Region(code: "catalonia", name: "Catalonia (Barcelona)"),
+        Region(code: "basque_country", name: "Basque Country (Bilbao)"),
+        Region(code: "galicia", name: "Galicia (Santiago)"),
+        Region(code: "andalusia", name: "Andalusia (Seville, Málaga)"),
+        Region(code: "castile", name: "Castile (Madrid, Toledo)"),
+        Region(code: "valencia", name: "Valencia"),
+        Region(code: "aragon", name: "Aragon (Zaragoza)"),
+        Region(code: "asturias", name: "Asturias"),
+        Region(code: "canary_islands", name: "Canary Islands"),
+        Region(code: "balearic_islands", name: "Balearic Islands"),
+    ],
+    
+    // Italy
+    "IT": [
+        Region(code: "northern_italy", name: "Northern Italy (Milan, Turin)"),
+        Region(code: "central_italy", name: "Central Italy (Rome, Florence)"),
+        Region(code: "southern_italy", name: "Southern Italy (Naples)"),
+        Region(code: "sicily", name: "Sicily"),
+        Region(code: "sardinia", name: "Sardinia"),
+    ],
+    
+    // Germany
+    "DE": [
+        Region(code: "bavaria", name: "Bavaria (Munich)"),
+        Region(code: "northern_germany", name: "Northern Germany (Hamburg, Bremen)"),
+        Region(code: "berlin", name: "Berlin"),
+        Region(code: "saxony", name: "Saxony (Dresden, Leipzig)"),
+        Region(code: "rhineland", name: "Rhineland (Cologne, Düsseldorf)"),
+        Region(code: "baden_wurttemberg", name: "Baden-Württemberg (Stuttgart)"),
+    ],
+    
+    // France
+    "FR": [
+        Region(code: "paris_region", name: "Paris Region (Île-de-France)"),
+        Region(code: "northern_france", name: "Northern France"),
+        Region(code: "southern_france", name: "Southern France (Occitanie)"),
+        Region(code: "brittany", name: "Brittany"),
+        Region(code: "alsace", name: "Alsace"),
+        Region(code: "provence", name: "Provence (Marseille, Nice)"),
+        Region(code: "normandy", name: "Normandy"),
+        Region(code: "corsica", name: "Corsica"),
+    ],
+    
+    // China
+    "CN": [
+        Region(code: "northern_china", name: "Northern China (Beijing)"),
+        Region(code: "southern_china", name: "Southern China (Guangdong)"),
+        Region(code: "eastern_china", name: "Eastern China (Shanghai)"),
+        Region(code: "western_china", name: "Western China (Sichuan)"),
+        Region(code: "northeastern_china", name: "Northeastern China"),
+    ],
+    
+    // India
+    "IN": [
+        Region(code: "north_india", name: "North India (Delhi, UP)"),
+        Region(code: "south_india", name: "South India (Chennai, Bangalore)"),
+        Region(code: "west_india", name: "West India (Mumbai, Gujarat)"),
+        Region(code: "east_india", name: "East India (Kolkata, Bengal)"),
+        Region(code: "central_india", name: "Central India"),
+        Region(code: "northeast_india", name: "Northeast India"),
+    ],
+    
+    // Brazil
+    "BR": [
+        Region(code: "southeast_brazil", name: "Southeast (São Paulo, Rio)"),
+        Region(code: "south_brazil", name: "South (Porto Alegre)"),
+        Region(code: "northeast_brazil", name: "Northeast (Salvador, Recife)"),
+        Region(code: "north_brazil", name: "North (Amazon)"),
+        Region(code: "central_west_brazil", name: "Central-West (Brasília)"),
+    ],
+    
+    // Canada
+    "CA": [
+        Region(code: "quebec", name: "Quebec (French-speaking)"),
+        Region(code: "ontario", name: "Ontario (Toronto)"),
+        Region(code: "british_columbia", name: "British Columbia (Vancouver)"),
+        Region(code: "alberta", name: "Alberta (Calgary, Edmonton)"),
+        Region(code: "atlantic_canada", name: "Atlantic Canada"),
+        Region(code: "prairies", name: "Prairies (Manitoba, Saskatchewan)"),
+    ],
+    
+    // Mexico
+    "MX": [
+        Region(code: "northern_mexico", name: "Northern Mexico (Monterrey)"),
+        Region(code: "central_mexico", name: "Central Mexico (Mexico City)"),
+        Region(code: "southern_mexico", name: "Southern Mexico (Oaxaca)"),
+        Region(code: "yucatan", name: "Yucatán Peninsula"),
+        Region(code: "baja_california", name: "Baja California"),
+    ],
+    
+    // Australia
+    "AU": [
+        Region(code: "new_south_wales", name: "New South Wales (Sydney)"),
+        Region(code: "victoria", name: "Victoria (Melbourne)"),
+        Region(code: "queensland", name: "Queensland (Brisbane)"),
+        Region(code: "western_australia", name: "Western Australia (Perth)"),
+        Region(code: "south_australia", name: "South Australia (Adelaide)"),
+    ],
+    
+    // Russia
+    "RU": [
+        Region(code: "european_russia", name: "European Russia (Moscow, St. Petersburg)"),
+        Region(code: "siberia", name: "Siberia"),
+        Region(code: "far_east", name: "Far East (Vladivostok)"),
+        Region(code: "ural", name: "Ural Region"),
+        Region(code: "south_russia", name: "Southern Russia"),
+    ],
+    
+    // Switzerland
+    "CH": [
+        Region(code: "german_switzerland", name: "German-speaking Switzerland"),
+        Region(code: "french_switzerland", name: "French-speaking Switzerland (Romandie)"),
+        Region(code: "italian_switzerland", name: "Italian-speaking Switzerland (Ticino)"),
+    ],
+    
+    // Belgium
+    "BE": [
+        Region(code: "flanders", name: "Flanders (Dutch-speaking)"),
+        Region(code: "wallonia", name: "Wallonia (French-speaking)"),
+        Region(code: "brussels", name: "Brussels"),
+    ],
+    
+    // Argentina
+    "AR": [
+        Region(code: "buenos_aires", name: "Buenos Aires"),
+        Region(code: "patagonia", name: "Patagonia"),
+        Region(code: "north_argentina", name: "Northern Argentina"),
+        Region(code: "cuyo", name: "Cuyo (Mendoza)"),
+    ],
+    
+    // Colombia
+    "CO": [
+        Region(code: "bogota_region", name: "Bogotá Region"),
+        Region(code: "caribbean_coast", name: "Caribbean Coast"),
+        Region(code: "pacific_coast", name: "Pacific Coast"),
+        Region(code: "coffee_region", name: "Coffee Region (Eje Cafetero)"),
+    ],
+    
+    // Japan
+    "JP": [
+        Region(code: "kanto", name: "Kanto (Tokyo)"),
+        Region(code: "kansai", name: "Kansai (Osaka, Kyoto)"),
+        Region(code: "hokkaido", name: "Hokkaido"),
+        Region(code: "kyushu", name: "Kyushu"),
+        Region(code: "tohoku", name: "Tohoku"),
+    ],
+    
+    // Indonesia
+    "ID": [
+        Region(code: "java", name: "Java (Jakarta)"),
+        Region(code: "bali", name: "Bali"),
+        Region(code: "sumatra", name: "Sumatra"),
+        Region(code: "kalimantan", name: "Kalimantan (Borneo)"),
+        Region(code: "sulawesi", name: "Sulawesi"),
+    ],
+    
+    // Philippines
+    "PH": [
+        Region(code: "luzon", name: "Luzon (Manila)"),
+        Region(code: "visayas", name: "Visayas (Cebu)"),
+        Region(code: "mindanao", name: "Mindanao (Davao)"),
+    ],
+    
+    // South Africa
+    "ZA": [
+        Region(code: "gauteng", name: "Gauteng (Johannesburg, Pretoria)"),
+        Region(code: "western_cape", name: "Western Cape (Cape Town)"),
+        Region(code: "kwazulu_natal", name: "KwaZulu-Natal (Durban)"),
+        Region(code: "eastern_cape", name: "Eastern Cape"),
+    ],
+    
+    // Nigeria
+    "NG": [
+        Region(code: "southwest_nigeria", name: "Southwest (Lagos, Yorubaland)"),
+        Region(code: "southeast_nigeria", name: "Southeast (Igboland)"),
+        Region(code: "north_nigeria", name: "Northern Nigeria"),
+        Region(code: "south_south_nigeria", name: "South-South (Niger Delta)"),
+    ],
+]
+
 // MARK: - Helper Functions
 func getLanguageByCode(_ code: String) -> Language? {
     return LANGUAGES.first { $0.code == code }
@@ -447,4 +665,17 @@ func getGroupedLanguages() -> [(category: LanguageCategory, languages: [Language
     return LanguageCategory.allCases.map { category in
         (category: category, languages: getLanguagesByCategory(category))
     }
+}
+
+// MARK: - Region Helper Functions
+func getRegionsForCountry(_ countryCode: String) -> [Region] {
+    return COUNTRY_REGIONS[countryCode] ?? []
+}
+
+func hasRegions(_ countryCode: String) -> Bool {
+    return COUNTRY_REGIONS[countryCode] != nil
+}
+
+func getRegionByCode(_ countryCode: String, regionCode: String) -> Region? {
+    return COUNTRY_REGIONS[countryCode]?.first { $0.code == regionCode }
 }

@@ -49,6 +49,7 @@ fun SettingsScreen(
     
     var showLanguagePicker by remember { mutableStateOf(false) }
     var showCountryPicker by remember { mutableStateOf(false) }
+    var showRegionPicker by remember { mutableStateOf(false) }
     var showWhatsNew by remember { mutableStateOf(false) }
     var showEditName by remember { mutableStateOf(false) }
     var showSignOutConfirm by remember { mutableStateOf(false) }
@@ -172,6 +173,23 @@ fun SettingsScreen(
                         value = uiState.user?.preferredCountry?.let { getCountryByCode(it)?.name } ?: "Not set",
                         onClick = { showCountryPicker = true }
                     )
+                    
+                    // Region (only show if country has regions)
+                    uiState.user?.preferredCountry?.let { countryCode ->
+                        if (hasRegions(countryCode)) {
+                            Divider(color = Surface700)
+                            
+                            SettingsRow(
+                                icon = Icons.Default.LocationOn,
+                                iconColor = Accent500,
+                                title = "Region",
+                                value = uiState.user?.preferredRegion?.let { regionCode ->
+                                    getRegionByCode(countryCode, regionCode)?.name
+                                } ?: "Not set",
+                                onClick = { showRegionPicker = true }
+                            )
+                        }
+                    }
                 }
                 
                 // About Section
@@ -294,6 +312,19 @@ fun SettingsScreen(
                 showCountryPicker = false
             }
         )
+    }
+    
+    if (showRegionPicker) {
+        uiState.user?.preferredCountry?.let { countryCode ->
+            RegionPickerDialog(
+                countryCode = countryCode,
+                onDismiss = { showRegionPicker = false },
+                onSelect = { region ->
+                    viewModel.updateRegion(region.code)
+                    showRegionPicker = false
+                }
+            )
+        }
     }
     
     if (showWhatsNew) {
@@ -738,6 +769,47 @@ private fun CountryPickerDialog(
                                 modifier = Modifier.padding(end = 12.dp)
                             )
                             Text(country.name)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+private fun RegionPickerDialog(
+    countryCode: String,
+    onDismiss: () -> Unit,
+    onSelect: (Region) -> Unit
+) {
+    val regions = remember(countryCode) { getRegionsForCountry(countryCode) }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Region") },
+        text = {
+            if (regions.isEmpty()) {
+                Text("No regions available for this country")
+            } else {
+                LazyColumn(
+                    modifier = Modifier.height(300.dp)
+                ) {
+                    items(regions) { region ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSelect(region) }
+                                .padding(vertical = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(region.name)
                         }
                     }
                 }

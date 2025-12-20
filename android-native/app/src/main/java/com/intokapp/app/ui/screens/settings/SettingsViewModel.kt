@@ -112,6 +112,19 @@ class SettingsViewModel @Inject constructor(
         }
     }
     
+    fun updateRegion(regionCode: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, error = null) }
+            
+            authRepository.updateRegion(regionCode)
+                .onFailure { e ->
+                    _uiState.update { it.copy(error = e.message) }
+                }
+            
+            _uiState.update { it.copy(isLoading = false) }
+        }
+    }
+    
     fun signOut() {
         viewModelScope.launch {
             authRepository.logout()

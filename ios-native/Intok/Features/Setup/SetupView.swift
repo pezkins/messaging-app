@@ -7,11 +7,27 @@ struct SetupView: View {
     @State private var displayName = ""
     @State private var selectedLanguage: Language?
     @State private var selectedCountry: Country?
+    @State private var selectedRegion: Region?
     @State private var isLoading = false
     @State private var error: String?
     
     @State private var languageSearchText = ""
     @State private var countrySearchText = ""
+    
+    var countryHasRegions: Bool {
+        guard let countryCode = selectedCountry?.code else { return false }
+        return hasRegions(countryCode)
+    }
+    
+    var availableRegions: [Region] {
+        guard let countryCode = selectedCountry?.code else { return [] }
+        return getRegionsForCountry(countryCode)
+    }
+    
+    var totalSteps: Int {
+        // 3 base steps + 1 if country has regions
+        return countryHasRegions ? 4 : 3
+    }
     
     var filteredLanguages: [Language] {
         if languageSearchText.isEmpty {
@@ -43,9 +59,9 @@ struct SetupView: View {
             .ignoresSafeArea()
             
             VStack(spacing: 0) {
-                // Progress Indicator
+                // Progress Indicator (dynamic based on whether country has regions)
                 HStack(spacing: 8) {
-                    ForEach(0..<3) { index in
+                    ForEach(0..<totalSteps, id: \.self) { index in
                         Circle()
                             .fill(index <= currentStep ? Color(hex: "8B5CF6") : Color.gray.opacity(0.3))
                             .frame(width: 8, height: 8)
@@ -66,6 +82,12 @@ struct SetupView: View {
                     // Step 3: Country
                     countryStep
                         .tag(2)
+                    
+                    // Step 4: Region (only if country has regions)
+                    if countryHasRegions {
+                        regionStep
+                            .tag(3)
+                    }
                 }
                 .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.easeInOut, value: currentStep)
@@ -314,6 +336,103 @@ struct SetupView: View {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
+                            // Show "Continue" if country has regions, otherwise "Finish"
+                            if countryHasRegions {
+                                Text("Continue")
+                                Image(systemName: "arrow.right")
+                            } else {
+                                Text("Finish")
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                    .font(.headline)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color(hex: "8B5CF6"))
+                    .cornerRadius(16)
+                }
+                .disabled(isLoading)
+            }
+            .padding(.horizontal, 24)
+            .padding(.bottom, 40)
+        }
+    }
+    
+    // MARK: - Step 4: Region (only for countries with regions)
+    var regionStep: some View {
+        VStack(spacing: 24) {
+            VStack(spacing: 8) {
+                Image(systemName: "mappin.and.ellipse")
+                    .font(.system(size: 60))
+                    .foregroundColor(Color(hex: "8B5CF6"))
+                
+                Text("Select Your Region")
+                    .font(.title)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Text("This helps with translation accuracy")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+            }
+            .padding(.top, 40)
+            
+            // Region List
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(availableRegions, id: \.code) { region in
+                        Button(action: {
+                            selectedRegion = region
+                        }) {
+                            HStack {
+                                Text(region.name)
+                                    .foregroundColor(.white)
+                                
+                                Spacer()
+                                
+                                if selectedRegion?.code == region.code {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(Color(hex: "8B5CF6"))
+                                }
+                            }
+                            .padding()
+                            .background(
+                                selectedRegion?.code == region.code ?
+                                Color(hex: "8B5CF6").opacity(0.2) :
+                                Color.white.opacity(0.05)
+                            )
+                            .cornerRadius(12)
+                        }
+                    }
+                }
+                .padding(.horizontal, 24)
+            }
+            
+            HStack(spacing: 12) {
+                Button(action: {
+                    completeSetup()
+                }) {
+                    Text("Skip")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(16)
+                }
+                
+                Button(action: {
+                    Task {
+                        await saveRegion()
+                    }
+                }) {
+                    HStack {
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
                             Text("Finish")
                             Image(systemName: "checkmark")
                         }
@@ -382,6 +501,34 @@ struct SetupView: View {
         
         do {
             let response = try await APIService.shared.updateCountry(preferredCountry: country.code)
+            await authManager.updateUser(response.user)
+            
+            // Check if country has regions - if so, go to region step
+            if hasRegions(country.code) {
+                withAnimation {
+                    currentStep = 3
+                }
+            } else {
+                completeSetup()
+            }
+        } catch {
+            self.error = error.localizedDescription
+        }
+        
+        isLoading = false
+    }
+    
+    private func saveRegion() async {
+        guard let region = selectedRegion else {
+            completeSetup()
+            return
+        }
+        
+        isLoading = true
+        error = nil
+        
+        do {
+            let response = try await APIService.shared.updateRegion(preferredRegion: region.code)
             await authManager.updateUser(response.user)
             completeSetup()
         } catch {

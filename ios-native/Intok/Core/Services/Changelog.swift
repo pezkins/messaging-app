@@ -11,6 +11,18 @@ struct ChangelogEntry: Identifiable {
 struct Changelog {
     static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "0.1.24",
+            date: "December 2024",
+            title: "Regional Preferences",
+            changes: [
+                "🗺️ Region selection in profile settings",
+                "🎯 20+ countries with regional options",
+                "📝 Region-aware translation accuracy",
+                "💬 Improved conversation list with translated previews",
+                "✨ Enhanced setup flow with region step"
+            ]
+        ),
+        ChangelogEntry(
             version: "0.1.23",
             date: "December 2024",
             title: "Push Notifications & Diagnostics",

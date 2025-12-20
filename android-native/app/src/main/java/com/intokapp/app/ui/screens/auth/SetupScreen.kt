@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,6 +29,9 @@ import com.intokapp.app.data.constants.COUNTRIES
 import com.intokapp.app.data.constants.Country
 import com.intokapp.app.data.constants.LANGUAGES
 import com.intokapp.app.data.constants.Language
+import com.intokapp.app.data.constants.Region
+import com.intokapp.app.data.constants.getRegionsForCountry
+import com.intokapp.app.data.constants.hasRegions
 import com.intokapp.app.ui.theme.*
 
 @Composable
@@ -45,6 +49,9 @@ fun SetupScreen(
         }
     }
     
+    // Calculate total steps (4 if country has regions, 3 otherwise)
+    val totalSteps = if (viewModel.countryHasRegions()) 4 else 3
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -58,12 +65,12 @@ fun SetupScreen(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Progress Indicator
+            // Progress Indicator (dynamic based on whether country has regions)
             Row(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.padding(top = 20.dp)
             ) {
-                repeat(3) { index ->
+                repeat(totalSteps) { index ->
                     Box(
                         modifier = Modifier
                             .padding(horizontal = 4.dp)
@@ -103,8 +110,22 @@ fun SetupScreen(
                     selectedCountry = uiState.selectedCountry,
                     onCountrySelect = viewModel::setCountry,
                     isLoading = uiState.isLoading,
+                    countryHasRegions = viewModel.countryHasRegions(),
                     onSkip = viewModel::completeSetup,
+                    onContinueToRegion = {
+                        viewModel.saveCountry {
+                            currentStep = 3
+                        }
+                    },
                     onFinish = viewModel::saveCountryAndComplete
+                )
+                3 -> RegionStep(
+                    selectedCountry = uiState.selectedCountry,
+                    selectedRegion = uiState.selectedRegion,
+                    onRegionSelect = viewModel::setRegion,
+                    isLoading = uiState.isLoading,
+                    onSkip = viewModel::completeSetup,
+                    onFinish = viewModel::saveRegionAndComplete
                 )
             }
         }
@@ -355,7 +376,9 @@ private fun CountryStep(
     selectedCountry: Country?,
     onCountrySelect: (Country) -> Unit,
     isLoading: Boolean,
+    countryHasRegions: Boolean,
     onSkip: () -> Unit,
+    onContinueToRegion: () -> Unit,
     onFinish: () -> Unit
 ) {
     var searchText by remember { mutableStateOf("") }
@@ -442,6 +465,108 @@ private fun CountryStep(
             }
             
             Button(
+                onClick = if (countryHasRegions) onContinueToRegion else onFinish,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp),
+                enabled = !isLoading,
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Purple500)
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(24.dp),
+                        color = White
+                    )
+                } else {
+                    if (countryHasRegions) {
+                        Text("Continue")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Default.ArrowForward, contentDescription = null)
+                    } else {
+                        Text("Finish")
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(Icons.Default.Check, contentDescription = null)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RegionStep(
+    selectedCountry: Country?,
+    selectedRegion: Region?,
+    onRegionSelect: (Region) -> Unit,
+    isLoading: Boolean,
+    onSkip: () -> Unit,
+    onFinish: () -> Unit
+) {
+    val regions = remember(selectedCountry) {
+        selectedCountry?.let { getRegionsForCountry(it.code) } ?: emptyList()
+    }
+    
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = Icons.Default.LocationOn,
+            contentDescription = null,
+            modifier = Modifier.size(60.dp),
+            tint = Purple500
+        )
+        
+        Text(
+            text = "Select Your Region",
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold,
+            color = White,
+            modifier = Modifier.padding(top = 16.dp)
+        )
+        
+        Text(
+            text = "This helps with translation accuracy",
+            style = MaterialTheme.typography.bodyMedium,
+            color = Surface400,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+        
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .padding(top = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(regions) { region ->
+                RegionItem(
+                    region = region,
+                    isSelected = selectedRegion?.code == region.code,
+                    onClick = { onRegionSelect(region) }
+                )
+            }
+        }
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            OutlinedButton(
+                onClick = onSkip,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = White)
+            ) {
+                Text("Skip")
+            }
+            
+            Button(
                 onClick = onFinish,
                 modifier = Modifier
                     .weight(1f)
@@ -460,6 +585,41 @@ private fun CountryStep(
                     Spacer(modifier = Modifier.width(8.dp))
                     Icon(Icons.Default.Check, contentDescription = null)
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RegionItem(
+    region: Region,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(12.dp),
+        color = if (isSelected) Purple500.copy(alpha = 0.2f) else Surface800.copy(alpha = 0.5f)
+    ) {
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = region.name,
+                color = White,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.weight(1f)
+            )
+            
+            if (isSelected) {
+                Icon(
+                    imageVector = Icons.Default.Check,
+                    contentDescription = null,
+                    tint = Purple500
+                )
             }
         }
     }

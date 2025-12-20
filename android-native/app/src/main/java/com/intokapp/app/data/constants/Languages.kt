@@ -392,6 +392,217 @@ val COUNTRIES = listOf(
     Country("TO", "Tonga", "🇹🇴"),
 )
 
+// MARK: - Region Data Class
+data class Region(
+    val code: String,
+    val name: String
+)
+
+// MARK: - Country Regions (Only for countries with significant regional variations)
+val COUNTRY_REGIONS: Map<String, List<Region>> = mapOf(
+    // United States
+    "US" to listOf(
+        Region("northeast", "Northeast (New York, Boston, etc.)"),
+        Region("southeast", "Southeast (Atlanta, Miami, etc.)"),
+        Region("midwest", "Midwest (Chicago, Detroit, etc.)"),
+        Region("southwest", "Southwest (Texas, Arizona, etc.)"),
+        Region("west_coast", "West Coast (California, Oregon, etc.)"),
+        Region("pacific_northwest", "Pacific Northwest (Seattle, Portland)"),
+        Region("mountain", "Mountain (Colorado, Utah, etc.)"),
+        Region("alaska", "Alaska"),
+        Region("hawaii", "Hawaii"),
+    ),
+    
+    // United Kingdom
+    "GB" to listOf(
+        Region("england", "England"),
+        Region("scotland", "Scotland"),
+        Region("wales", "Wales"),
+        Region("northern_ireland", "Northern Ireland"),
+    ),
+    
+    // Spain
+    "ES" to listOf(
+        Region("catalonia", "Catalonia (Barcelona)"),
+        Region("basque_country", "Basque Country (Bilbao)"),
+        Region("galicia", "Galicia (Santiago)"),
+        Region("andalusia", "Andalusia (Seville, Málaga)"),
+        Region("castile", "Castile (Madrid, Toledo)"),
+        Region("valencia", "Valencia"),
+        Region("aragon", "Aragon (Zaragoza)"),
+        Region("asturias", "Asturias"),
+        Region("canary_islands", "Canary Islands"),
+        Region("balearic_islands", "Balearic Islands"),
+    ),
+    
+    // Italy
+    "IT" to listOf(
+        Region("northern_italy", "Northern Italy (Milan, Turin)"),
+        Region("central_italy", "Central Italy (Rome, Florence)"),
+        Region("southern_italy", "Southern Italy (Naples)"),
+        Region("sicily", "Sicily"),
+        Region("sardinia", "Sardinia"),
+    ),
+    
+    // Germany
+    "DE" to listOf(
+        Region("bavaria", "Bavaria (Munich)"),
+        Region("northern_germany", "Northern Germany (Hamburg, Bremen)"),
+        Region("berlin", "Berlin"),
+        Region("saxony", "Saxony (Dresden, Leipzig)"),
+        Region("rhineland", "Rhineland (Cologne, Düsseldorf)"),
+        Region("baden_wurttemberg", "Baden-Württemberg (Stuttgart)"),
+    ),
+    
+    // France
+    "FR" to listOf(
+        Region("paris_region", "Paris Region (Île-de-France)"),
+        Region("northern_france", "Northern France"),
+        Region("southern_france", "Southern France (Occitanie)"),
+        Region("brittany", "Brittany"),
+        Region("alsace", "Alsace"),
+        Region("provence", "Provence (Marseille, Nice)"),
+        Region("normandy", "Normandy"),
+        Region("corsica", "Corsica"),
+    ),
+    
+    // China
+    "CN" to listOf(
+        Region("northern_china", "Northern China (Beijing)"),
+        Region("southern_china", "Southern China (Guangdong)"),
+        Region("eastern_china", "Eastern China (Shanghai)"),
+        Region("western_china", "Western China (Sichuan)"),
+        Region("northeastern_china", "Northeastern China"),
+    ),
+    
+    // India
+    "IN" to listOf(
+        Region("north_india", "North India (Delhi, UP)"),
+        Region("south_india", "South India (Chennai, Bangalore)"),
+        Region("west_india", "West India (Mumbai, Gujarat)"),
+        Region("east_india", "East India (Kolkata, Bengal)"),
+        Region("central_india", "Central India"),
+        Region("northeast_india", "Northeast India"),
+    ),
+    
+    // Brazil
+    "BR" to listOf(
+        Region("southeast_brazil", "Southeast (São Paulo, Rio)"),
+        Region("south_brazil", "South (Porto Alegre)"),
+        Region("northeast_brazil", "Northeast (Salvador, Recife)"),
+        Region("north_brazil", "North (Amazon)"),
+        Region("central_west_brazil", "Central-West (Brasília)"),
+    ),
+    
+    // Canada
+    "CA" to listOf(
+        Region("quebec", "Quebec (French-speaking)"),
+        Region("ontario", "Ontario (Toronto)"),
+        Region("british_columbia", "British Columbia (Vancouver)"),
+        Region("alberta", "Alberta (Calgary, Edmonton)"),
+        Region("atlantic_canada", "Atlantic Canada"),
+        Region("prairies", "Prairies (Manitoba, Saskatchewan)"),
+    ),
+    
+    // Mexico
+    "MX" to listOf(
+        Region("northern_mexico", "Northern Mexico (Monterrey)"),
+        Region("central_mexico", "Central Mexico (Mexico City)"),
+        Region("southern_mexico", "Southern Mexico (Oaxaca)"),
+        Region("yucatan", "Yucatán Peninsula"),
+        Region("baja_california", "Baja California"),
+    ),
+    
+    // Australia
+    "AU" to listOf(
+        Region("new_south_wales", "New South Wales (Sydney)"),
+        Region("victoria", "Victoria (Melbourne)"),
+        Region("queensland", "Queensland (Brisbane)"),
+        Region("western_australia", "Western Australia (Perth)"),
+        Region("south_australia", "South Australia (Adelaide)"),
+    ),
+    
+    // Russia
+    "RU" to listOf(
+        Region("european_russia", "European Russia (Moscow, St. Petersburg)"),
+        Region("siberia", "Siberia"),
+        Region("far_east", "Far East (Vladivostok)"),
+        Region("ural", "Ural Region"),
+        Region("south_russia", "Southern Russia"),
+    ),
+    
+    // Switzerland
+    "CH" to listOf(
+        Region("german_switzerland", "German-speaking Switzerland"),
+        Region("french_switzerland", "French-speaking Switzerland (Romandie)"),
+        Region("italian_switzerland", "Italian-speaking Switzerland (Ticino)"),
+    ),
+    
+    // Belgium
+    "BE" to listOf(
+        Region("flanders", "Flanders (Dutch-speaking)"),
+        Region("wallonia", "Wallonia (French-speaking)"),
+        Region("brussels", "Brussels"),
+    ),
+    
+    // Argentina
+    "AR" to listOf(
+        Region("buenos_aires", "Buenos Aires"),
+        Region("patagonia", "Patagonia"),
+        Region("north_argentina", "Northern Argentina"),
+        Region("cuyo", "Cuyo (Mendoza)"),
+    ),
+    
+    // Colombia
+    "CO" to listOf(
+        Region("bogota_region", "Bogotá Region"),
+        Region("caribbean_coast", "Caribbean Coast"),
+        Region("pacific_coast", "Pacific Coast"),
+        Region("coffee_region", "Coffee Region (Eje Cafetero)"),
+    ),
+    
+    // Japan
+    "JP" to listOf(
+        Region("kanto", "Kanto (Tokyo)"),
+        Region("kansai", "Kansai (Osaka, Kyoto)"),
+        Region("hokkaido", "Hokkaido"),
+        Region("kyushu", "Kyushu"),
+        Region("tohoku", "Tohoku"),
+    ),
+    
+    // Indonesia
+    "ID" to listOf(
+        Region("java", "Java (Jakarta)"),
+        Region("bali", "Bali"),
+        Region("sumatra", "Sumatra"),
+        Region("kalimantan", "Kalimantan (Borneo)"),
+        Region("sulawesi", "Sulawesi"),
+    ),
+    
+    // Philippines
+    "PH" to listOf(
+        Region("luzon", "Luzon (Manila)"),
+        Region("visayas", "Visayas (Cebu)"),
+        Region("mindanao", "Mindanao (Davao)"),
+    ),
+    
+    // South Africa
+    "ZA" to listOf(
+        Region("gauteng", "Gauteng (Johannesburg, Pretoria)"),
+        Region("western_cape", "Western Cape (Cape Town)"),
+        Region("kwazulu_natal", "KwaZulu-Natal (Durban)"),
+        Region("eastern_cape", "Eastern Cape"),
+    ),
+    
+    // Nigeria
+    "NG" to listOf(
+        Region("southwest_nigeria", "Southwest (Lagos, Yorubaland)"),
+        Region("southeast_nigeria", "Southeast (Igboland)"),
+        Region("north_nigeria", "Northern Nigeria"),
+        Region("south_south_nigeria", "South-South (Niger Delta)"),
+    ),
+)
+
 // MARK: - Helper Functions
 fun getLanguageByCode(code: String): Language? = LANGUAGES.find { it.code == code }
 
@@ -407,3 +618,13 @@ fun getGroupedLanguages(): List<Pair<LanguageCategory, List<Language>>> =
     LanguageCategory.values().map { category ->
         category to getLanguagesByCategory(category)
     }
+
+// MARK: - Region Helper Functions
+fun getRegionsForCountry(countryCode: String): List<Region> = 
+    COUNTRY_REGIONS[countryCode] ?: emptyList()
+
+fun hasRegions(countryCode: String): Boolean = 
+    COUNTRY_REGIONS.containsKey(countryCode)
+
+fun getRegionByCode(countryCode: String, regionCode: String): Region? =
+    COUNTRY_REGIONS[countryCode]?.find { it.code == regionCode }

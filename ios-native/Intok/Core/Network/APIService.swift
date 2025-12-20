@@ -295,6 +295,14 @@ class APIService {
         return try await request(endpoint: "/api/users/me/country", method: "PATCH", body: body)
     }
     
+    func updateRegion(preferredRegion: String?) async throws -> UserResponse {
+        struct UpdateRequest: Codable {
+            let preferredRegion: String?
+        }
+        let body = try JSONEncoder().encode(UpdateRequest(preferredRegion: preferredRegion))
+        return try await request(endpoint: "/api/users/me/region", method: "PATCH", body: body)
+    }
+    
     func searchUsers(query: String) async throws -> UsersSearchResponse {
         let encodedQuery = query.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? query
         return try await request(endpoint: "/api/users/search?q=\(encodedQuery)")

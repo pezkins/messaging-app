@@ -14,6 +14,8 @@ data class User(
     val preferredLanguage: String,
     @SerializedName("preferredCountry")
     val preferredCountry: String? = null,
+    @SerializedName("preferredRegion")
+    val preferredRegion: String? = null,
     @SerializedName("avatarUrl")
     val avatarUrl: String? = null,
     @SerializedName("profilePicture")

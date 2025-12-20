@@ -7,6 +7,7 @@ struct SettingsView: View {
     
     @State private var showingLanguagePicker = false
     @State private var showingCountryPicker = false
+    @State private var showingRegionPicker = false
     @State private var showingEditName = false
     @State private var showingWhatsNew = false
     @State private var showingSignOutConfirm = false
@@ -62,6 +63,11 @@ struct SettingsView: View {
             }
             .sheet(isPresented: $showingCountryPicker) {
                 CountryPickerSheet(onSelect: updateCountry)
+            }
+            .sheet(isPresented: $showingRegionPicker) {
+                if let countryCode = authManager.currentUser?.preferredCountry {
+                    RegionPickerSheet(countryCode: countryCode, onSelect: updateRegion)
+                }
             }
             .sheet(isPresented: $showingWhatsNew) {
                 WhatsNewSheet()
@@ -242,6 +248,21 @@ struct SettingsView: View {
                     value: getCountryName(authManager.currentUser?.preferredCountry),
                     action: { showingCountryPicker = true }
                 )
+                
+                // Region (only show if country has regions)
+                if let countryCode = authManager.currentUser?.preferredCountry,
+                   hasRegions(countryCode) {
+                    Divider()
+                        .background(Color.white.opacity(0.1))
+                    
+                    settingsRow(
+                        icon: "mappin.and.ellipse",
+                        iconColor: Color.orange,
+                        title: "Region",
+                        value: getRegionName(authManager.currentUser?.preferredCountry, authManager.currentUser?.preferredRegion),
+                        action: { showingRegionPicker = true }
+                    )
+                }
             }
             .background(Color.white.opacity(0.05))
             .cornerRadius(12)
@@ -345,6 +366,11 @@ struct SettingsView: View {
         return getCountryByCode(code)?.name ?? code
     }
     
+    func getRegionName(_ countryCode: String?, _ regionCode: String?) -> String {
+        guard let countryCode = countryCode, let regionCode = regionCode else { return "Not set" }
+        return getRegionByCode(countryCode, regionCode: regionCode)?.name ?? regionCode
+    }
+    
     // MARK: - Actions
     func updateDisplayName() async {
         guard editingName.count >= 2 else { return }
@@ -376,11 +402,32 @@ struct SettingsView: View {
             do {
                 let response = try await APIService.shared.updateCountry(preferredCountry: country.code)
                 await authManager.updateUser(response.user)
+                
+                // Clear region when country changes (regions are country-specific)
+                if hasRegions(country.code) {
+                    // Don't clear, will prompt to select new region
+                } else {
+                    // Clear region for countries without regions
+                    let regionResponse = try await APIService.shared.updateRegion(preferredRegion: nil)
+                    await authManager.updateUser(regionResponse.user)
+                }
             } catch {
                 // Handle error
             }
         }
         showingCountryPicker = false
+    }
+    
+    func updateRegion(_ region: Region) {
+        Task {
+            do {
+                let response = try await APIService.shared.updateRegion(preferredRegion: region.code)
+                await authManager.updateUser(response.user)
+            } catch {
+                // Handle error
+            }
+        }
+        showingRegionPicker = false
     }
     
     // MARK: - Profile Photo Actions
@@ -610,6 +657,56 @@ struct CountryPickerSheet: View {
                 }
             }
             .navigationTitle("Select Country")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Region Picker Sheet
+struct RegionPickerSheet: View {
+    @Environment(\.dismiss) var dismiss
+    let countryCode: String
+    var onSelect: (Region) -> Void
+    
+    var regions: [Region] {
+        return getRegionsForCountry(countryCode)
+    }
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color(hex: "0F0F0F").ignoresSafeArea()
+                
+                VStack {
+                    if regions.isEmpty {
+                        Text("No regions available for this country")
+                            .foregroundColor(.gray)
+                            .padding()
+                    } else {
+                        List(regions, id: \.code) { region in
+                            Button(action: {
+                                onSelect(region)
+                                dismiss()
+                            }) {
+                                HStack {
+                                    Text(region.name)
+                                        .foregroundColor(.white)
+                                    Spacer()
+                                }
+                            }
+                            .listRowBackground(Color.white.opacity(0.05))
+                        }
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
+                    }
+                }
+            }
+            .navigationTitle("Select Region")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
