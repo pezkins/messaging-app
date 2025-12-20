@@ -189,6 +189,13 @@ jobs:
       - name: 📦 Install Dependencies
         working-directory: ./ios-native
         run: |
+          # Install XcodeGen if project.yml exists
+          if [ -f "project.yml" ]; then
+            brew install xcodegen
+            xcodegen generate
+            echo "✅ Generated Xcode project from project.yml"
+          fi
+          
           if [ -f "Gemfile" ]; then
             bundle install
           fi
@@ -259,35 +266,43 @@ jobs:
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           GIPHY_API_KEY: ${{ secrets.GIPHY_API_KEY }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_ISSUER_ID }}
         run: |
           echo "📦 Building with Team: $APPLE_TEAM_ID"
           
-          # Archive WITHOUT code signing - we'll sign during export
-          # This avoids issues with SPM packages and provisioning profiles
+          # Archive with manual signing (configured in project.yml for Release)
+          # -allowProvisioningUpdates allows Xcode to download profiles but NOT create certs
+          # because CODE_SIGN_STYLE=Manual is set for Release in project.yml
           xcodebuild archive \
             -project Intok.xcodeproj \
             -scheme Intok \
             -configuration Release \
             -archivePath build/Intok.xcarchive \
             -destination 'generic/platform=iOS' \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8 \
+            -authenticationKeyID "$APP_STORE_CONNECT_API_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_API_ISSUER_ID" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            GIPHY_API_KEY="$GIPHY_API_KEY" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO
+            GIPHY_API_KEY="$GIPHY_API_KEY"
 
           if [ ! -d "build/Intok.xcarchive" ]; then
             echo "❌ Archive failed"
             exit 1
           fi
           
-          echo "✅ Archive created successfully (unsigned)"
+          echo "✅ Archive created successfully"
 
           # Export and sign using ExportOptions.plist
-          # This is where the actual code signing happens
           xcodebuild -exportArchive \
             -archivePath build/Intok.xcarchive \
             -exportPath build/ipa \
-            -exportOptionsPlist ExportOptions.plist
+            -exportOptionsPlist ExportOptions.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/.appstoreconnect/private_keys/AuthKey_${APP_STORE_CONNECT_API_KEY_ID}.p8 \
+            -authenticationKeyID "$APP_STORE_CONNECT_API_KEY_ID" \
+            -authenticationKeyIssuerID "$APP_STORE_CONNECT_API_ISSUER_ID"
 
           if [ ! -f build/ipa/*.ipa ]; then
             echo "❌ Export failed"
