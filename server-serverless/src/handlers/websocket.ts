@@ -435,9 +435,33 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
     const shouldSendPush = FORCE_PUSH_NOTIFICATIONS || connectionCount === 0;
     
     if (shouldSendPush) {
-      const notificationBody = type === 'text' 
-        ? truncateForNotification(content || '') 
-        : `Sent ${type}`;
+      // Get recipient's preferred language for translated notification
+      const recipientResult = await dynamodb.send(new GetCommand({
+        TableName: Tables.USERS,
+        Key: { id: participantId },
+      }));
+      const recipientLanguage = recipientResult.Item?.preferredLanguage || 'en';
+      const recipientCountry = recipientResult.Item?.preferredCountry || 'US';
+      const recipientRegion = recipientResult.Item?.preferredRegion || undefined;
+      
+      // Get translated content for notification
+      let notificationBody: string;
+      if (type === 'text' && content) {
+        // Check if we already have a cached translation
+        let translatedText = message.translations[recipientLanguage];
+        
+        // If not cached and languages differ, translate now
+        if (!translatedText && originalLanguage !== recipientLanguage) {
+          console.log(`🌐 [PUSH] Translating notification: ${originalLanguage} -> ${recipientLanguage}`);
+          translatedText = await translate(content, originalLanguage, recipientLanguage, recipientCountry, recipientRegion);
+          // Cache for future use
+          message.translations[recipientLanguage] = translatedText;
+        }
+        
+        notificationBody = truncateForNotification(translatedText || content);
+      } else {
+        notificationBody = `Sent ${type}`;
+      }
       
       const reason = FORCE_PUSH_NOTIFICATIONS 
         ? `FORCED (user has ${connectionCount} connections)` 
