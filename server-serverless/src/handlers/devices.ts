@@ -37,11 +37,13 @@ export const register: APIGatewayProxyHandler = async (event) => {
     }
 
     // Remove any existing entries with this device token (could be from another user)
+    // Note: 'token' is a DynamoDB reserved keyword, so we must use ExpressionAttributeNames
     const existingTokens = await dynamodb.send(new QueryCommand({
       TableName: Tables.DEVICE_TOKENS,
       IndexName: 'token-index',
-      KeyConditionExpression: 'token = :token',
-      ExpressionAttributeValues: { ':token': body.token }
+      KeyConditionExpression: '#tokenAttr = :tokenVal',
+      ExpressionAttributeNames: { '#tokenAttr': 'token' },
+      ExpressionAttributeValues: { ':tokenVal': body.token }
     }));
 
     for (const item of existingTokens.Items || []) {

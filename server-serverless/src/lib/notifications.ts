@@ -88,6 +88,9 @@ async function getAPNsCredentials(): Promise<typeof apnsCredentials> {
 
 /**
  * Fetch FCM credentials from AWS Secrets Manager
+ * Supports two formats:
+ * 1. Wrapped: { projectId: "...", serviceAccount: {...} }
+ * 2. Raw Firebase service account JSON: { project_id: "...", private_key: "...", ... }
  */
 async function getFCMCredentials(): Promise<typeof fcmCredentials> {
   if (fcmCredentials) {
@@ -110,13 +113,29 @@ async function getFCMCredentials(): Promise<typeof fcmCredentials> {
     
     if (response.SecretString) {
       const parsed = JSON.parse(response.SecretString);
-      fcmCredentials = {
-        projectId: parsed.projectId,
-        serviceAccount: typeof parsed.serviceAccount === 'string' 
-          ? JSON.parse(parsed.serviceAccount)
-          : parsed.serviceAccount
-      };
-      console.log(`✅ [FCM] Credentials loaded - projectId: ${fcmCredentials.projectId}`);
+      
+      // Check if this is a raw Firebase service account JSON (has 'project_id' and 'type')
+      if (parsed.project_id && parsed.type === 'service_account') {
+        // Raw Firebase service account format
+        fcmCredentials = {
+          projectId: parsed.project_id,
+          serviceAccount: parsed
+        };
+        console.log(`✅ [FCM] Credentials loaded (raw format) - projectId: ${fcmCredentials.projectId}`);
+      } else if (parsed.projectId) {
+        // Wrapped format: { projectId, serviceAccount }
+        fcmCredentials = {
+          projectId: parsed.projectId,
+          serviceAccount: typeof parsed.serviceAccount === 'string' 
+            ? JSON.parse(parsed.serviceAccount)
+            : parsed.serviceAccount
+        };
+        console.log(`✅ [FCM] Credentials loaded (wrapped format) - projectId: ${fcmCredentials.projectId}`);
+      } else {
+        console.error('❌ [FCM] Invalid secret format - missing project_id or projectId');
+        return null;
+      }
+      
       return fcmCredentials;
     } else {
       console.error('❌ [FCM] Secret exists but has no string value');
@@ -249,6 +268,7 @@ class PushNotificationError extends Error {
 
 /**
  * Send notification via Apple Push Notification Service
+ * Supports both production and sandbox environments via APNS_ENVIRONMENT env var
  */
 async function sendAPNS(
   deviceToken: string, 
@@ -264,10 +284,15 @@ async function sendAPNS(
     return;
   }
 
-  console.log(`📱 [APNs] Sending to ${deviceToken.substring(0, 20)}...`);
+  // Support sandbox for development builds (set APNS_ENVIRONMENT=sandbox)
+  const environment = process.env.APNS_ENVIRONMENT || 'production';
+  const host = environment === 'sandbox' 
+    ? 'api.sandbox.push.apple.com' 
+    : 'api.push.apple.com';
   
-  // Use production APNs endpoint
-  const url = `https://api.push.apple.com/3/device/${deviceToken}`;
+  console.log(`📱 [APNs] Sending to ${deviceToken.substring(0, 20)}... (${environment})`);
+  
+  const url = `https://${host}/3/device/${deviceToken}`;
   
   const payload = {
     aps: {
