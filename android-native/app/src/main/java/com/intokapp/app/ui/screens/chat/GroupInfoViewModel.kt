@@ -10,12 +10,14 @@ import androidx.lifecycle.viewModelScope
 import com.intokapp.app.data.models.Conversation
 import com.intokapp.app.data.network.ApiService
 import com.intokapp.app.data.network.UploadUrlRequest
+import com.intokapp.app.data.repository.AuthRepository
 import com.intokapp.app.data.repository.ChatRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,7 +32,8 @@ import javax.inject.Inject
 data class GroupInfoUiState(
     val isLoading: Boolean = false,
     val isUploadingPhoto: Boolean = false,
-    val updatedConversation: Conversation? = null,
+    val conversation: Conversation? = null,
+    val currentUserId: String? = null,
     val error: String? = null
 )
 
@@ -38,6 +41,7 @@ data class GroupInfoUiState(
 class GroupInfoViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val chatRepository: ChatRepository,
+    private val authRepository: AuthRepository,
     private val apiService: ApiService
 ) : ViewModel() {
     
@@ -51,13 +55,39 @@ class GroupInfoViewModel @Inject constructor(
     
     private val okHttpClient = OkHttpClient()
     
+    fun loadConversation(conversationId: String) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            
+            try {
+                // Get current user
+                val currentUser = authRepository.currentUser.first()
+                
+                // Find conversation from repository
+                val conversations = chatRepository.conversations.first()
+                val conversation = conversations.find { it.id == conversationId }
+                
+                _uiState.update { 
+                    it.copy(
+                        isLoading = false,
+                        conversation = conversation,
+                        currentUserId = currentUser?.id
+                    )
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to load conversation: ${e.message}")
+                _uiState.update { it.copy(isLoading = false, error = "Failed to load group info") }
+            }
+        }
+    }
+    
     fun updateGroupName(conversationId: String, name: String) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
             
             chatRepository.updateConversation(conversationId, name, null)
                 .onSuccess { conversation ->
-                    _uiState.update { it.copy(isLoading = false, updatedConversation = conversation) }
+                    _uiState.update { it.copy(isLoading = false, conversation = conversation) }
                 }
                 .onFailure { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
@@ -104,8 +134,8 @@ class GroupInfoViewModel @Inject constructor(
                 // Update conversation with new picture URL
                 val pictureUrl = "$BUCKET_URL/${uploadResponse.key}"
                 chatRepository.updateConversation(conversationId, null, pictureUrl)
-                    .onSuccess { conversation ->
-                        _uiState.update { it.copy(isUploadingPhoto = false, updatedConversation = conversation) }
+                    .onSuccess { updatedConversation ->
+                        _uiState.update { it.copy(isUploadingPhoto = false, conversation = updatedConversation) }
                         Log.d(TAG, "✅ Group picture updated: $pictureUrl")
                     }
                     .onFailure { e ->

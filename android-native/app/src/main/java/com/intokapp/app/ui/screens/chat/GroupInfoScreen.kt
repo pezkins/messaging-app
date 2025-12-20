@@ -35,22 +35,34 @@ import com.intokapp.app.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupInfoScreen(
-    conversation: Conversation,
-    currentUserId: String?,
+    conversationId: String,
     onBackClick: () -> Unit,
     viewModel: GroupInfoViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     
+    val conversation = uiState.conversation
+    val currentUserId = uiState.currentUserId
+    
     var showEditNameDialog by remember { mutableStateOf(false) }
-    var editedName by remember { mutableStateOf(conversation.name ?: "") }
+    var editedName by remember { mutableStateOf("") }
+    
+    // Load conversation on first composition
+    LaunchedEffect(conversationId) {
+        viewModel.loadConversation(conversationId)
+    }
+    
+    // Update editedName when conversation loads
+    LaunchedEffect(conversation?.name) {
+        editedName = conversation?.name ?: ""
+    }
     
     // Photo picker launcher
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
-        uri?.let { viewModel.uploadGroupPicture(conversation.id, it) }
+        uri?.let { viewModel.uploadGroupPicture(conversationId, it) }
     }
     
     // Show error messages
@@ -59,6 +71,34 @@ fun GroupInfoScreen(
             Toast.makeText(context, error, Toast.LENGTH_SHORT).show()
             viewModel.clearError()
         }
+    }
+    
+    // Show loading if conversation not yet loaded
+    if (conversation == null) {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text("Group Info", color = White) },
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(Icons.Default.ArrowBack, null, tint = White)
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(containerColor = Surface950)
+                )
+            }
+        ) { padding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Surface950)
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Purple500)
+            }
+        }
+        return
     }
     
     Scaffold(
@@ -93,7 +133,7 @@ fun GroupInfoScreen(
                 // Group Picture
                 item {
                     GroupPictureSection(
-                        pictureUrl = uiState.updatedConversation?.pictureUrl ?: conversation.pictureUrl,
+                        pictureUrl = conversation.pictureUrl,
                         isUploading = uiState.isUploadingPhoto,
                         onClick = { photoPickerLauncher.launch("image/*") }
                     )
@@ -102,9 +142,9 @@ fun GroupInfoScreen(
                 // Group Name
                 item {
                     GroupNameSection(
-                        name = uiState.updatedConversation?.name ?: conversation.name ?: "Group Chat",
+                        name = conversation.name ?: "Group Chat",
                         onClick = { 
-                            editedName = uiState.updatedConversation?.name ?: conversation.name ?: ""
+                            editedName = conversation.name ?: ""
                             showEditNameDialog = true 
                         }
                     )
@@ -186,7 +226,7 @@ fun GroupInfoScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        viewModel.updateGroupName(conversation.id, editedName)
+                        viewModel.updateGroupName(conversationId, editedName)
                         showEditNameDialog = false
                     },
                     enabled = editedName.isNotBlank()

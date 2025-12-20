@@ -18,6 +18,7 @@ import com.intokapp.app.ui.screens.auth.LoginScreen
 import com.intokapp.app.ui.screens.auth.SetupScreen
 import com.intokapp.app.ui.screens.chat.AddParticipantsScreen
 import com.intokapp.app.ui.screens.chat.ChatScreen
+import com.intokapp.app.ui.screens.chat.GroupInfoScreen
 import com.intokapp.app.ui.screens.chat.RemoveParticipantsScreen
 import com.intokapp.app.ui.screens.conversations.ConversationsScreen
 import com.intokapp.app.ui.screens.newchat.NewChatScreen
@@ -37,6 +38,9 @@ sealed class Screen(val route: String) {
     }
     object RemoveParticipants : Screen("remove_participants/{conversationId}") {
         fun createRoute(conversationId: String) = "remove_participants/$conversationId"
+    }
+    object GroupInfo : Screen("group_info/{conversationId}") {
+        fun createRoute(conversationId: String) = "group_info/$conversationId"
     }
 }
 
@@ -153,7 +157,23 @@ fun IntokNavigation(
                 },
                 onRemoveParticipants = { convId ->
                     navController.navigate(Screen.RemoveParticipants.createRoute(convId))
+                },
+                onGroupInfo = { convId ->
+                    navController.navigate(Screen.GroupInfo.createRoute(convId))
                 }
+            )
+        }
+        
+        composable(
+            route = Screen.GroupInfo.route,
+            arguments = listOf(
+                navArgument("conversationId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val conversationId = backStackEntry.arguments?.getString("conversationId") ?: return@composable
+            GroupInfoScreen(
+                conversationId = conversationId,
+                onBackClick = { navController.popBackStack() }
             )
         }
         
