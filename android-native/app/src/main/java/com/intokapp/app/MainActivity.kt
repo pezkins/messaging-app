@@ -1,6 +1,7 @@
 package com.intokapp.app
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -54,9 +55,9 @@ class MainActivity : ComponentActivity() {
         requestNotificationPermission()
         
         // Handle deep link from notification
-        intent?.getStringExtra("conversationId")?.let { conversationId ->
-            Log.d(TAG, "📬 Opened from notification: $conversationId")
-            // TODO: Navigate to conversation
+        val pendingConversationId = intent?.getStringExtra("conversationId")
+        if (pendingConversationId != null) {
+            Log.d(TAG, "📬 Opened from notification: $pendingConversationId")
         }
         
         setContent {
@@ -65,9 +66,21 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    IntokNavigation()
+                    IntokNavigation(pendingConversationId = pendingConversationId)
                 }
             }
+        }
+    }
+    
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // Handle notification tap when app is already running
+        intent.getStringExtra("conversationId")?.let { conversationId ->
+            Log.d(TAG, "📬 New intent with conversation: $conversationId")
+            // For now, restart the activity to apply the deep link
+            // A more sophisticated approach would use a ViewModel/StateFlow
+            setIntent(intent)
+            recreate()
         }
     }
     

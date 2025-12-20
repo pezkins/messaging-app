@@ -46,6 +46,7 @@ sealed class Screen(val route: String) {
 
 @Composable
 fun IntokNavigation(
+    pendingConversationId: String? = null,
     viewModel: NavigationViewModel = hiltViewModel()
 ) {
     val navController = rememberNavController()
@@ -54,9 +55,26 @@ fun IntokNavigation(
     // Track previous auth state to only navigate on state transitions
     var previousAuthStateType by remember { mutableStateOf<String?>(null) }
     
+    // Track if we've handled the pending conversation
+    var handledPendingConversation by remember { mutableStateOf(false) }
+    
     // Initialize auth
     LaunchedEffect(Unit) {
         viewModel.initialize()
+    }
+    
+    // Handle deep link navigation after auth is complete
+    LaunchedEffect(authState, pendingConversationId) {
+        if (pendingConversationId != null && !handledPendingConversation) {
+            if (authState is AuthState.Authenticated && !(authState as AuthState.Authenticated).needsSetup) {
+                // Wait a bit for navigation to be ready
+                kotlinx.coroutines.delay(500)
+                navController.navigate(Screen.Chat.createRoute(pendingConversationId)) {
+                    popUpTo(Screen.Conversations.route)
+                }
+                handledPendingConversation = true
+            }
+        }
     }
     
     // Handle auth state changes - only navigate on state TYPE transitions, not user data updates

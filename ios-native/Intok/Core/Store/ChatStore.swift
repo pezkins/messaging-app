@@ -20,6 +20,9 @@ class ChatStore: ObservableObject {
     @Published var conversationsError: String?
     @Published var messagesError: String?
     
+    // Deep linking - set this to navigate to a specific conversation
+    @Published var pendingConversationId: String?
+    
     private var nextCursor: String?
     
     private init() {
@@ -328,6 +331,30 @@ class ChatStore: ObservableObject {
         let currentUser = AuthManager.shared.currentUser
         let tempId = "temp-\(Date().timeIntervalSince1970)-\(UUID().uuidString.prefix(8))"
         
+        // Parse message type from string
+        let messageType: MessageType
+        switch type.lowercased() {
+        case "gif": messageType = .gif
+        case "image": messageType = .image
+        case "file": messageType = .file
+        case "voice": messageType = .voice
+        default: messageType = .text
+        }
+        
+        // Parse attachment if provided
+        var parsedAttachment: Attachment?
+        if let attachmentDict = attachment {
+            parsedAttachment = Attachment(
+                id: attachmentDict["id"] as? String ?? "",
+                key: attachmentDict["key"] as? String ?? "",
+                fileName: attachmentDict["fileName"] as? String ?? "",
+                contentType: attachmentDict["contentType"] as? String ?? "application/octet-stream",
+                fileSize: (attachmentDict["fileSize"] as? Int64) ?? Int64(attachmentDict["fileSize"] as? Int ?? 0),
+                category: attachmentDict["category"] as? String ?? "document",
+                url: attachmentDict["url"] as? String
+            )
+        }
+        
         // Create optimistic message with actual user info for better tracking
         let optimisticMessage = Message(
             id: tempId,
@@ -339,11 +366,12 @@ class ChatStore: ObservableObject {
                 preferredLanguage: currentUser?.preferredLanguage ?? "en",
                 avatarUrl: nil
             ),
-            type: .text,
+            type: messageType,
             originalContent: content,
             originalLanguage: currentUser?.preferredLanguage ?? "en",
             status: .sending,
             createdAt: ISO8601DateFormatter().string(from: Date()),
+            attachment: parsedAttachment,
             replyTo: replyTo
         )
         

@@ -32,9 +32,9 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .openConversation)) { notification in
             if let conversationId = notification.userInfo?["conversationId"] as? String {
-                // Handle navigation to conversation
+                // Handle navigation to conversation via ChatStore
                 print("📱 Opening conversation: \(conversationId)")
-                // TODO: Navigate to specific conversation
+                ChatStore.shared.pendingConversationId = conversationId
             }
         }
     }

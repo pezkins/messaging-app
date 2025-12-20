@@ -11,6 +11,10 @@ struct ConversationsView: View {
     @State private var conversationToDelete: Conversation?
     @State private var isDeletingConversation = false
     
+    // Deep linking
+    @State private var deepLinkConversation: Conversation?
+    @State private var isDeepLinkActive = false
+    
     var filteredConversations: [Conversation] {
         if searchText.isEmpty {
             return chatStore.conversations
@@ -82,6 +86,28 @@ struct ConversationsView: View {
             }
             .sheet(isPresented: $showingNewChat) {
                 NewChatView()
+            }
+            .background(
+                // Hidden NavigationLink for deep linking
+                NavigationLink(
+                    destination: Group {
+                        if let conversation = deepLinkConversation {
+                            ChatView(conversation: conversation)
+                        }
+                    },
+                    isActive: $isDeepLinkActive
+                ) {
+                    EmptyView()
+                }
+            )
+            .onChange(of: chatStore.pendingConversationId) { conversationId in
+                if let conversationId = conversationId,
+                   let conversation = chatStore.conversations.first(where: { $0.id == conversationId }) {
+                    deepLinkConversation = conversation
+                    isDeepLinkActive = true
+                    // Clear the pending ID after handling
+                    chatStore.pendingConversationId = nil
+                }
             }
             .task {
                 await chatStore.loadConversations()

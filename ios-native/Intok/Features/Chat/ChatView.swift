@@ -532,7 +532,16 @@ struct ChatView: View {
     }
     
     func sendGif(_ url: String) {
-        chatStore.sendMessage(url, type: "gif")
+        // Send GIF with attachment data for cross-platform compatibility
+        chatStore.sendMessage("GIF", type: "gif", attachment: [
+            "id": "gif-\(UUID().uuidString)",
+            "key": url,
+            "fileName": "animated.gif",
+            "contentType": "image/gif",
+            "fileSize": 0,
+            "category": "image",
+            "url": url
+        ])
     }
     
     func handleDocumentSelection(_ result: Result<[URL], Error>) {
@@ -927,8 +936,9 @@ struct MessageBubble: View {
     var imageContent: some View {
         Group {
             if message.type == .gif {
-                // GIF - use URL directly from originalContent
-                AsyncImage(url: URL(string: message.originalContent)) { phase in
+                // GIF - try attachment URL first (Android), then originalContent (iOS)
+                let gifUrl = message.attachment?.url ?? message.attachment?.key ?? message.originalContent
+                AsyncImage(url: URL(string: gifUrl)) { phase in
                     switch phase {
                     case .success(let image):
                         image
@@ -946,7 +956,7 @@ struct MessageBubble: View {
                 }
                 .contextMenu {
                     Button {
-                        onSaveImage?(message.originalContent)
+                        onSaveImage?(gifUrl)
                     } label: {
                         Label("Save to Photos", systemImage: "square.and.arrow.down")
                     }
