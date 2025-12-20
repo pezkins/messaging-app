@@ -66,6 +66,7 @@ fun ChatScreen(
     onBackClick: () -> Unit,
     onAddParticipants: ((String) -> Unit)? = null,
     onRemoveParticipants: ((String) -> Unit)? = null,
+    onGroupInfo: ((String) -> Unit)? = null,
     viewModel: ChatViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -285,7 +286,7 @@ fun ChatScreen(
                                     text = { Text("Group Info", color = White) },
                                     onClick = {
                                         showChatMenu = false
-                                        // TODO: Navigate to group info screen
+                                        onGroupInfo?.invoke(conversationId)
                                     },
                                     leadingIcon = {
                                         Icon(Icons.Default.Info, null, tint = Purple500)

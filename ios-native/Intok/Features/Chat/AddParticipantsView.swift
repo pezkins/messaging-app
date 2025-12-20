@@ -254,6 +254,7 @@ struct AddParticipantsView: View {
         id: "1",
         type: "group",
         name: "Test Group",
+        pictureUrl: nil,
         participants: [],
         lastMessage: nil,
         createdAt: "",

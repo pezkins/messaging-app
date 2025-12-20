@@ -83,6 +83,7 @@ export const list: APIGatewayProxyHandler = async (event) => {
           id: conv.conversationId || conv.id, // Use conversationId if available
           type: conv.type,
           name: conv.name,
+          pictureUrl: conv.pictureUrl || null,
           participants: participants.filter(Boolean),
           lastMessage,
           createdAt: conv.createdAt,
@@ -185,6 +186,7 @@ export const create: APIGatewayProxyHandler = async (event) => {
         id: conversationId,
         type: data.type,
         name: data.name,
+        pictureUrl: null,
         participants: participants.filter(Boolean),
         createdAt: now,
         updatedAt: now,
@@ -478,6 +480,116 @@ export const removeParticipant: APIGatewayProxyHandler = async (event) => {
     });
   } catch (error) {
     console.error('Remove participant error:', error);
+    return response(500, { message: 'Internal server error' });
+  }
+};
+
+/**
+ * Update conversation details (name, pictureUrl)
+ * Only works for group chats
+ */
+const updateConversationSchema = z.object({
+  name: z.string().min(1).max(100).optional(),
+  pictureUrl: z.string().url().optional().nullable(),
+});
+
+export const update: APIGatewayProxyHandler = async (event) => {
+  try {
+    const userId = getUserIdFromEvent(event);
+    if (!userId) {
+      return response(401, { message: 'Authentication required' });
+    }
+
+    const conversationId = event.pathParameters?.conversationId;
+    if (!conversationId) {
+      return response(400, { message: 'Conversation ID required' });
+    }
+
+    const body = JSON.parse(event.body || '{}');
+    const data = updateConversationSchema.parse(body);
+
+    // Find user's conversation record
+    const convResult = await dynamodb.send(new QueryCommand({
+      TableName: Tables.CONVERSATIONS,
+      IndexName: 'user-conversations-index',
+      KeyConditionExpression: 'visibleTo = :userId',
+      FilterExpression: 'conversationId = :convId',
+      ExpressionAttributeValues: {
+        ':userId': userId,
+        ':convId': conversationId,
+      },
+    }));
+
+    const conversation = convResult.Items?.[0];
+    if (!conversation) {
+      return response(404, { message: 'Conversation not found' });
+    }
+
+    // Only allow updates for group chats
+    if (conversation.type !== 'group') {
+      return response(400, { message: 'Can only update group chat details' });
+    }
+
+    const now = new Date().toISOString();
+    const updateExpressions: string[] = ['updatedAt = :updatedAt'];
+    const expressionValues: Record<string, any> = { ':updatedAt': now };
+
+    if (data.name !== undefined) {
+      updateExpressions.push('#name = :name');
+      expressionValues[':name'] = data.name;
+    }
+
+    if (data.pictureUrl !== undefined) {
+      updateExpressions.push('pictureUrl = :pictureUrl');
+      expressionValues[':pictureUrl'] = data.pictureUrl;
+    }
+
+    // Update ALL participant records for this conversation
+    for (const participantId of conversation.participantIds) {
+      await dynamodb.send(new UpdateCommand({
+        TableName: Tables.CONVERSATIONS,
+        Key: { id: `${conversationId}#${participantId}` },
+        UpdateExpression: `SET ${updateExpressions.join(', ')}`,
+        ExpressionAttributeValues: expressionValues,
+        ExpressionAttributeNames: data.name !== undefined ? { '#name': 'name' } : undefined,
+      }));
+    }
+
+    // Get participant details for response
+    const participants = await Promise.all(
+      conversation.participantIds.map(async (pid: string) => {
+        const user = await dynamodb.send(new GetCommand({
+          TableName: Tables.USERS,
+          Key: { id: pid },
+        }));
+        return user.Item ? {
+          id: user.Item.id,
+          username: user.Item.username,
+          preferredLanguage: user.Item.preferredLanguage,
+          avatarUrl: user.Item.avatarUrl || null,
+          profilePicture: user.Item.profilePicture || null,
+        } : null;
+      })
+    );
+
+    console.log(`✏️ Updated conversation ${conversationId}: name=${data.name}, pictureUrl=${data.pictureUrl ? 'set' : 'unchanged'}`);
+
+    return response(200, {
+      conversation: {
+        id: conversationId,
+        type: conversation.type,
+        name: data.name !== undefined ? data.name : conversation.name,
+        pictureUrl: data.pictureUrl !== undefined ? data.pictureUrl : conversation.pictureUrl,
+        participants: participants.filter(Boolean),
+        createdAt: conversation.createdAt,
+        updatedAt: now,
+      },
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return response(400, { message: 'Validation error', details: error.errors });
+    }
+    console.error('Update conversation error:', error);
     return response(500, { message: 'Internal server error' });
   }
 };

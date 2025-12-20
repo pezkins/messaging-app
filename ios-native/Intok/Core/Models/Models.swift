@@ -140,6 +140,7 @@ struct Conversation: Codable, Identifiable {
     let id: String
     let type: String // "direct" or "group"
     let name: String?
+    let pictureUrl: String?
     let participants: [UserPublic]
     let lastMessage: Message?
     let createdAt: String

@@ -122,6 +122,7 @@ class ChatStore: ObservableObject {
                 id: updated.id,
                 type: updated.type,
                 name: updated.name,
+                pictureUrl: updated.pictureUrl,
                 participants: updated.participants,
                 lastMessage: message,
                 createdAt: updated.createdAt,
@@ -493,6 +494,25 @@ class ChatStore: ObservableObject {
         ChatCacheManager.shared.deleteConversation(conversationId: conversation.id)
         
         logger.info("🗑️ Conversation deleted: \(conversation.id, privacy: .public)")
+    }
+    
+    // MARK: - Update Conversation (name, picture)
+    @MainActor
+    func updateConversation(_ conversation: Conversation) {
+        // Update in conversations list
+        if let index = conversations.firstIndex(where: { $0.id == conversation.id }) {
+            conversations[index] = conversation
+        }
+        
+        // Update active conversation if it's the same
+        if activeConversation?.id == conversation.id {
+            activeConversation = conversation
+        }
+        
+        // Update cache
+        ChatCacheManager.shared.saveConversations([conversation])
+        
+        logger.info("✏️ Conversation updated: \(conversation.id, privacy: .public)")
     }
     
     // MARK: - Add Participants to Group

@@ -323,6 +323,25 @@ class APIService {
         return try await request(endpoint: "/api/conversations", method: "POST", body: body)
     }
     
+    func updateConversation(conversationId: String, name: String?, pictureUrl: String?) async throws -> ConversationResponse {
+        struct UpdateRequest: Codable {
+            let name: String?
+            let pictureUrl: String?
+        }
+        let body = try JSONEncoder().encode(UpdateRequest(name: name, pictureUrl: pictureUrl))
+        return try await request(endpoint: "/api/conversations/\(conversationId)", method: "PATCH", body: body)
+    }
+    
+    func getGroupPictureUploadUrl(conversationId: String, fileName: String, contentType: String, fileSize: Int) async throws -> ProfilePictureUploadResponse {
+        struct UploadRequest: Codable {
+            let contentType: String
+            let fileSize: Int
+            let conversationId: String
+        }
+        let body = try JSONEncoder().encode(UploadRequest(contentType: contentType, fileSize: fileSize, conversationId: conversationId))
+        return try await request(endpoint: "/api/attachments/upload-url", method: "POST", body: body)
+    }
+    
     func getMessages(conversationId: String, limit: Int? = nil, cursor: String? = nil) async throws -> MessagesResponse {
         var queryItems: [String] = []
         if let limit = limit {

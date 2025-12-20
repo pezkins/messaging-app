@@ -1,9 +1,20 @@
 import SwiftUI
+import PhotosUI
 
 struct GroupInfoView: View {
     let conversation: Conversation
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var authManager: AuthManager
+    @EnvironmentObject var chatStore: ChatStore
+    
+    @State private var groupName: String = ""
+    @State private var isEditingName = false
+    @State private var isSaving = false
+    @State private var showingImagePicker = false
+    @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var isUploadingPhoto = false
+    @State private var errorMessage: String?
+    @State private var showError = false
     
     var body: some View {
         NavigationStack {
@@ -13,23 +24,11 @@ struct GroupInfoView: View {
                 
                 ScrollView {
                     VStack(spacing: 24) {
-                        // Group Icon
-                        ZStack {
-                            Circle()
-                                .fill(Color(hex: "8B5CF6"))
-                                .frame(width: 100, height: 100)
-                            
-                            Image(systemName: "person.3.fill")
-                                .font(.system(size: 40))
-                                .foregroundColor(.white)
-                        }
-                        .padding(.top, 24)
+                        // Group Picture
+                        groupPictureSection
                         
                         // Group Name
-                        Text(conversation.name ?? "Group Chat")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
+                        groupNameSection
                         
                         // Participant Count
                         Text("\(conversation.participants.count) participants")
@@ -65,6 +64,98 @@ struct GroupInfoView: View {
                     }
                     .foregroundColor(Color(hex: "8B5CF6"))
                 }
+            }
+            .photosPicker(isPresented: $showingImagePicker, selection: $selectedPhotoItem, matching: .images)
+            .onChange(of: selectedPhotoItem) { oldValue, newValue in
+                Task { await handlePhotoSelection(newValue) }
+            }
+            .alert("Edit Group Name", isPresented: $isEditingName) {
+                TextField("Group Name", text: $groupName)
+                Button("Cancel", role: .cancel) { }
+                Button("Save") {
+                    Task { await saveGroupName() }
+                }
+            }
+            .alert("Error", isPresented: $showError) {
+                Button("OK") { }
+            } message: {
+                Text(errorMessage ?? "Something went wrong")
+            }
+            .onAppear {
+                groupName = conversation.name ?? ""
+            }
+        }
+    }
+    
+    // MARK: - Group Picture Section
+    var groupPictureSection: some View {
+        Button(action: { showingImagePicker = true }) {
+            ZStack(alignment: .bottomTrailing) {
+                // Group picture or placeholder
+                if let pictureUrl = conversation.pictureUrl, let url = URL(string: pictureUrl) {
+                    AsyncImage(url: url) { image in
+                        image
+                            .resizable()
+                            .scaledToFill()
+                    } placeholder: {
+                        groupPlaceholder
+                    }
+                    .frame(width: 100, height: 100)
+                    .clipShape(Circle())
+                } else {
+                    groupPlaceholder
+                }
+                
+                // Camera icon overlay
+                Circle()
+                    .fill(Color(hex: "2A2A2A"))
+                    .frame(width: 32, height: 32)
+                    .overlay(
+                        Group {
+                            if isUploadingPhoto {
+                                ProgressView()
+                                    .scaleEffect(0.7)
+                                    .tint(.white)
+                            } else {
+                                Image(systemName: "camera.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.white)
+                            }
+                        }
+                    )
+                    .overlay(
+                        Circle()
+                            .stroke(Color(hex: "0F0F0F"), lineWidth: 3)
+                    )
+            }
+        }
+        .disabled(isUploadingPhoto)
+        .padding(.top, 24)
+    }
+    
+    var groupPlaceholder: some View {
+        Circle()
+            .fill(Color(hex: "8B5CF6"))
+            .frame(width: 100, height: 100)
+            .overlay(
+                Image(systemName: "person.3.fill")
+                    .font(.system(size: 40))
+                    .foregroundColor(.white)
+            )
+    }
+    
+    // MARK: - Group Name Section
+    var groupNameSection: some View {
+        Button(action: { isEditingName = true }) {
+            HStack {
+                Text(conversation.name ?? "Group Chat")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Image(systemName: "pencil")
+                    .foregroundColor(Color(hex: "8B5CF6"))
+                    .font(.caption)
             }
         }
     }
@@ -132,6 +223,100 @@ struct GroupInfoView: View {
         let locale = Locale(identifier: "en")
         return locale.localizedString(forLanguageCode: code) ?? code.uppercased()
     }
+    
+    // MARK: - Actions
+    func saveGroupName() async {
+        guard !groupName.isEmpty else { return }
+        
+        isSaving = true
+        do {
+            let response = try await APIService.shared.updateConversation(
+                conversationId: conversation.id,
+                name: groupName,
+                pictureUrl: nil
+            )
+            await chatStore.updateConversation(response.conversation)
+        } catch {
+            errorMessage = "Failed to update group name"
+            showError = true
+        }
+        isSaving = false
+    }
+    
+    func handlePhotoSelection(_ item: PhotosPickerItem?) async {
+        guard let item = item else { return }
+        
+        guard let data = try? await item.loadTransferable(type: Data.self) else { return }
+        guard let image = UIImage(data: data) else { return }
+        
+        selectedPhotoItem = nil
+        await uploadGroupPicture(image)
+    }
+    
+    func uploadGroupPicture(_ image: UIImage) async {
+        // Resize image to 512x512
+        let resizedImage = resizeImage(image, targetSize: CGSize(width: 512, height: 512))
+        
+        guard let imageData = resizedImage.jpegData(compressionQuality: 0.8) else {
+            errorMessage = "Failed to process image"
+            showError = true
+            return
+        }
+        
+        isUploadingPhoto = true
+        
+        do {
+            // Get presigned upload URL
+            let uploadResponse = try await APIService.shared.getGroupPictureUploadUrl(
+                conversationId: conversation.id,
+                fileName: "group-\(UUID().uuidString).jpg",
+                contentType: "image/jpeg",
+                fileSize: imageData.count
+            )
+            
+            // Upload to S3
+            try await APIService.shared.uploadFile(
+                uploadUrl: uploadResponse.uploadUrl,
+                data: imageData,
+                contentType: "image/jpeg"
+            )
+            
+            // Update conversation with the new picture URL
+            let pictureUrl = "https://intok-attachments.s3.amazonaws.com/\(uploadResponse.key)"
+            let response = try await APIService.shared.updateConversation(
+                conversationId: conversation.id,
+                name: nil,
+                pictureUrl: pictureUrl
+            )
+            await chatStore.updateConversation(response.conversation)
+            
+        } catch {
+            errorMessage = "Failed to upload picture"
+            showError = true
+        }
+        
+        isUploadingPhoto = false
+    }
+    
+    func resizeImage(_ image: UIImage, targetSize: CGSize) -> UIImage {
+        let size = image.size
+        let minDimension = min(size.width, size.height)
+        
+        let xOffset = (size.width - minDimension) / 2
+        let yOffset = (size.height - minDimension) / 2
+        let cropRect = CGRect(x: xOffset, y: yOffset, width: minDimension, height: minDimension)
+        
+        guard let cgImage = image.cgImage?.cropping(to: cropRect) else {
+            return image
+        }
+        
+        let croppedImage = UIImage(cgImage: cgImage, scale: image.scale, orientation: image.imageOrientation)
+        
+        let renderer = UIGraphicsImageRenderer(size: targetSize)
+        return renderer.image { _ in
+            croppedImage.draw(in: CGRect(origin: .zero, size: targetSize))
+        }
+    }
 }
 
 #Preview {
@@ -139,6 +324,7 @@ struct GroupInfoView: View {
         id: "1",
         type: "group",
         name: "Family Chat",
+        pictureUrl: nil,
         participants: [
             UserPublic(id: "1", username: "Alice", preferredLanguage: "en", avatarUrl: nil),
             UserPublic(id: "2", username: "Bob", preferredLanguage: "es", avatarUrl: nil),
@@ -149,4 +335,5 @@ struct GroupInfoView: View {
         updatedAt: ""
     ))
     .environmentObject(AuthManager.shared)
+    .environmentObject(ChatStore.shared)
 }

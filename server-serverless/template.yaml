@@ -669,6 +669,26 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
 
+  # Update Conversation (name, picture)
+  UpdateConversationFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/conversations.update
+      CodeUri: .
+      Timeout: 10
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/conversations/{conversationId}
+            Method: PATCH
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConversationsTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
+
   # Delete Conversation
   DeleteConversationFunction:
     Type: AWS::Serverless::Function

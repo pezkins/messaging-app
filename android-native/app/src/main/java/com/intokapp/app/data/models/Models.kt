@@ -86,6 +86,8 @@ data class Conversation(
     val id: String,
     val type: String, // "direct" or "group"
     val name: String? = null,
+    @SerializedName("pictureUrl")
+    val pictureUrl: String? = null,
     val participants: List<UserPublic>,
     @SerializedName("lastMessage")
     val lastMessage: Message? = null,

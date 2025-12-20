@@ -1248,6 +1248,7 @@ struct ShareSheet: UIViewControllerRepresentable {
         id: "1",
         type: "direct",
         name: nil,
+        pictureUrl: nil,
         participants: [UserPublic(id: "1", username: "Test User", preferredLanguage: "en", avatarUrl: nil)],
         lastMessage: nil,
         createdAt: "",

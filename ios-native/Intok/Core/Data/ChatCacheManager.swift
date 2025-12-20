@@ -171,9 +171,9 @@ class ChatCacheManager {
         }
 
         return Conversation(
-            id: id, type: type, name: cached.name, participants: participants,
-            lastMessage: lastMessage, createdAt: createdAt, updatedAt: updatedAt,
-            unreadCount: Int(cached.unreadCount)
+            id: id, type: type, name: cached.name, pictureUrl: nil,
+            participants: participants, lastMessage: lastMessage,
+            createdAt: createdAt, updatedAt: updatedAt, unreadCount: Int(cached.unreadCount)
         )
     }
 

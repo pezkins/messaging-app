@@ -10,6 +10,7 @@ import com.intokapp.app.data.local.entities.toMessage
 import com.intokapp.app.data.models.*
 import com.intokapp.app.data.network.AddParticipantsRequest
 import com.intokapp.app.data.network.ApiService
+import com.intokapp.app.data.network.UpdateConversationRequest
 import com.intokapp.app.data.network.TokenManager
 import com.intokapp.app.data.network.WebSocketEvent
 import com.intokapp.app.data.network.WebSocketService
@@ -728,8 +729,30 @@ class ChatRepository @Inject constructor(
     }
     
     // ============================================
-    // Participant Management
+    // Group Management
     // ============================================
+    
+    /**
+     * Update conversation details (name, picture)
+     */
+    suspend fun updateConversation(conversationId: String, name: String?, pictureUrl: String?): Result<Conversation> {
+        return try {
+            val response = apiService.updateConversation(
+                conversationId = conversationId,
+                request = UpdateConversationRequest(name = name, pictureUrl = pictureUrl)
+            )
+            
+            // Update local conversation
+            val updatedConversation = response.conversation
+            updateLocalConversation(updatedConversation)
+            
+            Log.d(TAG, "✅ Updated conversation $conversationId: name=$name, pictureUrl=${pictureUrl?.take(50)}")
+            Result.success(updatedConversation)
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Failed to update conversation: ${e.message}")
+            Result.failure(e)
+        }
+    }
     
     /**
      * Add participants to a group conversation

@@ -182,6 +182,7 @@ struct RemoveParticipantsView: View {
         id: "1",
         type: "group",
         name: "Test Group",
+        pictureUrl: nil,
         participants: [
             UserPublic(id: "1", username: "Alice", preferredLanguage: "en", avatarUrl: nil),
             UserPublic(id: "2", username: "Bob", preferredLanguage: "es", avatarUrl: nil)

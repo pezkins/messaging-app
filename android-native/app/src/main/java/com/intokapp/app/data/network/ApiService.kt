@@ -72,6 +72,12 @@ interface ApiService {
     @POST("api/conversations")
     suspend fun createConversation(@Body request: CreateConversationRequest): ConversationResponse
     
+    @PATCH("api/conversations/{conversationId}")
+    suspend fun updateConversation(
+        @Path("conversationId") conversationId: String,
+        @Body request: UpdateConversationRequest
+    ): ConversationResponse
+    
     @GET("api/conversations/{conversationId}/messages")
     suspend fun getMessages(
         @Path("conversationId") conversationId: String,
@@ -173,6 +179,11 @@ data class UpdateCountryRequest(
 
 data class UpdateRegionRequest(
     val preferredRegion: String?
+)
+
+data class UpdateConversationRequest(
+    val name: String? = null,
+    val pictureUrl: String? = null
 )
 
 data class CheckEmailRequest(
