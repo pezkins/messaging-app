@@ -410,8 +410,12 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
     ExpressionAttributeValues: { ':translations': message.translations },
   }));
 
-  // Send push notifications to offline users
+  // Send push notifications to all participants (except sender)
+  // TESTING MODE: Always send push notifications regardless of online status
+  const FORCE_PUSH_NOTIFICATIONS = true; // Set to false to restore normal behavior
+  
   console.log(`📱 [PUSH CHECK] Checking ${participantIds.length - 1} participants for push notifications`);
+  console.log(`📱 [PUSH CHECK] FORCE_PUSH_NOTIFICATIONS = ${FORCE_PUSH_NOTIFICATIONS}`);
   
   for (const participantId of participantIds) {
     if (participantId === senderId) continue;
@@ -424,15 +428,21 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
       ExpressionAttributeValues: { ':userId': participantId }
     }));
 
-    console.log(`📱 [PUSH CHECK] User ${participantId}: ${connections.Items?.length || 0} active connections`);
+    const connectionCount = connections.Items?.length || 0;
+    console.log(`📱 [PUSH CHECK] User ${participantId}: ${connectionCount} active connections`);
 
-    // If no active connections, send push notification
-    if (!connections.Items?.length) {
+    // Send push notification if offline OR if force mode is enabled
+    const shouldSendPush = FORCE_PUSH_NOTIFICATIONS || connectionCount === 0;
+    
+    if (shouldSendPush) {
       const notificationBody = type === 'text' 
         ? truncateForNotification(content || '') 
         : `Sent ${type}`;
       
-      console.log(`📱 [PUSH] Sending push to offline user ${participantId}`);
+      const reason = FORCE_PUSH_NOTIFICATIONS 
+        ? `FORCED (user has ${connectionCount} connections)` 
+        : 'user is offline';
+      console.log(`📱 [PUSH] Sending push to ${participantId} - ${reason}`);
       
       try {
         await sendPushNotification({
@@ -450,7 +460,7 @@ async function handleSendMessage(event: any, senderId: string, data: any) {
         console.error(`📱 [PUSH] Failed to send push to ${participantId}:`, pushError.message);
       }
     } else {
-      console.log(`📱 [PUSH] Skipping push for ${participantId} - user is online`);
+      console.log(`📱 [PUSH] Skipping push for ${participantId} - user is online (${connectionCount} connections)`);
     }
   }
 }

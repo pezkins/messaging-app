@@ -238,42 +238,40 @@ async function chat(messages: ChatMessage[], maxTokens = 1000): Promise<string> 
 
 /**
  * Build a simple, effective translation prompt
+ * Note: Language and country are always required during account setup
  */
 function buildTranslationPrompt(
   targetLanguage: string,
-  targetCountry?: string,
+  targetCountry: string,
   targetRegion?: string
 ): string {
   const languageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
-  const countryName = targetCountry ? COUNTRY_NAMES[targetCountry] : null;
+  const countryName = COUNTRY_NAMES[targetCountry] || targetCountry;
 
   // Build the prompt based on available context
-  if (targetRegion && countryName) {
-    return `Please translate this message to ${languageName}, please use vocabulary common from ${countryName} and ${targetRegion}, just output the translation nothing else and no quotes.`;
-  } else if (countryName) {
-    return `Please translate this message to ${languageName}, please use vocabulary common from ${countryName}, just output the translation nothing else and no quotes.`;
+  if (targetRegion) {
+    return `Translate to ${languageName} as spoken in ${countryName}, ${targetRegion}. Output only the translation, nothing else.`;
   } else {
-    return `Please translate this message to ${languageName}, just output the translation nothing else and no quotes.`;
+    return `Translate to ${languageName} as spoken in ${countryName}. Output only the translation, nothing else.`;
   }
 }
 
 /**
  * Build a simple document translation prompt
+ * Note: Language and country are always required during account setup
  */
 function buildDocumentTranslationPrompt(
   targetLanguage: string,
-  targetCountry?: string,
+  targetCountry: string,
   targetRegion?: string
 ): string {
   const languageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
-  const countryName = targetCountry ? COUNTRY_NAMES[targetCountry] : null;
+  const countryName = COUNTRY_NAMES[targetCountry] || targetCountry;
 
-  if (targetRegion && countryName) {
-    return `Please translate this document to ${languageName}, please use vocabulary common from ${countryName} and ${targetRegion}, preserve formatting, just output the translation nothing else and no quotes.`;
-  } else if (countryName) {
-    return `Please translate this document to ${languageName}, please use vocabulary common from ${countryName}, preserve formatting, just output the translation nothing else and no quotes.`;
+  if (targetRegion) {
+    return `Translate to ${languageName} as spoken in ${countryName}, ${targetRegion}. Preserve formatting. Output only the translation, nothing else.`;
   } else {
-    return `Please translate this document to ${languageName}, preserve formatting, just output the translation nothing else and no quotes.`;
+    return `Translate to ${languageName} as spoken in ${countryName}. Preserve formatting. Output only the translation, nothing else.`;
   }
 }
 
@@ -305,7 +303,8 @@ export async function translate(
   console.log(`🌐 Translating (${AI_PROVIDER}): ${sourceName} -> ${targetDescription}`);
 
   try {
-    const systemPrompt = buildTranslationPrompt(targetLanguage, targetCountry, targetRegion);
+    // Country should always be set (required during signup), default to 'US' as fallback
+    const systemPrompt = buildTranslationPrompt(targetLanguage, targetCountry || 'US', targetRegion);
     
     const result = await chat([
       {
@@ -314,11 +313,13 @@ export async function translate(
       },
       {
         role: 'user',
-        content: `Text to translate:\n"${text}"`,
+        content: text,
       },
     ]);
 
-    return result || text;
+    // Strip any quotes the AI might have added despite instructions
+    const cleaned = (result || text).replace(/^["']|["']$/g, '').trim();
+    return cleaned || text;
   } catch (error) {
     console.error('Translation error:', error);
     return text; // Return original on error
@@ -355,7 +356,8 @@ export async function translateDocumentContent(
   console.log(`📄 Translating document (${AI_PROVIDER}): ${sourceName} -> ${targetDescription}`);
 
   try {
-    const systemPrompt = buildDocumentTranslationPrompt(targetLanguage, targetCountry, targetRegion);
+    // Country should always be set (required during signup), default to 'US' as fallback
+    const systemPrompt = buildDocumentTranslationPrompt(targetLanguage, targetCountry || 'US', targetRegion);
     
     const result = await chat([
       {
@@ -364,11 +366,13 @@ export async function translateDocumentContent(
       },
       {
         role: 'user',
-        content: `Document content to translate:\n"${text}"`,
+        content: text,
       },
     ]);
 
-    return result || text;
+    // Strip any quotes the AI might have added despite instructions
+    const cleaned = (result || text).replace(/^["']|["']$/g, '').trim();
+    return cleaned || text;
   } catch (error) {
     console.error('Document translation error:', error);
     return text;
