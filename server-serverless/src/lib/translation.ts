@@ -237,7 +237,7 @@ async function chat(messages: ChatMessage[], maxTokens = 1000): Promise<string> 
 // ============== Translation Prompt Builder ==============
 
 /**
- * Build a region-aware translation prompt for maximum accuracy
+ * Build a simple, effective translation prompt
  */
 function buildTranslationPrompt(
   targetLanguage: string,
@@ -249,42 +249,16 @@ function buildTranslationPrompt(
 
   // Build the prompt based on available context
   if (targetRegion && countryName) {
-    // Full regional context
-    return `Translate the following text with maximum accuracy into **${languageName}**,
-
-using the vocabulary, grammar, idioms, and tone that are natural for speakers
-from **${countryName}**, specifically the **${targetRegion}** region.
-
-If the source sentence is ambiguous, choose the meaning that would be most natural
-for native speakers of that region. Maintain the original tone (formal, informal,
-slang, emotional, etc.) and preserve the intent of the message.
-
-Do NOT explain the translation — only output the translated text.`;
+    return `Please translate this message to ${languageName}, please use vocabulary common from ${countryName} and ${targetRegion}, just output the translation nothing else and no quotes.`;
   } else if (countryName) {
-    // Country context only
-    return `Translate the following text with maximum accuracy into **${languageName}**,
-
-using the vocabulary, grammar, idioms, and tone that are natural for speakers
-from **${countryName}**.
-
-If the source sentence is ambiguous, choose the meaning that would be most natural
-for native speakers of that country. Maintain the original tone (formal, informal,
-slang, emotional, etc.) and preserve the intent of the message.
-
-Do NOT explain the translation — only output the translated text.`;
+    return `Please translate this message to ${languageName}, please use vocabulary common from ${countryName}, just output the translation nothing else and no quotes.`;
   } else {
-    // Language only
-    return `Translate the following text with maximum accuracy into **${languageName}**.
-
-Maintain the original tone (formal, informal, slang, emotional, etc.) and preserve 
-the intent of the message.
-
-Do NOT explain the translation — only output the translated text.`;
+    return `Please translate this message to ${languageName}, just output the translation nothing else and no quotes.`;
   }
 }
 
 /**
- * Build a region-aware document translation prompt
+ * Build a simple document translation prompt
  */
 function buildDocumentTranslationPrompt(
   targetLanguage: string,
@@ -294,33 +268,12 @@ function buildDocumentTranslationPrompt(
   const languageName = LANGUAGE_NAMES[targetLanguage] || targetLanguage;
   const countryName = targetCountry ? COUNTRY_NAMES[targetCountry] : null;
 
-  // Build the prompt based on available context
   if (targetRegion && countryName) {
-    return `Translate the following document content with maximum accuracy into **${languageName}**,
-
-using the vocabulary, grammar, idioms, and tone that are natural for speakers
-from **${countryName}**, specifically the **${targetRegion}** region.
-
-Preserve any formatting, file paths, technical terms, or special notation.
-Maintain the original tone and intent of the document.
-
-Do NOT explain the translation — only output the translated text.`;
+    return `Please translate this document to ${languageName}, please use vocabulary common from ${countryName} and ${targetRegion}, preserve formatting, just output the translation nothing else and no quotes.`;
   } else if (countryName) {
-    return `Translate the following document content with maximum accuracy into **${languageName}**,
-
-using the vocabulary and style natural for speakers from **${countryName}**.
-
-Preserve any formatting, file paths, technical terms, or special notation.
-Maintain the original tone and intent of the document.
-
-Do NOT explain the translation — only output the translated text.`;
+    return `Please translate this document to ${languageName}, please use vocabulary common from ${countryName}, preserve formatting, just output the translation nothing else and no quotes.`;
   } else {
-    return `Translate the following document content with maximum accuracy into **${languageName}**.
-
-Preserve any formatting, file paths, technical terms, or special notation.
-Maintain the original tone and intent of the document.
-
-Do NOT explain the translation — only output the translated text.`;
+    return `Please translate this document to ${languageName}, preserve formatting, just output the translation nothing else and no quotes.`;
   }
 }
 

@@ -3,6 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { z } from 'zod';
 import { dynamodb, Tables, GetCommand, PutCommand, QueryCommand, UpdateCommand, DeleteCommand } from '../lib/dynamo';
 import { getUserIdFromEvent, response } from '../lib/auth';
+import { translate } from '../lib/translation';
 
 const createSchema = z.object({
   participantIds: z.array(z.string()).min(1),
@@ -16,6 +17,15 @@ export const list: APIGatewayProxyHandler = async (event) => {
     if (!userId) {
       return response(401, { message: 'Authentication required' });
     }
+
+    // Get current user's language preferences for translating lastMessage
+    const currentUser = await dynamodb.send(new GetCommand({
+      TableName: Tables.USERS,
+      Key: { id: userId },
+    }));
+    const userLanguage = currentUser.Item?.preferredLanguage || 'en';
+    const userCountry = currentUser.Item?.preferredCountry;
+    const userRegion = currentUser.Item?.preferredRegion;
 
     // Query conversations where user is a participant
     const result = await dynamodb.send(new QueryCommand({
@@ -44,12 +54,37 @@ export const list: APIGatewayProxyHandler = async (event) => {
           })
         );
 
+        // Translate lastMessage content for the current user
+        let lastMessage = conv.lastMessage;
+        if (lastMessage && lastMessage.originalContent && lastMessage.type === 'text') {
+          const originalLang = lastMessage.originalLanguage || 'en';
+          if (originalLang !== userLanguage) {
+            try {
+              const translatedContent = await translate(
+                lastMessage.originalContent,
+                originalLang,
+                userLanguage,
+                userCountry,
+                userRegion
+              );
+              lastMessage = {
+                ...lastMessage,
+                translatedContent,
+                targetLanguage: userLanguage,
+              };
+            } catch (err) {
+              console.error('Failed to translate lastMessage:', err);
+              // Keep original content if translation fails
+            }
+          }
+        }
+
         return {
           id: conv.conversationId || conv.id, // Use conversationId if available
           type: conv.type,
           name: conv.name,
           participants: participants.filter(Boolean),
-          lastMessage: conv.lastMessage,
+          lastMessage,
           createdAt: conv.createdAt,
           updatedAt: conv.updatedAt,
         };
