@@ -369,11 +369,13 @@ async function sendFCMv1(
         priority: 'high',
         notification: {
           sound: 'default',
-          click_action: 'FLUTTER_NOTIFICATION_CLICK', // Common for Flutter/native apps
           channel_id: 'intok_messages', // Match Android app's notification channel
         },
       },
-      data: data || {},
+      data: {
+        ...data,
+        click_action: 'OPEN_ACTIVITY', // Use data payload for navigation intent
+      },
     }
   };
   
