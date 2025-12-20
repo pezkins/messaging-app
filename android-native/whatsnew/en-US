@@ -1,3 +1,11 @@
+v0.1.23 - Push Notifications & Diagnostics
+
+• Push notification fixes and improvements
+• Enhanced notification diagnostics and logging
+• Comprehensive root cause analysis tools
+• Improved notification testing capabilities
+• Bug fixes and stability improvements
+
 v0.1.22 - Performance & Group Chat
 
 • Instant chat history loading with local caching

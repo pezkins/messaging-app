@@ -106,6 +106,7 @@ class IntokFirebaseMessagingService : FirebaseMessagingService() {
         createNotificationChannel()
         
         val conversationId = data["conversationId"]
+        val messageId = data["messageId"]
         
         val intent = Intent(this, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -117,6 +118,11 @@ class IntokFirebaseMessagingService : FirebaseMessagingService() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         
+        // Create Wear OS extender for smartwatch support
+        // Notifications automatically bridge to paired watches
+        val wearableExtender = NotificationCompat.WearableExtender()
+            .setBridgeTag("intok_message") // Prevent duplicate bridging
+        
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(title)
@@ -124,10 +130,23 @@ class IntokFirebaseMessagingService : FirebaseMessagingService() {
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
+            // Group notifications by conversation for better organization
+            .setGroup(conversationId ?: "intok_messages")
+            // Add Wear OS support
+            .extend(wearableExtender)
+            // Set category for proper handling
+            .setCategory(NotificationCompat.CATEGORY_MESSAGE)
+            // Add vibration pattern
+            .setVibrate(longArrayOf(0, 250, 250, 250))
             .build()
         
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+        
+        // Use unique ID per message to avoid overwriting, but same conversation groups together
+        val notificationId = messageId?.hashCode() ?: System.currentTimeMillis().toInt()
+        notificationManager.notify(notificationId, notification)
+        
+        Log.d(TAG, "📬 Notification shown: $title (id: $notificationId, conv: $conversationId)")
     }
     
     private fun createNotificationChannel() {

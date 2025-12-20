@@ -11,6 +11,18 @@ struct ChangelogEntry: Identifiable {
 struct Changelog {
     static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "0.1.23",
+            date: "December 2024",
+            title: "Push Notifications & Diagnostics",
+            changes: [
+                "🔔 Push notification fixes and improvements",
+                "📱 Enhanced notification diagnostics and logging",
+                "🔍 Comprehensive root cause analysis tools",
+                "📋 Improved notification testing capabilities",
+                "🐛 Bug fixes and stability improvements"
+            ]
+        ),
+        ChangelogEntry(
             version: "0.1.22",
             date: "December 2024",
             title: "Performance & Group Chat",

@@ -24,6 +24,17 @@ class WhatsNewManager @Inject constructor(
     
     val changelog = listOf(
         ChangelogEntry(
+            version = "0.1.23",
+            title = "Push Notifications & Diagnostics",
+            changes = listOf(
+                "🔔 Push notification fixes and improvements",
+                "📱 Enhanced notification diagnostics and logging",
+                "🔍 Comprehensive root cause analysis tools",
+                "📋 Improved notification testing capabilities",
+                "🐛 Bug fixes and stability improvements"
+            )
+        ),
+        ChangelogEntry(
             version = "0.1.22",
             title = "Performance & Group Chat",
             changes = listOf(
