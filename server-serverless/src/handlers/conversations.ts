@@ -1,9 +1,58 @@
 import type { APIGatewayProxyHandler } from 'aws-lambda';
 import { v4 as uuid } from 'uuid';
 import { z } from 'zod';
+import { ApiGatewayManagementApiClient, PostToConnectionCommand } from '@aws-sdk/client-apigatewaymanagementapi';
 import { dynamodb, Tables, GetCommand, PutCommand, QueryCommand, UpdateCommand, DeleteCommand } from '../lib/dynamo';
 import { getUserIdFromEvent, response } from '../lib/auth';
 import { translate } from '../lib/translation';
+
+const WEBSOCKET_ENDPOINT = process.env.WEBSOCKET_ENDPOINT;
+
+/**
+ * Send WebSocket notification to a list of users
+ */
+async function notifyUsers(userIds: string[], action: string, payload: Record<string, any>) {
+  if (!WEBSOCKET_ENDPOINT) {
+    console.log('⚠️ WEBSOCKET_ENDPOINT not configured, skipping notifications');
+    return;
+  }
+
+  const wsClient = new ApiGatewayManagementApiClient({
+    endpoint: WEBSOCKET_ENDPOINT,
+  });
+
+  for (const userId of userIds) {
+    try {
+      // Get user's WebSocket connections
+      const connections = await dynamodb.send(new QueryCommand({
+        TableName: Tables.CONNECTIONS,
+        IndexName: 'user-connections-index',
+        KeyConditionExpression: 'userId = :userId',
+        ExpressionAttributeValues: { ':userId': userId },
+      }));
+
+      // Send to all connections
+      for (const conn of connections.Items || []) {
+        try {
+          await wsClient.send(new PostToConnectionCommand({
+            ConnectionId: conn.connectionId as string,
+            Data: JSON.stringify({ action, ...payload }),
+          }));
+          console.log(`📤 Sent ${action} to user ${userId} (conn: ${conn.connectionId})`);
+        } catch (connError: any) {
+          if (connError.statusCode === 410) {
+            // Connection is stale, could delete it but let the disconnect handler do it
+            console.log(`🧹 Stale connection: ${conn.connectionId}`);
+          } else {
+            console.warn(`Failed to send to ${conn.connectionId}:`, connError.message);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn(`Failed to notify user ${userId}:`, err);
+    }
+  }
+}
 
 const createSchema = z.object({
   participantIds: z.array(z.string()).min(1),
@@ -181,17 +230,27 @@ export const create: APIGatewayProxyHandler = async (event) => {
       })
     );
 
-    return response(201, {
-      conversation: {
-        id: conversationId,
-        type: data.type,
-        name: data.name,
-        pictureUrl: null,
-        participants: participants.filter(Boolean),
-        createdAt: now,
-        updatedAt: now,
-      },
-    });
+    const conversationData = {
+      id: conversationId,
+      type: data.type,
+      name: data.name,
+      pictureUrl: null,
+      participants: participants.filter(Boolean),
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    // Notify other participants about the new conversation
+    const otherParticipants = allParticipantIds.filter(pid => pid !== userId);
+    if (otherParticipants.length > 0) {
+      console.log(`📢 Notifying ${otherParticipants.length} users about new conversation ${conversationId}`);
+      await notifyUsers(otherParticipants, 'conversation:created', {
+        conversation: conversationData,
+        createdBy: userId,
+      });
+    }
+
+    return response(201, { conversation: conversationData });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return response(400, { message: 'Validation error', details: error.errors });
@@ -360,16 +419,36 @@ export const addParticipants: APIGatewayProxyHandler = async (event) => {
 
     console.log(`✅ Added ${newParticipantIds.length} participants to conversation ${conversationId}`);
 
-    return response(200, {
-      conversation: {
-        id: conversationId,
-        type: conversation.type,
-        name: conversation.name,
-        participants: participants.filter(Boolean),
-        createdAt: conversation.createdAt,
-        updatedAt: now,
-      },
+    const conversationData = {
+      id: conversationId,
+      type: conversation.type,
+      name: conversation.name,
+      pictureUrl: conversation.pictureUrl || null,
+      participants: participants.filter(Boolean),
+      createdAt: conversation.createdAt,
+      updatedAt: now,
+    };
+
+    // Notify new participants about being added (send full conversation so it appears in their list)
+    console.log(`📢 Notifying ${newParticipantIds.length} new participants about being added to ${conversationId}`);
+    await notifyUsers(newParticipantIds, 'conversation:created', {
+      conversation: conversationData,
+      createdBy: userId,
     });
+
+    // Notify existing participants about the new members
+    const existingParticipants = currentParticipantIds.filter((pid: string) => pid !== userId);
+    if (existingParticipants.length > 0) {
+      console.log(`📢 Notifying ${existingParticipants.length} existing participants about new members`);
+      await notifyUsers(existingParticipants, 'conversation:participants:added', {
+        conversationId,
+        addedUserIds: newParticipantIds,
+        addedBy: userId,
+        participants: participants.filter(Boolean),
+      });
+    }
+
+    return response(200, { conversation: conversationData });
   } catch (error) {
     console.error('Add participants error:', error);
     return response(500, { message: 'Internal server error' });

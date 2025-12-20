@@ -127,6 +127,18 @@ Alice (English) sends "Hello, how are you?" to Carlos (Spanish):
 | `mobile/` | Deprecated | `ios-native/` + `android-native/` |
 | `infrastructure/` | Deprecated | SAM template in `server-serverless/` |
 
+## ⛔ Critical Configuration - DO NOT TOUCH
+
+> ⚠️ **NEVER MODIFY** the following authentication configuration without explicit approval:
+
+| File | Critical Settings |
+|------|-------------------|
+| `ios-native/Intok.xcodeproj/project.pbxproj` | `DEVELOPMENT_TEAM = LW7QG2H5ST`, `CODE_SIGN_ENTITLEMENTS` |
+| `ios-native/Intok/Intok.entitlements` | `com.apple.developer.applesignin` |
+| `android-native/app/google-services.json` | OAuth client IDs |
+
+**See `team/authentication-config.md` for complete documentation.**
+
 ## Key Features
 
 ### Implemented ✅

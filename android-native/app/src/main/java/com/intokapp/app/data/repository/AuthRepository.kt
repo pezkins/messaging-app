@@ -1,3 +1,15 @@
+/**
+ * ⛔⛔⛔ CRITICAL FILE - DO NOT MODIFY WITHOUT APPROVAL ⛔⛔⛔
+ *
+ * This file handles Google Sign-In and authentication.
+ * Changes to this file can break authentication for ALL users.
+ *
+ * Dependencies:
+ * - google-services.json must have valid OAuth client IDs
+ * - Firebase Console must have correct SHA-1 fingerprints
+ *
+ * See: team/authentication-config.md
+ */
 package com.intokapp.app.data.repository
 
 import android.content.Context

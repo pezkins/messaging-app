@@ -1,3 +1,20 @@
+//
+//  AppleAuthManager.swift
+//  Intok
+//
+//  ⛔⛔⛔ CRITICAL FILE - DO NOT MODIFY WITHOUT APPROVAL ⛔⛔⛔
+//
+//  This file handles Sign in with Apple authentication.
+//  Changes to this file can break authentication for ALL users.
+//
+//  Dependencies:
+//  - Intok.entitlements must have com.apple.developer.applesignin
+//  - project.pbxproj must have DEVELOPMENT_TEAM = LW7QG2H5ST
+//  - project.pbxproj must have CODE_SIGN_ENTITLEMENTS set
+//
+//  See: team/authentication-config.md
+//
+
 import Foundation
 import AuthenticationServices
 import CryptoKit

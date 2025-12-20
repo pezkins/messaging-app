@@ -504,6 +504,10 @@ Resources:
     Properties:
       Handler: dist/conversations.create
       CodeUri: .
+      Timeout: 10
+      Environment:
+        Variables:
+          WEBSOCKET_ENDPOINT: !Sub "https://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
       Events:
         Api:
           Type: HttpApi
@@ -516,6 +520,13 @@ Resources:
             TableName: !Ref ConversationsTable
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - execute-api:ManageConnections
+              Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*"
 
   GetMessagesFunction:
     Type: AWS::Serverless::Function
@@ -636,6 +647,9 @@ Resources:
       Handler: dist/conversations.addParticipants
       CodeUri: .
       Timeout: 10
+      Environment:
+        Variables:
+          WEBSOCKET_ENDPOINT: !Sub "https://${WebSocketApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
       Events:
         Api:
           Type: HttpApi
@@ -648,6 +662,13 @@ Resources:
             TableName: !Ref ConversationsTable
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref ConnectionsTable
+        - Statement:
+            - Effect: Allow
+              Action:
+                - execute-api:ManageConnections
+              Resource: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${WebSocketApi}/*"
 
   # Remove Participant from Conversation
   RemoveParticipantFunction:

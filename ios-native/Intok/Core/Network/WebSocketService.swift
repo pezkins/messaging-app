@@ -18,6 +18,8 @@ enum WebSocketEvent: String {
     case messageDeleted = "message:deleted"
     case conversationJoin = "conversation:join"
     case conversationLeave = "conversation:leave"
+    case conversationCreated = "conversation:created"
+    case conversationParticipantsAdded = "conversation:participants:added"
 }
 
 // MARK: - Event Data Types
@@ -49,6 +51,18 @@ struct MessageDeletedData: Codable {
     let forEveryone: Bool?
 }
 
+struct ConversationCreatedData: Codable {
+    let conversation: Conversation
+    let createdBy: String
+}
+
+struct ParticipantsAddedData: Codable {
+    let conversationId: String
+    let addedUserIds: [String]
+    let addedBy: String
+    let participants: [UserPublic]
+}
+
 // MARK: - Pending Message for retry
 private struct PendingMessage {
     let action: String
@@ -77,6 +91,8 @@ class WebSocketService: ObservableObject {
     var onTyping: ((TypingData) -> Void)?
     var onReaction: ((ReactionData) -> Void)?
     var onMessageDeleted: ((MessageDeletedData) -> Void)?
+    var onConversationCreated: ((ConversationCreatedData) -> Void)?
+    var onParticipantsAdded: ((ParticipantsAddedData) -> Void)?
     var onConnected: (() -> Void)?
     var onDisconnected: (() -> Void)?
     
@@ -284,6 +300,28 @@ class WebSocketService: ObservableObject {
                         }
                     } catch {
                         wsLog("❌ Failed to decode message:deleted - \(error)")
+                    }
+                    
+                case WebSocketEvent.conversationCreated.rawValue:
+                    do {
+                        let createdData = try JSONDecoder().decode(ConversationCreatedData.self, from: data)
+                        wsLog("📥 New conversation: \(createdData.conversation.id)")
+                        DispatchQueue.main.async {
+                            self.onConversationCreated?(createdData)
+                        }
+                    } catch {
+                        wsLog("❌ Failed to decode conversation:created - \(error)")
+                    }
+                    
+                case WebSocketEvent.conversationParticipantsAdded.rawValue:
+                    do {
+                        let addedData = try JSONDecoder().decode(ParticipantsAddedData.self, from: data)
+                        wsLog("👥 Participants added to \(addedData.conversationId): \(addedData.addedUserIds)")
+                        DispatchQueue.main.async {
+                            self.onParticipantsAdded?(addedData)
+                        }
+                    } catch {
+                        wsLog("❌ Failed to decode conversation:participants:added - \(error)")
                     }
                     
                 default:

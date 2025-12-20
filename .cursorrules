@@ -98,11 +98,31 @@ stage  → Internal testing (TestFlight + Play Internal)
 main   → Production (App Store + Play Store)
 ```
 
+## ⛔ CRITICAL CONFIGURATION - DO NOT TOUCH
+
+The following files contain authentication configuration that **MUST NEVER BE MODIFIED**:
+
+### iOS Authentication (Sign in with Apple)
+- `ios-native/Intok.xcodeproj/project.pbxproj` → `DEVELOPMENT_TEAM = LW7QG2H5ST`
+- `ios-native/Intok.xcodeproj/project.pbxproj` → `CODE_SIGN_ENTITLEMENTS = Intok/Intok.entitlements`
+- `ios-native/Intok/Intok.entitlements` → Do not remove any entitlements
+- `ios-native/Intok/Core/Network/AppleAuthManager.swift` → Core auth flow
+
+### Android Authentication (Google Sign-In)
+- `android-native/app/google-services.json` → OAuth client IDs
+- `android-native/app/src/main/java/com/intokapp/app/data/repository/AuthRepository.kt` → Core auth flow
+
+### Backend Authentication
+- `server-serverless/src/handlers/auth.ts` → OAuth endpoints
+
+**See `team/authentication-config.md` for complete documentation.**
+
 ## Key Rules
 
 1. **Always check deprecated folders** - Never modify server/, shared/, mobile/, or infrastructure/
-2. **Reference team docs** - Always check team/ folder for context
-3. **Maintain parity** - iOS and Android features should stay in sync
-4. **Update API contracts** - Any API changes must be documented
-5. **Follow coding standards** - Consistency across the codebase
+2. **NEVER modify auth configuration** - See critical configuration section above
+3. **Reference team docs** - Always check team/ folder for context
+4. **Maintain parity** - iOS and Android features should stay in sync
+5. **Update API contracts** - Any API changes must be documented
+6. **Follow coding standards** - Consistency across the codebase
 

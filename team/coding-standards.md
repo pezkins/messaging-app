@@ -388,6 +388,26 @@ refactor(backend): extract translation logic into service
 
 ---
 
+## ⛔ Critical Configuration - DO NOT TOUCH
+
+The following files and settings are critical for authentication and **MUST NOT BE MODIFIED** without explicit approval:
+
+### iOS
+- `ios-native/Intok.xcodeproj/project.pbxproj` → `DEVELOPMENT_TEAM`, `CODE_SIGN_ENTITLEMENTS`
+- `ios-native/Intok/Intok.entitlements` → All entitlements
+- `ios-native/Intok/Core/Network/AppleAuthManager.swift` → Apple Sign-In flow
+
+### Android
+- `android-native/app/google-services.json` → OAuth client IDs
+- `android-native/app/src/main/java/com/intokapp/app/data/repository/AuthRepository.kt` → Google Sign-In
+
+### Backend
+- `server-serverless/src/handlers/auth.ts` → OAuth endpoints
+
+**See `team/authentication-config.md` for complete details.**
+
+---
+
 ## Documentation Standards
 
 ### Code Comments

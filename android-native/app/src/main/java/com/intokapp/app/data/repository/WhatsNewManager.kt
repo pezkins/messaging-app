@@ -24,6 +24,17 @@ class WhatsNewManager @Inject constructor(
     
     val changelog = listOf(
         ChangelogEntry(
+            version = "0.2.0",
+            title = "Real-Time Chat Updates",
+            changes = listOf(
+                "📥 Instant chat notifications when added to groups",
+                "💬 New conversations appear immediately",
+                "👥 Real-time participant list updates",
+                "🔔 Improved WebSocket reliability",
+                "🐛 Bug fixes and stability improvements"
+            )
+        ),
+        ChangelogEntry(
             version = "0.1.24",
             title = "Regional Preferences",
             changes = listOf(

@@ -36,10 +36,19 @@ sealed class WebSocketEvent {
         val deletedBy: String,
         val deletedAt: String
     ) : WebSocketEvent()
+    data class ConversationCreated(
+        val conversationId: String,
+        val conversationType: String,
+        val conversationName: String?,
+        val participants: List<Map<String, Any?>>,
+        val createdBy: String,
+        val createdAt: String
+    ) : WebSocketEvent()
     data class ParticipantsAdded(
         val conversationId: String,
         val addedUserIds: List<String>,
-        val addedBy: String
+        val addedBy: String,
+        val participants: List<Map<String, Any?>>?
     ) : WebSocketEvent()
     data class ParticipantRemoved(
         val conversationId: String,
@@ -211,13 +220,50 @@ class WebSocketService @Inject constructor(
                     }
                 }
                 
+                "conversation:created" -> {
+                    val conversationJson = json.getAsJsonObject("conversation") ?: return
+                    val conversationId = conversationJson.get("id")?.asString ?: return
+                    val type = conversationJson.get("type")?.asString ?: "direct"
+                    val name = conversationJson.get("name")?.asString
+                    val createdAt = conversationJson.get("createdAt")?.asString ?: ""
+                    val createdBy = json.get("createdBy")?.asString ?: ""
+                    val participantsJson = conversationJson.getAsJsonArray("participants")
+                    val participants = mutableListOf<Map<String, Any?>>()
+                    participantsJson?.forEach { p ->
+                        val pObj = p.asJsonObject
+                        participants.add(mapOf(
+                            "id" to pObj.get("id")?.asString,
+                            "username" to pObj.get("username")?.asString,
+                            "preferredLanguage" to pObj.get("preferredLanguage")?.asString,
+                            "avatarUrl" to pObj.get("avatarUrl")?.asString,
+                            "profilePicture" to pObj.get("profilePicture")?.asString
+                        ))
+                    }
+                    Log.d(TAG, "📥 New conversation: $conversationId")
+                    scope.launch {
+                        _events.emit(WebSocketEvent.ConversationCreated(conversationId, type, name, participants, createdBy, createdAt))
+                    }
+                }
+                
                 "conversation:participants:added" -> {
                     val conversationId = json.get("conversationId")?.asString ?: return
                     val addedBy = json.get("addedBy")?.asString ?: return
                     val addedUserIdsJson = json.getAsJsonArray("addedUserIds")
                     val addedUserIds = addedUserIdsJson?.map { it.asString } ?: emptyList()
+                    val participantsJson = json.getAsJsonArray("participants")
+                    val participants = mutableListOf<Map<String, Any?>>()
+                    participantsJson?.forEach { p ->
+                        val pObj = p.asJsonObject
+                        participants.add(mapOf(
+                            "id" to pObj.get("id")?.asString,
+                            "username" to pObj.get("username")?.asString,
+                            "preferredLanguage" to pObj.get("preferredLanguage")?.asString,
+                            "avatarUrl" to pObj.get("avatarUrl")?.asString,
+                            "profilePicture" to pObj.get("profilePicture")?.asString
+                        ))
+                    }
                     scope.launch {
-                        _events.emit(WebSocketEvent.ParticipantsAdded(conversationId, addedUserIds, addedBy))
+                        _events.emit(WebSocketEvent.ParticipantsAdded(conversationId, addedUserIds, addedBy, participants.ifEmpty { null }))
                     }
                 }
                 

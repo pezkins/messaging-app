@@ -11,6 +11,18 @@ struct ChangelogEntry: Identifiable {
 struct Changelog {
     static let entries: [ChangelogEntry] = [
         ChangelogEntry(
+            version: "0.2.0",
+            date: "December 2025",
+            title: "Real-Time Chat Updates",
+            changes: [
+                "📥 Instant chat notifications when added to groups",
+                "💬 New conversations appear immediately",
+                "👥 Real-time participant list updates",
+                "🔔 Improved WebSocket reliability",
+                "🐛 Bug fixes and stability improvements"
+            ]
+        ),
+        ChangelogEntry(
             version: "0.1.24",
             date: "December 2024",
             title: "Regional Preferences",

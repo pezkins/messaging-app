@@ -60,6 +60,17 @@ app/src/main/java/com/intokapp/app/
 ./gradlew test
 ```
 
+## ⛔ Critical Configuration - DO NOT TOUCH
+
+> **WARNING:** The following files are critical for authentication and MUST NOT be changed:
+
+| File | Purpose |
+|------|---------|
+| `app/google-services.json` | Google/Firebase OAuth configuration |
+| `app/src/main/java/com/intokapp/app/data/repository/AuthRepository.kt` | Google Sign-In flow |
+
+**See `team/authentication-config.md` for complete documentation.**
+
 ## Features Status
 
 - [ ] Google Sign-In

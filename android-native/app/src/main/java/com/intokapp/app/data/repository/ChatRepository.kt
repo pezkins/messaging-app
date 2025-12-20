@@ -87,6 +87,7 @@ class ChatRepository @Inject constructor(
                         is WebSocketEvent.Typing -> handleTyping(event.conversationId, event.userId, event.isTyping)
                         is WebSocketEvent.Reaction -> handleReaction(event)
                         is WebSocketEvent.MessageDeleted -> handleMessageDeleted(event)
+                        is WebSocketEvent.ConversationCreated -> handleConversationCreated(event)
                         is WebSocketEvent.ParticipantsAdded -> handleParticipantsAdded(event)
                         is WebSocketEvent.ParticipantRemoved -> handleParticipantRemoved(event)
                         is WebSocketEvent.Connected -> Log.d(TAG, "🔌 WebSocket connected event received")
@@ -270,10 +271,93 @@ class ChatRepository @Inject constructor(
         }
     }
     
+    private fun handleConversationCreated(event: WebSocketEvent.ConversationCreated) {
+        Log.d(TAG, "📥 New conversation created: ${event.conversationId} by ${event.createdBy}")
+        
+        // Check if we already have this conversation (prevent duplicates)
+        val currentConvs = _conversations.value
+        if (currentConvs.any { it.id == event.conversationId }) {
+            Log.d(TAG, "📥 Conversation already exists: ${event.conversationId}")
+            return
+        }
+        
+        // Convert participants to UserPublic objects
+        val participants = event.participants.mapNotNull { p ->
+            val id = p["id"] as? String ?: return@mapNotNull null
+            UserPublic(
+                id = id,
+                username = p["username"] as? String ?: "Unknown",
+                preferredLanguage = p["preferredLanguage"] as? String ?: "en",
+                avatarUrl = p["avatarUrl"] as? String,
+                profilePicture = p["profilePicture"] as? String
+            )
+        }
+        
+        // Create the new conversation
+        val newConversation = Conversation(
+            id = event.conversationId,
+            type = event.conversationType,
+            name = event.conversationName,
+            pictureUrl = null,
+            participants = participants,
+            lastMessage = null,
+            createdAt = event.createdAt,
+            updatedAt = event.createdAt
+        )
+        
+        // Add to the beginning of the list
+        _conversations.value = listOf(newConversation) + currentConvs
+        
+        // Cache the conversation
+        scope.launch {
+            try {
+                conversationDao.insert(newConversation.toCachedConversation())
+                Log.d(TAG, "💾 Cached new conversation: ${event.conversationId}")
+            } catch (e: Exception) {
+                Log.w(TAG, "⚠️ Failed to cache new conversation: ${e.message}")
+            }
+        }
+        
+        Log.d(TAG, "✅ Added new conversation to list: ${event.conversationId}")
+    }
+    
     private fun handleParticipantsAdded(event: WebSocketEvent.ParticipantsAdded) {
         Log.d(TAG, "👥 Participants added to ${event.conversationId}: ${event.addedUserIds}")
         
-        // Reload conversations to get updated participant list
+        // If we have participant data, update the conversation directly
+        if (!event.participants.isNullOrEmpty()) {
+            val currentConvs = _conversations.value.toMutableList()
+            val convIndex = currentConvs.indexOfFirst { it.id == event.conversationId }
+            if (convIndex >= 0) {
+                val existingConv = currentConvs[convIndex]
+                val updatedParticipants = event.participants.mapNotNull { p ->
+                    val id = p["id"] as? String ?: return@mapNotNull null
+                    UserPublic(
+                        id = id,
+                        username = p["username"] as? String ?: "Unknown",
+                        preferredLanguage = p["preferredLanguage"] as? String ?: "en",
+                        avatarUrl = p["avatarUrl"] as? String,
+                        profilePicture = p["profilePicture"] as? String
+                    )
+                }
+                val updatedConv = existingConv.copy(
+                    participants = updatedParticipants,
+                    updatedAt = java.time.Instant.now().toString()
+                )
+                currentConvs[convIndex] = updatedConv
+                _conversations.value = currentConvs
+                
+                // Update active conversation if it's the same
+                if (_activeConversation.value?.id == event.conversationId) {
+                    _activeConversation.value = updatedConv
+                }
+                
+                Log.d(TAG, "✅ Updated participants for conversation: ${event.conversationId}")
+                return
+            }
+        }
+        
+        // Fallback: reload conversations to get updated participant list
         scope.launch {
             try {
                 loadConversations()

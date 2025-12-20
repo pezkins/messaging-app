@@ -46,6 +46,14 @@ class ChatStore: ObservableObject {
         WebSocketService.shared.onMessageDeleted = { [weak self] data in
             self?.handleMessageDeleted(data)
         }
+        
+        WebSocketService.shared.onConversationCreated = { [weak self] data in
+            self?.handleConversationCreated(data)
+        }
+        
+        WebSocketService.shared.onParticipantsAdded = { [weak self] data in
+            self?.handleParticipantsAdded(data)
+        }
     }
     
     private func handleMessageDeleted(_ data: MessageDeletedData) {
@@ -58,6 +66,50 @@ class ChatStore: ObservableObject {
             ChatCacheManager.shared.updateMessage(messages[index])
             
             logger.info("🗑️ Message marked as deleted: \(data.messageId, privacy: .public)")
+        }
+    }
+    
+    private func handleConversationCreated(_ data: ConversationCreatedData) {
+        // Check if we already have this conversation (prevent duplicates)
+        if conversations.contains(where: { $0.id == data.conversation.id }) {
+            logger.debug("📥 Conversation already exists: \(data.conversation.id, privacy: .public)")
+            return
+        }
+        
+        // Add the new conversation to the top of the list
+        conversations.insert(data.conversation, at: 0)
+        
+        // Save to cache
+        ChatCacheManager.shared.saveConversations([data.conversation])
+        
+        logger.info("📥 New conversation added: \(data.conversation.id, privacy: .public) (created by: \(data.createdBy, privacy: .public))")
+    }
+    
+    private func handleParticipantsAdded(_ data: ParticipantsAddedData) {
+        // Update the conversation's participants list
+        if let index = conversations.firstIndex(where: { $0.id == data.conversationId }) {
+            let existing = conversations[index]
+            let updatedConversation = Conversation(
+                id: existing.id,
+                type: existing.type,
+                name: existing.name,
+                pictureUrl: existing.pictureUrl,
+                participants: data.participants,
+                lastMessage: existing.lastMessage,
+                createdAt: existing.createdAt,
+                updatedAt: ISO8601DateFormatter().string(from: Date())
+            )
+            conversations[index] = updatedConversation
+            
+            // Update active conversation if it's the same
+            if activeConversation?.id == data.conversationId {
+                activeConversation = updatedConversation
+            }
+            
+            // Save to cache
+            ChatCacheManager.shared.saveConversations([updatedConversation])
+            
+            logger.info("👥 Participants added to \(data.conversationId, privacy: .public): \(data.addedUserIds, privacy: .public)")
         }
     }
     

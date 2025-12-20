@@ -89,6 +89,18 @@ Intok/
     └── Assets.xcassets/
 ```
 
+## ⛔ Critical Configuration - DO NOT TOUCH
+
+> **WARNING:** The following settings are critical for authentication and MUST NOT be changed:
+
+| File | Setting | Value |
+|------|---------|-------|
+| `Intok.xcodeproj/project.pbxproj` | `DEVELOPMENT_TEAM` | `LW7QG2H5ST` |
+| `Intok.xcodeproj/project.pbxproj` | `CODE_SIGN_ENTITLEMENTS` | `Intok/Intok.entitlements` |
+| `Intok/Intok.entitlements` | `com.apple.developer.applesignin` | `Default` |
+
+**See `team/authentication-config.md` for complete documentation.**
+
 ## Features Status
 
 - [ ] Google Sign-In

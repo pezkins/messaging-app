@@ -1,4 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+    ⛔⛔⛔ DO NOT MODIFY THIS FILE ⛔⛔⛔
+    
+    This file contains critical entitlements for:
+    - Sign in with Apple (com.apple.developer.applesignin)
+    - Push Notifications (aps-environment)
+    - Keychain Access (keychain-access-groups)
+    
+    Modifying this file WILL BREAK authentication.
+    See: team/authentication-config.md
+-->
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
