@@ -5,12 +5,10 @@ on:
     branches: [stage, main]
     paths: 
       - 'ios-native/**'
-      - '.github/workflows/ios-native-ci.yml'
   pull_request:
     branches: [stage, main]
     paths: 
       - 'ios-native/**'
-      - '.github/workflows/ios-native-ci.yml'
   workflow_dispatch:
     inputs:
       environment:
@@ -266,18 +264,15 @@ jobs:
           echo "📦 Building with Team: $APPLE_TEAM_ID"
           echo "📝 Using Provisioning Profile: $PROFILE_UUID"
           
-          # Archive using MANUAL signing with pre-imported certificate
-          # This prevents Xcode from creating new certificates on each build
+          # Archive using manual signing for the app target only
+          # SPM dependencies use automatic signing (no provisioning profile needed)
           xcodebuild archive \
             -project Intok.xcodeproj \
             -scheme Intok \
             -configuration Release \
             -archivePath build/Intok.xcarchive \
             -destination 'generic/platform=iOS' \
-            CODE_SIGN_STYLE=Manual \
-            CODE_SIGN_IDENTITY="Apple Distribution" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
-            PROVISIONING_PROFILE_SPECIFIER="$PROFILE_UUID" \
             GIPHY_API_KEY="$GIPHY_API_KEY"
 
           if [ ! -d "build/Intok.xcarchive" ]; then
@@ -285,7 +280,7 @@ jobs:
             exit 1
           fi
 
-          # Export using ExportOptions.plist (which specifies manual signing)
+          # Export using ExportOptions.plist (specifies manual signing + profile)
           xcodebuild -exportArchive \
             -archivePath build/Intok.xcarchive \
             -exportPath build/ipa \
