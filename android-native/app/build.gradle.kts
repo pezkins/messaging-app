@@ -36,8 +36,8 @@ android {
         applicationId = "com.intokapp.app"
         minSdk = 26
         targetSdk = 35
-        versionCode = 32
-        versionName = "0.2.0"
+        versionCode = 33
+        versionName = "0.2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         

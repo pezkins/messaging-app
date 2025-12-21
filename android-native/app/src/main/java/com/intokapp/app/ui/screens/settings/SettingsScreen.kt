@@ -328,7 +328,10 @@ fun SettingsScreen(
     }
     
     if (showWhatsNew) {
-        WhatsNewDialog(onDismiss = { showWhatsNew = false })
+        WhatsNewDialog(
+            changelog = viewModel.whatsNewManager.changelog,
+            onDismiss = { showWhatsNew = false }
+        )
     }
     
     if (showEditName) {
@@ -825,76 +828,67 @@ private fun RegionPickerDialog(
 }
 
 @Composable
-private fun WhatsNewDialog(onDismiss: () -> Unit) {
+private fun WhatsNewDialog(
+    changelog: List<com.intokapp.app.data.repository.ChangelogEntry>,
+    onDismiss: () -> Unit
+) {
+    // Show first 5 entries
+    val entries = changelog.take(5)
+    
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
-            Column {
-                Text("Version 0.1.4", fontWeight = FontWeight.Bold)
-                Text(
-                    "Smart Translation Update",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            if (entries.isNotEmpty()) {
+                Column {
+                    Text("Version ${entries.first().version}", fontWeight = FontWeight.Bold)
+                    Text(
+                        entries.first().title,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                Text("What's New", fontWeight = FontWeight.Bold)
             }
         },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.verticalScroll(rememberScrollState())
+                modifier = Modifier
+                    .verticalScroll(rememberScrollState())
+                    .heightIn(max = 400.dp)
             ) {
-                // New in 0.1.4
-                FeatureRow(icon = Icons.Default.Translate, title = "Document Translation Control", desc = "Choose whether to translate documents")
-                FeatureRow(icon = Icons.Default.Image, title = "Optimized Media Sharing", desc = "Images and GIFs skip translation")
-                FeatureRow(icon = Icons.Default.Speed, title = "Faster Performance", desc = "Improved message handling")
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Divider()
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text("v0.1.3 - Rich Messaging", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                FeatureRow(icon = Icons.Default.PhotoLibrary, title = "Image Sharing", desc = "Share photos from your library")
-                FeatureRow(icon = Icons.Default.CameraAlt, title = "Camera", desc = "Capture and send photos")
-                FeatureRow(icon = Icons.Default.Gif, title = "GIF Support", desc = "Search and send GIFs")
-
-                Spacer(modifier = Modifier.height(8.dp))
-                Divider()
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text("Previous: v0.1.1", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                FeatureRow(icon = Icons.Default.Message, title = "Real-time Messaging", desc = "Send and receive messages instantly")
-                FeatureRow(icon = Icons.Default.Public, title = "Auto Translation", desc = "Messages translated to your language")
-                FeatureRow(icon = Icons.Default.Group, title = "Group Chats", desc = "Create group conversations")
+                entries.forEachIndexed { index, entry ->
+                    if (index > 0) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Divider()
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            "v${entry.version} - ${entry.title}",
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 14.sp,
+                            color = Purple500
+                        )
+                    }
+                    
+                    entry.changes.forEach { change ->
+                        Text(
+                            text = change,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Done")
+                Text("Done", color = Purple500)
             }
         }
     )
 }
 
-@Composable
-private fun FeatureRow(icon: ImageVector, title: String, desc: String) {
-    Row(verticalAlignment = Alignment.Top) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = Purple500,
-            modifier = Modifier.size(24.dp)
-        )
-        
-        Column(modifier = Modifier.padding(start = 12.dp)) {
-            Text(title, fontWeight = FontWeight.SemiBold)
-            Text(
-                desc,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
 
 // Add these color values to your Theme
 val Green500 = androidx.compose.ui.graphics.Color(0xFF22C55E)

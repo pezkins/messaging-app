@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat
 import com.intokapp.app.data.network.ApiService
 import com.intokapp.app.data.network.IntokFirebaseMessagingService
 import com.intokapp.app.data.network.TokenManager
+import com.intokapp.app.data.network.WebSocketService
 import com.intokapp.app.ui.navigation.IntokNavigation
 import com.intokapp.app.ui.theme.IntokTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -31,6 +32,9 @@ class MainActivity : ComponentActivity() {
     
     @Inject
     lateinit var tokenManager: TokenManager
+    
+    @Inject
+    lateinit var webSocketService: WebSocketService
     
     companion object {
         private const val TAG = "MainActivity"
@@ -82,6 +86,13 @@ class MainActivity : ComponentActivity() {
             setIntent(intent)
             recreate()
         }
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        // Ensure WebSocket is connected when app comes to foreground
+        Log.d(TAG, "🔄 App resumed - ensuring WebSocket connection")
+        webSocketService.ensureConnected()
     }
     
     private fun requestNotificationPermission() {

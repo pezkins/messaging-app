@@ -24,6 +24,16 @@ class WhatsNewManager @Inject constructor(
     
     val changelog = listOf(
         ChangelogEntry(
+            version = "0.2.1",
+            title = "Connection Reliability",
+            changes = listOf(
+                "🔌 Auto-reconnect when app returns to foreground",
+                "📡 Keep-alive ping to prevent connection drops",
+                "🔄 Improved WebSocket reconnection logic",
+                "🐛 Fixed messages not sending after background"
+            )
+        ),
+        ChangelogEntry(
             version = "0.2.0",
             title = "Real-Time Chat Updates",
             changes = listOf(

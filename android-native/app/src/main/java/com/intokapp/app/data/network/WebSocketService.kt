@@ -70,8 +70,11 @@ class WebSocketService @Inject constructor(
     
     private var webSocket: WebSocket? = null
     private var reconnectAttempts = 0
-    private val maxReconnectAttempts = 5
+    private val maxReconnectAttempts = 10
     private val baseReconnectDelay = 1000L
+    private var shouldReconnect = true // Flag to control reconnection
+    private var lastPingTime = 0L
+    private val pingInterval = 30000L // 30 seconds
     
     private val _isConnected = MutableStateFlow(false)
     val isConnected: StateFlow<Boolean> = _isConnected
@@ -109,9 +112,12 @@ class WebSocketService @Inject constructor(
                 Log.d(TAG, "🔌 WebSocket connected")
                 reconnectAttempts = 0
                 _isConnected.value = true
+                shouldReconnect = true
                 scope.launch {
                     _events.emit(WebSocketEvent.Connected)
                 }
+                // Start ping loop to keep connection alive
+                startPingLoop()
             }
             
             override fun onMessage(webSocket: WebSocket, text: String) {
@@ -130,6 +136,10 @@ class WebSocketService @Inject constructor(
                 scope.launch {
                     _events.emit(WebSocketEvent.Disconnected)
                 }
+                // Reconnect unless explicitly disconnected by user
+                if (shouldReconnect && code != 1000) {
+                    handleReconnect()
+                }
             }
             
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
@@ -146,26 +156,81 @@ class WebSocketService @Inject constructor(
     
     fun disconnect() {
         Log.d(TAG, "🔌 Disconnecting WebSocket")
+        shouldReconnect = false
         webSocket?.close(1000, "User disconnected")
         webSocket = null
         reconnectAttempts = 0
         _isConnected.value = false
     }
     
+    /**
+     * Force reconnect - call when app comes to foreground
+     */
+    fun ensureConnected() {
+        if (!_isConnected.value && tokenManager.getAccessToken() != null) {
+            Log.d(TAG, "🔌 Ensuring WebSocket connection...")
+            shouldReconnect = true
+            reconnectAttempts = 0
+            webSocket?.close(1000, "Reconnecting")
+            webSocket = null
+            connect()
+        }
+    }
+    
+    /**
+     * Reset and reconnect - use when connection seems stale
+     */
+    fun forceReconnect() {
+        Log.d(TAG, "🔌 Force reconnecting WebSocket...")
+        shouldReconnect = true
+        reconnectAttempts = 0
+        webSocket?.close(1000, "Force reconnect")
+        webSocket = null
+        connect()
+    }
+    
     private fun handleReconnect() {
+        if (!shouldReconnect) {
+            Log.d(TAG, "🔌 Reconnection disabled, not reconnecting")
+            return
+        }
+        
         if (reconnectAttempts >= maxReconnectAttempts) {
-            Log.w(TAG, "🔌 Max reconnect attempts reached")
+            Log.w(TAG, "🔌 Max reconnect attempts reached, will retry on next ensureConnected")
+            reconnectAttempts = 0 // Reset so ensureConnected can try again
             return
         }
         
         reconnectAttempts++
-        val delay = baseReconnectDelay * 2.0.pow(reconnectAttempts - 1).toLong()
+        // Cap the delay at 30 seconds
+        val delay = minOf(baseReconnectDelay * 2.0.pow(reconnectAttempts - 1).toLong(), 30000L)
         
         Log.d(TAG, "🔌 Reconnecting in ${delay}ms (attempt $reconnectAttempts)")
         
         scope.launch {
             delay(delay)
-            connect()
+            if (shouldReconnect && webSocket == null) {
+                connect()
+            }
+        }
+    }
+    
+    private fun startPingLoop() {
+        scope.launch {
+            while (_isConnected.value) {
+                delay(pingInterval)
+                if (_isConnected.value && webSocket != null) {
+                    try {
+                        // Send a ping to keep connection alive
+                        val pingData = """{"action":"ping"}"""
+                        webSocket?.send(pingData)
+                        lastPingTime = System.currentTimeMillis()
+                        Log.d(TAG, "🔌 Sent ping")
+                    } catch (e: Exception) {
+                        Log.w(TAG, "🔌 Ping failed: ${e.message}")
+                    }
+                }
+            }
         }
     }
     

@@ -14,6 +14,7 @@ import com.intokapp.app.data.network.ProfilePictureUploadRequest
 import com.intokapp.app.data.network.UpdateProfilePictureRequest
 import com.intokapp.app.data.repository.AuthRepository
 import com.intokapp.app.data.repository.AuthState
+import com.intokapp.app.data.repository.WhatsNewManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -44,6 +45,7 @@ class SettingsViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val apiService: ApiService,
     private val okHttpClient: OkHttpClient,
+    val whatsNewManager: WhatsNewManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     

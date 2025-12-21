@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 import os.log
 
 private let logger = Logger(subsystem: "com.pezkins.intok", category: "WebSocket")
@@ -77,14 +78,20 @@ class WebSocketService: ObservableObject {
     private var webSocket: URLSessionWebSocketTask?
     private var token: String?
     private var reconnectAttempts = 0
-    private let maxReconnectAttempts = 5
+    private let maxReconnectAttempts = 10  // Increased from 5
     private let baseReconnectDelay: TimeInterval = 1.0
+    private let maxReconnectDelay: TimeInterval = 30.0  // Cap at 30 seconds
     
     private let wsURL: String
     
     // Pending messages queue for retry after reconnect
     private var pendingMessages: [PendingMessage] = []
     private let maxRetries = 3
+    
+    // Reconnection control
+    private var shouldReconnect = true  // Distinguishes intentional disconnects
+    private var pingTimer: Timer?
+    private let pingInterval: TimeInterval = 30.0  // Send ping every 30 seconds
     
     // Event handlers
     var onMessageReceive: ((MessageReceiveData) -> Void)?
@@ -105,11 +112,44 @@ class WebSocketService: ObservableObject {
             wsURL = "wss://ksupcb7ucf.execute-api.us-east-1.amazonaws.com/prod"
         }
         logger.info("🔌 WebSocket Service initialized with: \(self.wsURL, privacy: .public)")
+        
+        // Listen for app lifecycle notifications
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillResignActive),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        stopPingTimer()
+    }
+    
+    // MARK: - App Lifecycle
+    @objc private func appDidBecomeActive() {
+        wsLog("📱 App became active - checking WebSocket connection")
+        ensureConnected()
+    }
+    
+    @objc private func appWillResignActive() {
+        wsLog("📱 App will resign active - stopping ping timer")
+        stopPingTimer()
     }
     
     // MARK: - Connection Management
     func connect(token: String) {
         wsLog("connect() called")
+        
+        // Mark that we want to reconnect on disconnections
+        shouldReconnect = true
         
         // Check if already connected and running
         if let existingSocket = webSocket {
@@ -153,12 +193,59 @@ class WebSocketService: ObservableObject {
                 self.onConnected?()
                 wsLog("✅ Connected successfully!")
                 
+                // Start keep-alive ping timer
+                self.startPingTimer()
+                
                 // Retry any pending messages
                 self.retryPendingMessages()
             } else {
                 wsLog("❌ Not running after 1s, state: \(String(describing: state))")
+                // Attempt reconnect if this initial connection failed
+                self.handleReconnect()
             }
         }
+    }
+    
+    /// Ensure WebSocket is connected - call when app comes to foreground
+    func ensureConnected() {
+        guard let token = token else {
+            wsLog("⚠️ ensureConnected: No token available")
+            return
+        }
+        
+        // Check current state
+        if let socket = webSocket, socket.state == .running {
+            wsLog("✅ ensureConnected: Already connected")
+            // Restart ping timer in case it was stopped
+            startPingTimer()
+            return
+        }
+        
+        wsLog("🔄 ensureConnected: Reconnecting...")
+        shouldReconnect = true
+        reconnectAttempts = 0  // Reset attempts for fresh reconnect
+        connect(token: token)
+    }
+    
+    /// Force a fresh WebSocket connection
+    func forceReconnect() {
+        guard let token = token else {
+            wsLog("⚠️ forceReconnect: No token available")
+            return
+        }
+        
+        wsLog("🔄 forceReconnect: Forcing new connection...")
+        
+        // Close existing connection
+        stopPingTimer()
+        webSocket?.cancel(with: .goingAway, reason: nil)
+        webSocket = nil
+        isConnected = false
+        
+        // Reset and reconnect
+        shouldReconnect = true
+        reconnectAttempts = 0
+        connect(token: token)
     }
     
     private func retryPendingMessages() {
@@ -179,7 +266,9 @@ class WebSocketService: ObservableObject {
     }
     
     func disconnect() {
-        wsLog("Disconnecting WebSocket...")
+        wsLog("Disconnecting WebSocket (intentional)...")
+        shouldReconnect = false  // Prevent auto-reconnect
+        stopPingTimer()
         webSocket?.cancel(with: .goingAway, reason: nil)
         webSocket = nil
         token = nil
@@ -190,6 +279,12 @@ class WebSocketService: ObservableObject {
     }
     
     private func handleReconnect() {
+        // Don't reconnect if intentionally disconnected
+        guard shouldReconnect else {
+            wsLog("⚠️ Reconnect skipped - intentionally disconnected")
+            return
+        }
+        
         guard reconnectAttempts < maxReconnectAttempts else {
             wsLog("⚠️ Max reconnect attempts reached (\(maxReconnectAttempts))")
             return
@@ -201,44 +296,102 @@ class WebSocketService: ObservableObject {
         }
         
         reconnectAttempts += 1
-        let delay = baseReconnectDelay * pow(2, Double(reconnectAttempts - 1))
+        // Calculate delay with exponential backoff, capped at maxReconnectDelay
+        let delay = min(baseReconnectDelay * pow(2, Double(reconnectAttempts - 1)), maxReconnectDelay)
         
         wsLog("🔄 Reconnecting in \(delay)s (attempt \(reconnectAttempts)/\(maxReconnectAttempts))")
         
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
-            self?.webSocket = nil
-            self?.connect(token: token)
+            guard let self = self, self.shouldReconnect else { return }
+            self.webSocket = nil
+            self.connect(token: token)
+        }
+    }
+    
+    // MARK: - Keep-Alive Ping
+    private func startPingTimer() {
+        stopPingTimer()  // Ensure no duplicate timers
+        
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.pingTimer = Timer.scheduledTimer(withTimeInterval: self.pingInterval, repeats: true) { [weak self] _ in
+                self?.sendPing()
+            }
+            wsLog("⏱️ Ping timer started (interval: \(self.pingInterval)s)")
+        }
+    }
+    
+    private func stopPingTimer() {
+        pingTimer?.invalidate()
+        pingTimer = nil
+        wsLog("⏱️ Ping timer stopped")
+    }
+    
+    private func sendPing() {
+        guard let webSocket = webSocket, webSocket.state == .running else {
+            wsLog("⚠️ Ping skipped - not connected")
+            // Connection lost, try to reconnect
+            DispatchQueue.main.async {
+                self.isConnected = false
+                self.onDisconnected?()
+            }
+            handleReconnect()
+            return
+        }
+        
+        webSocket.sendPing { [weak self] error in
+            if let error = error {
+                wsLog("❌ Ping failed: \(error.localizedDescription)")
+                // Connection is stale, trigger reconnect
+                DispatchQueue.main.async {
+                    self?.isConnected = false
+                    self?.onDisconnected?()
+                }
+                self?.handleReconnect()
+            } else {
+                wsLog("🏓 Ping successful")
+            }
         }
     }
     
     // MARK: - Receive Messages
     private func receiveMessage() {
         webSocket?.receive { [weak self] result in
+            guard let self = self else { return }
+            
             switch result {
             case .success(let message):
                 wsLog("📨 Received message")
                 switch message {
                 case .string(let text):
                     wsLog("Received text: \(text.prefix(300))...")
-                    self?.handleMessage(text)
+                    self.handleMessage(text)
                 case .data(let data):
                     wsLog("Received data: \(data.count) bytes")
                     if let text = String(data: data, encoding: .utf8) {
-                        self?.handleMessage(text)
+                        self.handleMessage(text)
                     }
                 @unknown default:
                     break
                 }
                 // Continue receiving
-                self?.receiveMessage()
+                self.receiveMessage()
                 
             case .failure(let error):
-                wsLog("❌ Receive error: \(error.localizedDescription)")
+                let nsError = error as NSError
+                wsLog("❌ Receive error: \(error.localizedDescription) (code: \(nsError.code))")
+                
+                self.stopPingTimer()
                 DispatchQueue.main.async {
-                    self?.isConnected = false
-                    self?.onDisconnected?()
+                    self.isConnected = false
+                    self.onDisconnected?()
                 }
-                self?.handleReconnect()
+                
+                // Reconnect on both failure AND closed events
+                // NSURLErrorNetworkConnectionLost = -1005
+                // NSURLErrorNotConnectedToInternet = -1009
+                // NSPOSIXErrorDomain code 57 = Socket is not connected
+                self.handleReconnect()
             }
         }
     }

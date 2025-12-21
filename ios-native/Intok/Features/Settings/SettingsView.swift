@@ -721,6 +721,11 @@ struct RegionPickerSheet: View {
 struct WhatsNewSheet: View {
     @Environment(\.dismiss) var dismiss
     
+    // Show first 5 changelog entries
+    private var entries: [ChangelogEntry] {
+        Array(Changelog.entries.prefix(5))
+    }
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -728,43 +733,34 @@ struct WhatsNewSheet: View {
                 
                 ScrollView {
                     VStack(alignment: .leading, spacing: 24) {
-                        // Version 0.1.4
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Version 0.1.4")
-                                .font(.title2)
-                                .fontWeight(.bold)
-                                .foregroundColor(.white)
+                        ForEach(Array(entries.enumerated()), id: \.element.id) { index, entry in
+                            VStack(alignment: .leading, spacing: 8) {
+                                // Version header
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("Version \(entry.version)")
+                                        .font(index == 0 ? .title2 : .headline)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.white)
+                                    
+                                    Text(entry.title)
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                                
+                                // Changes list
+                                VStack(alignment: .leading, spacing: 8) {
+                                    ForEach(entry.changes, id: \.self) { change in
+                                        Text(change)
+                                            .font(.subheadline)
+                                            .foregroundColor(.gray)
+                                    }
+                                }
+                                .padding(.top, 4)
+                            }
                             
-                            Text("Smart Translation Update")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            featureRow(icon: "doc.text.magnifyingglass", title: "Document Translation Control", description: "Choose whether to translate documents when sharing")
-                            featureRow(icon: "photo.badge.checkmark", title: "Optimized Media Sharing", description: "Images and GIFs no longer go through translation")
-                            featureRow(icon: "bolt.fill", title: "Faster Performance", description: "Improved message handling and delivery")
-                        }
-                        
-                        Divider().background(Color.gray.opacity(0.3))
-                        
-                        // Version 0.1.3
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("Version 0.1.3")
-                                .font(.headline)
-                                .foregroundColor(.white)
-                            
-                            Text("Rich Messaging Update")
-                                .font(.caption)
-                                .foregroundColor(.gray)
-                        }
-                        
-                        VStack(alignment: .leading, spacing: 12) {
-                            featureRow(icon: "photo.on.rectangle", title: "Image Sharing", description: "Share photos from your library")
-                            featureRow(icon: "camera.fill", title: "Camera Integration", description: "Capture and send photos directly")
-                            featureRow(icon: "face.smiling.inverse", title: "GIF Support", description: "Search and send GIFs via GIPHY")
-                            featureRow(icon: "doc.fill", title: "Document Sharing", description: "Share PDFs and documents")
-                            featureRow(icon: "hand.thumbsup.fill", title: "Message Reactions", description: "React to messages with emojis")
+                            if index < entries.count - 1 {
+                                Divider().background(Color.gray.opacity(0.3))
+                            }
                         }
                     }
                     .padding()
@@ -776,25 +772,6 @@ struct WhatsNewSheet: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Done") { dismiss() }
                 }
-            }
-        }
-    }
-    
-    func featureRow(icon: String, title: String, description: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: icon)
-                .foregroundColor(Color(hex: "8B5CF6"))
-                .font(.title3)
-                .frame(width: 32)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-                
-                Text(description)
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
             }
         }
     }
