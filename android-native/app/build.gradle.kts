@@ -111,6 +111,14 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+
+    // Lint configuration - disable MissingTranslation for i18n
+    // We support 120+ languages with API fallback via localizedString()
+    // Only Tier 1 languages (8) have bundled strings.xml
+    lint {
+        disable += "MissingTranslation"
+        abortOnError = true
+    }
 }
 
 dependencies {
