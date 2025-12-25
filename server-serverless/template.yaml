@@ -15,6 +15,7 @@ Globals:
         CONVERSATIONS_TABLE: !Ref ConversationsTable
         CONNECTIONS_TABLE: !Ref ConnectionsTable
         DEVICE_TOKENS_TABLE: !Ref DeviceTokensTable
+        UI_TRANSLATIONS_TABLE: !Ref UITranslationsTable
         ATTACHMENTS_BUCKET: !Ref AttachmentsBucket
         AI_PROVIDER: !Ref AIProvider
         OPENAI_API_KEY: !Ref OpenAIApiKey
@@ -181,6 +182,21 @@ Resources:
               KeyType: HASH
           Projection:
             ProjectionType: ALL
+
+  UITranslationsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: lingualink-ui-translations
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      TimeToLiveSpecification:
+        AttributeName: ttl
+        Enabled: true
 
   # ============== S3 Bucket for Attachments ==============
   AttachmentsBucket:
@@ -547,6 +563,53 @@ Resources:
             TableName: !Ref ConversationsTable
         - DynamoDBCrudPolicy:
             TableName: !Ref UsersTable
+
+  # UI Translations
+  GetUIStringsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/translate.getUIStrings
+      CodeUri: .
+      Timeout: 10
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/translate/ui-strings
+            Method: GET
+
+  TranslateUIStringsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/translate.translateUIStrings
+      CodeUri: .
+      Timeout: 120
+      MemorySize: 512
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/translate/ui-strings
+            Method: POST
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UITranslationsTable
+
+  GetSupportedLanguagesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/translate.getSupportedLanguages
+      CodeUri: .
+      Timeout: 10
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/translate/languages
+            Method: GET
 
   # Attachments
   GetUploadUrlFunction:

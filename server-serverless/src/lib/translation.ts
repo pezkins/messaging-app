@@ -410,4 +410,4 @@ export function getProviderInfo() {
 }
 
 // Export language/country mappings for use elsewhere
-export { LANGUAGE_NAMES, COUNTRY_NAMES };
+export { chat, LANGUAGE_NAMES, COUNTRY_NAMES };

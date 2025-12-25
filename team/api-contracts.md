@@ -957,6 +957,122 @@ Authorization: Bearer <accessToken>
 
 ---
 
+## UI Translations
+
+### GET /api/translate/ui-strings
+
+Get the master English UI strings for the app.
+
+**Headers:**
+```
+Authorization: Bearer <accessToken> (optional)
+```
+
+**Response (200 OK):**
+```json
+{
+  "language": "en",
+  "version": "1.0.0",
+  "stringCount": 220,
+  "strings": {
+    "auth.login_title": "Welcome Back",
+    "auth.login_button": "Sign In",
+    "common.ok": "OK",
+    "common.cancel": "Cancel"
+  }
+}
+```
+
+**Notes:**
+- Returns all UI strings in English (base language)
+- Strings are in dot-notation format (e.g., `auth.login_title`)
+- Version tracks when strings were last updated
+
+---
+
+### POST /api/translate/ui-strings
+
+Translate UI strings to a target language. Results are cached for 30 days.
+
+**Headers:**
+```
+Authorization: Bearer <accessToken> (optional)
+```
+
+**Request Body:**
+```json
+{
+  "targetLanguage": "ja",
+  "targetCountry": "JP",
+  "forceRefresh": false
+}
+```
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| targetLanguage | string | Yes | Target language code (e.g., "ja", "es", "fr") |
+| targetCountry | string | No | Country code for regional variations (e.g., "JP", "MX") |
+| forceRefresh | boolean | No | If true, bypass cache and regenerate translations |
+
+**Response (200 OK):**
+```json
+{
+  "language": "ja",
+  "country": "JP",
+  "translations": {
+    "auth.login_title": "お帰りなさい",
+    "auth.login_button": "ログイン",
+    "common.ok": "OK",
+    "common.cancel": "キャンセル"
+  },
+  "version": "1.0.0",
+  "generatedAt": "2024-12-08T10:00:00.000Z",
+  "cached": true,
+  "generationTimeMs": 15000
+}
+```
+
+| Field | Description |
+|-------|-------------|
+| language | Target language code |
+| country | Target country code (if provided) |
+| translations | Key-value map of translated strings |
+| version | Version of the source strings |
+| generatedAt | When translations were generated |
+| cached | Whether result came from cache |
+| generationTimeMs | Time to generate (only if not cached) |
+
+**Performance:**
+- ~220 strings translated in < 30 seconds
+- Cached translations returned in < 100ms
+- Cache TTL: 30 days
+
+**Errors:**
+- `400` - targetLanguage is required
+- `500` - Translation generation failed
+
+---
+
+### GET /api/translate/languages
+
+Get list of all supported languages for translation.
+
+**Response (200 OK):**
+```json
+{
+  "count": 120,
+  "languages": [
+    { "code": "en", "name": "English" },
+    { "code": "es", "name": "Spanish" },
+    { "code": "fr", "name": "French" },
+    { "code": "ja", "name": "Japanese" },
+    { "code": "zh", "name": "Chinese (Mandarin)" }
+  ]
+}
+```
+
+---
+
 ## Attachments
 
 ### POST /api/attachments/upload-url
@@ -1638,6 +1754,13 @@ All errors follow this format:
 | GET | `/api/conversations/{id}/messages` | Yes | Get messages |
 | DELETE | `/api/conversations/{id}/messages/{msgId}` | Yes | Delete message |
 | POST | `/api/conversations/{id}/read` | Yes | Mark as read |
+
+### Translation Endpoints
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | `/api/translate/ui-strings` | No | Get English UI strings |
+| POST | `/api/translate/ui-strings` | No | Translate UI strings |
+| GET | `/api/translate/languages` | No | Get supported languages |
 
 ### Attachment Endpoints
 | Method | Endpoint | Auth | Description |

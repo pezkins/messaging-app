@@ -121,7 +121,21 @@ This document tracks the planned features, current development, and completed wo
 
 ---
 
-## Phase 5: Advanced Features (NEXT)
+## Phase 5: Internationalization (NEXT) 🚧
+
+| Feature | iOS | Android | Backend | Priority |
+|---------|-----|---------|---------|----------|
+| UI Localization (120+ langs) | 📋 | 📋 | 📋 | **Critical** |
+| Auto-detect device language | 📋 | 📋 | N/A | **Critical** |
+| In-app language selector | 📋 | 📋 | N/A | **Critical** |
+| RTL Support (Arabic, Hebrew) | 📋 | 📋 | N/A | High |
+| AI Translation for UI strings | N/A | N/A | 📋 | High |
+
+**See:** `team/i18n-implementation-plan.md` for full details
+
+---
+
+## Phase 6: Advanced Features
 
 | Feature | iOS | Android | Backend | Priority |
 |---------|-----|---------|---------|----------|
