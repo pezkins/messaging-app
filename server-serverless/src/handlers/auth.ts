@@ -34,13 +34,14 @@ export const register: APIGatewayProxyHandler = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}');
     const data = registerSchema.parse(body);
+    const emailLower = data.email.toLowerCase();
 
-    // Check if email exists
+    // Check if email exists (normalized to lowercase)
     const emailCheck = await dynamodb.send(new QueryCommand({
       TableName: Tables.USERS,
       IndexName: 'email-index',
       KeyConditionExpression: 'email = :email',
-      ExpressionAttributeValues: { ':email': data.email },
+      ExpressionAttributeValues: { ':email': emailLower },
     }));
 
     if (emailCheck.Items && emailCheck.Items.length > 0) {
@@ -57,7 +58,7 @@ export const register: APIGatewayProxyHandler = async (event) => {
 
     const user = {
       id: userId,
-      email: data.email,
+      email: emailLower, // Always store email lowercase for consistent lookups
       username: data.username,
       passwordHash,
       preferredLanguage: data.preferredLanguage,
@@ -100,13 +101,14 @@ export const login: APIGatewayProxyHandler = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}');
     const data = loginSchema.parse(body);
+    const emailLower = data.email.toLowerCase();
 
-    // Find user by email
+    // Find user by email (normalized to lowercase)
     const result = await dynamodb.send(new QueryCommand({
       TableName: Tables.USERS,
       IndexName: 'email-index',
       KeyConditionExpression: 'email = :email',
-      ExpressionAttributeValues: { ':email': data.email },
+      ExpressionAttributeValues: { ':email': emailLower },
     }));
 
     const user = result.Items?.[0];
@@ -149,13 +151,14 @@ export const oauth: APIGatewayProxyHandler = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}');
     const data = oauthSchema.parse(body);
+    const emailLower = data.email.toLowerCase();
 
     // Check if user exists with this OAuth provider or email
     const emailCheck = await dynamodb.send(new QueryCommand({
       TableName: Tables.USERS,
       IndexName: 'email-index',
       KeyConditionExpression: 'email = :email',
-      ExpressionAttributeValues: { ':email': data.email },
+      ExpressionAttributeValues: { ':email': emailLower },
     }));
 
     let user = emailCheck.Items?.[0];
@@ -185,7 +188,7 @@ export const oauth: APIGatewayProxyHandler = async (event) => {
       const now = new Date().toISOString();
       user = {
         id: uuid(),
-        email: data.email,
+        email: emailLower, // Always store email lowercase for consistent lookups
         username,
         passwordHash: '', // No password for OAuth users
         preferredLanguage: 'en',
@@ -232,13 +235,14 @@ export const checkEmail: APIGatewayProxyHandler = async (event) => {
   try {
     const body = JSON.parse(event.body || '{}');
     const data = checkEmailSchema.parse(body);
+    const emailLower = data.email.toLowerCase();
 
-    // Check if email exists
+    // Check if email exists (normalized to lowercase)
     const emailCheck = await dynamodb.send(new QueryCommand({
       TableName: Tables.USERS,
       IndexName: 'email-index',
       KeyConditionExpression: 'email = :email',
-      ExpressionAttributeValues: { ':email': data.email },
+      ExpressionAttributeValues: { ':email': emailLower },
     }));
 
     const exists = emailCheck.Items && emailCheck.Items.length > 0;

@@ -54,6 +54,11 @@ Parameters:
     NoEcho: true
     Default: ""
     Description: DeepSeek API key (required if AIProvider=deepseek)
+  AdminApiKey:
+    Type: String
+    NoEcho: true
+    Default: ""
+    Description: Admin API key for running migrations (optional)
 
 Resources:
 
@@ -495,6 +500,27 @@ Resources:
             TableName: !Ref UsersTable
         - S3CrudPolicy:
             BucketName: !Ref AttachmentsBucket
+
+  # Migrations (Admin Only)
+  NormalizeUsersFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: dist/migrations.normalizeUsers
+      CodeUri: .
+      Timeout: 300
+      Environment:
+        Variables:
+          ADMIN_API_KEY: !Ref AdminApiKey
+      Events:
+        Api:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /api/migrations/normalize-users
+            Method: POST
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref UsersTable
 
   # Conversations
   GetConversationsFunction:

@@ -58,30 +58,31 @@ export const search: APIGatewayProxyHandler = async (event) => {
       return response(200, { users: [] });
     }
 
-    // Scan users table for matching usernames or emails
-    // Note: In production, consider using a search service like OpenSearch
+    // Scan users table and filter case-insensitively in application code
+    // DynamoDB's contains() is case-sensitive, so we fetch all users and filter here
+    const queryLower = query.toLowerCase();
+    
     const result = await dynamodb.send(new ScanCommand({
       TableName: Tables.USERS,
-      FilterExpression: '(contains(#username, :query) OR contains(#email, :query)) AND #id <> :userId',
-      ExpressionAttributeNames: {
-        '#username': 'username',
-        '#email': 'email',
-        '#id': 'id',
-      },
-      ExpressionAttributeValues: {
-        ':query': query.toLowerCase(),
-        ':userId': userId,
-      },
-      Limit: 20,
+      ProjectionExpression: 'id, username, email, profilePicture, avatarUrl, preferredLanguage',
     }));
 
-    const users = (result.Items || []).map((user) => ({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      profilePicture: user.profilePicture || user.avatarUrl || null,
-      preferredLanguage: user.preferredLanguage,
-    }));
+    // Case-insensitive filtering in application code
+    const users = (result.Items || [])
+      .filter((user) => {
+        if (user.id === userId) return false; // Exclude self
+        const usernameLower = (user.username || '').toLowerCase();
+        const emailLower = (user.email || '').toLowerCase();
+        return usernameLower.includes(queryLower) || emailLower.includes(queryLower);
+      })
+      .slice(0, 20) // Limit to 20 results
+      .map((user) => ({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        profilePicture: user.profilePicture || user.avatarUrl || null,
+        preferredLanguage: user.preferredLanguage,
+      }));
 
     return response(200, { users });
   } catch (error) {
