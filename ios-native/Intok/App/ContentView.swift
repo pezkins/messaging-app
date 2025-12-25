@@ -49,7 +49,7 @@ struct ContentView: View {
                     .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "8B5CF6")))
                     .scaleEffect(1.5)
                 
-                Text("Loading...")
+                Text("common_loading".localized)
                     .foregroundColor(.gray)
             }
         }
@@ -65,7 +65,7 @@ struct MainTabView: View {
             ConversationsView()
                 .tabItem {
                     Image(systemName: "message.fill")
-                    Text("Messages")
+                    Text("conversations_title".localized)
                 }
                 .tag(0)
             

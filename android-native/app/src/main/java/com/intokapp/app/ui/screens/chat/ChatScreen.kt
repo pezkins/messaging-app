@@ -35,7 +35,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.intokapp.app.data.repository.localizedString
 import androidx.compose.ui.text.AnnotatedString
+import com.intokapp.app.R
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
@@ -261,7 +264,7 @@ fun ChatScreen(
                             if (isGroupChat) {
                                 // Group chat options
                                 DropdownMenuItem(
-                                    text = { Text("Add People", color = White) },
+                                    text = { Text(localizedString(R.string.chat_menu_add_people, "group.group_add_participants"), color = White) },
                                     onClick = {
                                         showChatMenu = false
                                         onAddParticipants?.invoke(conversationId)
@@ -270,9 +273,9 @@ fun ChatScreen(
                                         Icon(Icons.Default.PersonAdd, null, tint = Purple500)
                                     }
                                 )
-                                
+
                                 DropdownMenuItem(
-                                    text = { Text("Remove People", color = White) },
+                                    text = { Text(localizedString(R.string.chat_menu_remove_people, "group.group_remove_participant"), color = White) },
                                     onClick = {
                                         showChatMenu = false
                                         onRemoveParticipants?.invoke(conversationId)
@@ -281,9 +284,9 @@ fun ChatScreen(
                                         Icon(Icons.Default.PersonOff, null, tint = Purple500)
                                     }
                                 )
-                                
+
                                 DropdownMenuItem(
-                                    text = { Text("Group Info", color = White) },
+                                    text = { Text(localizedString(R.string.chat_menu_group_info, "group.group_info_title"), color = White) },
                                     onClick = {
                                         showChatMenu = false
                                         onGroupInfo?.invoke(conversationId)
@@ -295,7 +298,7 @@ fun ChatScreen(
                             } else {
                                 // Direct chat options
                                 DropdownMenuItem(
-                                    text = { Text("View Profile", color = White) },
+                                    text = { Text(localizedString(R.string.chat_menu_view_profile, "profile.profile_title"), color = White) },
                                     onClick = {
                                         showChatMenu = false
                                         // TODO: Navigate to profile screen

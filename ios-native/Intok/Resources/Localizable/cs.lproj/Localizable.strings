@@ -1,0 +1,265 @@
+/*
+ * Localizable.strings (Czech - Čeština)
+ * Intok
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "OK";
+"common_cancel" = "Zrušit";
+"common_done" = "Hotovo";
+"common_save" = "Uložit";
+"common_delete" = "Smazat";
+"common_edit" = "Upravit";
+"common_close" = "Zavřít";
+"common_back" = "Zpět";
+"common_next" = "Další";
+"common_continue" = "Pokračovat";
+"common_skip" = "Přeskočit";
+"common_finish" = "Dokončit";
+"common_loading" = "Načítání...";
+"common_error" = "Chyba";
+"common_success" = "Úspěch";
+"common_retry" = "Zkusit znovu";
+"common_try_again" = "Zkusit znovu";
+"common_search" = "Hledat";
+"common_or" = "nebo";
+"common_yes" = "Ano";
+"common_no" = "Ne";
+"common_unknown" = "Neznámé";
+"common_not_set" = "Nenastaveno";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "Spojte se globálně, komunikujte přirozeně";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "Pokračovat s Apple";
+"login_continue_google" = "Pokračovat s Google";
+"login_continue_email" = "Pokračovat s e-mailem";
+"login_terms_notice" = "Pokračováním souhlasíte s našimi Podmínkami služby a Zásadami ochrany osobních údajů";
+"login_sign_in_apple" = "Přihlásit se pomocí Apple";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "Pokračovat s e-mailem";
+"email_auth_welcome_back" = "Vítejte zpět";
+"email_auth_create_account" = "Vytvořit účet";
+"email_auth_whats_your_email" = "Jaký je váš e-mail?";
+"email_auth_check_account" = "Zkontrolujeme, zda máte účet";
+"email_auth_email_label" = "E-mail";
+"email_auth_email_placeholder" = "Zadejte svůj e-mail";
+"email_auth_enter_password" = "Zadejte heslo";
+"email_auth_password_label" = "Heslo";
+"email_auth_sign_in" = "Přihlásit se";
+"email_auth_forgot_password" = "Zapomněli jste heslo?";
+"email_auth_create_your_account" = "Vytvořte si účet";
+"email_auth_display_name_label" = "Zobrazované jméno";
+"email_auth_confirm_password_label" = "Potvrdit heslo";
+"email_auth_password_hint" = "Alespoň 6 znaků";
+"email_auth_passwords_dont_match" = "Hesla se neshodují";
+"email_auth_preferred_language" = "Preferovaný jazyk";
+"email_auth_country" = "Země";
+"email_auth_create_account_button" = "Vytvořit účet";
+"email_auth_check_email_error" = "Nepodařilo se ověřit e-mail. Zkuste to znovu.";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "Vyberte zobrazované jméno";
+"setup_how_others_see_you" = "Tak vás uvidí ostatní";
+"setup_enter_name_placeholder" = "Zadejte své jméno";
+"setup_select_language" = "Vyberte svůj jazyk";
+"setup_messages_translated" = "Zprávy budou přeloženy do tohoto jazyka";
+"setup_search_languages" = "Hledat jazyky...";
+"setup_select_country" = "Vyberte svou zemi";
+"setup_country_optional" = "Volitelné - pomáhá spojit vás s blízkými uživateli";
+"setup_search_countries" = "Hledat země...";
+"setup_select_region" = "Vyberte svůj region";
+"setup_region_accuracy" = "To pomáhá s přesností překladu";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "Zprávy";
+"conversations_search_placeholder" = "Hledat konverzace...";
+"conversations_loading" = "Načítání konverzací...";
+"conversations_empty_title" = "Zatím žádné konverzace";
+"conversations_empty_subtitle" = "Zahajte konverzaci klepnutím na tlačítko psaní";
+"conversations_start_new" = "Zahájit nový chat";
+"conversations_error_title" = "Něco se pokazilo";
+"conversations_group_chat" = "Skupinový chat";
+"conversations_no_messages" = "Zatím žádné zprávy";
+"conversations_yesterday" = "Včera";
+"conversations_delete_title" = "Smazat konverzaci";
+"conversations_delete_message" = "Smazat tuto konverzaci? Nelze vrátit zpět.";
+"conversations_delete_button" = "Smazat konverzaci";
+"conversations_deleting" = "Mazání...";
+"conversations_preview_photo" = "📷 Fotka";
+"conversations_preview_voice" = "🎤 Hlasová zpráva";
+"conversations_preview_file" = "📎 Soubor";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "Nová zpráva";
+"new_chat_direct" = "Přímý";
+"new_chat_group" = "Skupina";
+"new_chat_search_users" = "Hledat uživatele...";
+"new_chat_no_results" = "Nebyli nalezeni žádní uživatelé";
+"new_chat_create_group" = "Vytvořit skupinu";
+"new_chat_group_name_placeholder" = "Název skupiny (volitelné)";
+"new_chat_selected_count" = "Vytvořit skupinu (%d členů)";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "Napište zprávu...";
+"chat_send_button" = "Odeslat";
+"chat_typing_indicator" = "píše...";
+"chat_read_receipt" = "Přečteno";
+"chat_delivered" = "Doručeno";
+"chat_sending" = "Odesílání...";
+"chat_failed" = "Odeslání se nezdařilo";
+"chat_reply" = "Odpovědět";
+"chat_copy" = "Kopírovat";
+"chat_delete" = "Smazat";
+"chat_delete_for_me" = "Smazat pro mě";
+"chat_delete_for_everyone" = "Smazat pro všechny";
+"chat_react" = "Reagovat";
+"chat_save_photo" = "Uložit do Fotek";
+"chat_download_file" = "Stáhnout soubor";
+"chat_message_deleted" = "Tato zpráva byla smazána";
+"chat_show_original" = "Zobrazit originál";
+"chat_show_translation" = "Zobrazit překlad";
+"chat_translated_from" = "Přeloženo z %@";
+"chat_attach_photo" = "Fotka";
+"chat_attach_camera" = "Fotoaparát";
+"chat_attach_file" = "Soubor";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "Přeložit dokument";
+"chat_group_info" = "Info o skupině";
+"chat_add_people" = "Přidat lidi";
+"chat_remove_people" = "Odebrat lidi";
+"chat_leave_group" = "Opustit skupinu";
+"chat_view_profile" = "Zobrazit profil";
+"chat_search" = "Hledat v chatu";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "Nastavení";
+"settings_preferences" = "PŘEDVOLBY";
+"settings_about" = "O APLIKACI";
+"settings_language" = "Jazyk";
+"settings_country" = "Země";
+"settings_region" = "Region";
+"settings_app_language" = "Jazyk aplikace";
+"settings_app_language_auto" = "Automaticky (jazyk zařízení)";
+"settings_whats_new" = "Co je nového";
+"settings_version" = "Verze";
+"settings_privacy_policy" = "Zásady ochrany osobních údajů";
+"settings_terms_of_service" = "Podmínky služby";
+"settings_help_support" = "Nápověda a podpora";
+"settings_sign_out" = "Odhlásit se";
+"settings_sign_out_confirm" = "Opravdu se chcete odhlásit?";
+"settings_delete_account" = "Smazat účet";
+"settings_edit_name" = "Upravit jméno";
+"settings_display_name" = "Zobrazované jméno";
+"settings_change_photo" = "Změnit profilovou fotku";
+"settings_take_photo" = "Vyfotit";
+"settings_choose_library" = "Vybrat z knihovny";
+"settings_remove_photo" = "Odebrat fotku";
+"settings_photo_error" = "Chyba fotky";
+"settings_photo_error_message" = "Nepodařilo se aktualizovat profilovou fotku";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "Info o skupině";
+"group_info_participants" = "%d účastníků";
+"group_info_participants_header" = "Účastníci";
+"group_info_you" = "(Vy)";
+"group_info_edit_name" = "Upravit název skupiny";
+"group_info_group_name" = "Název skupiny";
+"group_add_participants_title" = "Přidat účastníky";
+"group_add_participants_search" = "Hledat uživatele k přidání...";
+"group_add_participants_button" = "Přidat do skupiny";
+"group_add_participants_empty" = "Žádní uživatelé k přidání";
+"group_remove_participants_title" = "Odebrat účastníky";
+"group_remove_participants_confirm" = "Odebrat %@ ze skupiny?";
+"group_remove_button" = "Odebrat";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "Automaticky (jazyk zařízení)";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "Chyba sítě. Zkontrolujte připojení.";
+"error_server" = "Chyba serveru. Zkuste to později.";
+"error_unknown" = "Došlo k neznámé chybě.";
+"error_authentication" = "Ověření se nezdařilo. Přihlaste se znovu.";
+"error_permission_denied" = "Oprávnění zamítnuto.";
+"error_not_found" = "Nenalezeno.";
+"error_photo_access" = "Vyžadován přístup ke knihovně fotek.";
+"error_camera_access" = "Vyžadován přístup k fotoaparátu.";
+"error_file_too_large" = "Soubor je příliš velký. Max. velikost: %@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "Přístup k fotkám";
+"permission_photos_message" = "Povolte aplikaci Intok přístup k vašim fotkám.";
+"permission_camera_title" = "Přístup k fotoaparátu";
+"permission_camera_message" = "Povolte aplikaci Intok přístup k fotoaparátu.";
+"permission_notifications_title" = "Oznámení";
+"permission_notifications_message" = "Povolte aplikaci Intok zasílat oznámení.";
+"permission_go_to_settings" = "Přejít do Nastavení";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "Právě teď";
+"time_minutes_ago" = "Před %d minutami";
+"time_hours_ago" = "Před %d hodinami";
+"time_yesterday" = "Včera";
+"time_days_ago" = "Před %d dny";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "Zpět";
+"accessibility_close_button" = "Zavřít";
+"accessibility_send_message" = "Odeslat zprávu";
+"accessibility_attach_media" = "Připojit média";
+"accessibility_take_photo" = "Vyfotit";
+"accessibility_select_emoji" = "Vybrat emoji";
+"accessibility_profile_picture" = "Profilová fotka";
+"accessibility_unread_messages" = "%d nepřečtených zpráv";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "Žádné konverzace";
+"empty_messages" = "Žádné zprávy";
+"empty_search_results" = "Žádné výsledky";
+"empty_users" = "Nebyli nalezeni žádní uživatelé";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "Nová zpráva";
+"notification_new_message_from" = "Nová zpráva od %@";
+"notification_photo" = "%@ poslal(a) fotku";
+"notification_file" = "%@ poslal(a) soubor";
+"notification_gif" = "%@ poslal(a) GIF";

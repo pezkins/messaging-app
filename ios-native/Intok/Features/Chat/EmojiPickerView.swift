@@ -43,11 +43,11 @@ struct EmojiPickerView: View {
                 }
             }
             .background(Color(hex: "0F0F0F"))
-            .navigationTitle("Emoji")
+            .navigationTitle("accessibility_select_emoji".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button("common_cancel".localized) {
                         dismiss()
                     }
                     .foregroundColor(Color(hex: "8B5CF6"))
@@ -185,7 +185,7 @@ struct QuickReactionBar: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "arrowshape.turn.up.left")
-                        Text("Reply")
+                        Text("chat_reply".localized)
                     }
                     .font(.subheadline)
                     .foregroundColor(.white)
@@ -203,7 +203,7 @@ struct QuickReactionBar: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "doc.on.doc")
-                        Text("Copy")
+                        Text("chat_copy".localized)
                     }
                     .font(.subheadline)
                     .foregroundColor(.white)
@@ -221,7 +221,7 @@ struct QuickReactionBar: View {
                 } label: {
                     HStack(spacing: 6) {
                         Image(systemName: "trash")
-                        Text("Delete")
+                        Text("chat_delete".localized)
                     }
                     .font(.subheadline)
                     .foregroundColor(.red)

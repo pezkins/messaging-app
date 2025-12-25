@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">Intok</string>
+    
+    <!-- ==================== AUTHENTICATION ==================== -->
+    <!-- Login Screen -->
+    <string name="login_title">Bienvenido a Intok</string>
+    <string name="login_subtitle">Conecta globalmente, comunica naturalmente</string>
+    <string name="login_email_label">Correo electrónico</string>
+    <string name="login_email_hint">Ingresa tu correo electrónico</string>
+    <string name="login_password_label">Contraseña</string>
+    <string name="login_password_hint">Ingresa tu contraseña</string>
+    <string name="login_button">Iniciar sesión</string>
+    <string name="login_with_google">Continuar con Google</string>
+    <string name="login_with_apple">Continuar con Apple</string>
+    <string name="login_with_email">Continuar con correo</string>
+    <string name="login_no_account">¿No tienes una cuenta?</string>
+    <string name="login_create_account">Crear cuenta</string>
+    <string name="login_forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="login_or">o</string>
+    <string name="login_terms">Al continuar, aceptas nuestros Términos de Servicio y Política de Privacidad</string>
+    <string name="login_enter_email">Ingresa tu correo</string>
+    <string name="login_check_account">Verificaremos si tienes una cuenta</string>
+    <string name="login_welcome_back">¡Bienvenido de nuevo!</string>
+    <string name="login_enter_password_for">Ingresa tu contraseña para %s</string>
+    <string name="login_error_title">Error de inicio de sesión</string>
+    <string name="login_error_invalid_email">Por favor ingresa un correo válido</string>
+    <string name="login_error_invalid_password">La contraseña debe tener al menos 6 caracteres</string>
+    <string name="login_error_failed">Error al iniciar sesión. Inténtalo de nuevo.</string>
+    
+    <!-- Register Screen -->
+    <string name="register_title">Crea tu cuenta</string>
+    <string name="register_subtitle">Únete a Intok y chatea en cualquier idioma</string>
+    <string name="register_setup_profile">Configura tu perfil para %s</string>
+    <string name="register_username_label">Nombre para mostrar</string>
+    <string name="register_username_hint">Elige un nombre de usuario</string>
+    <string name="register_email_label">Correo electrónico</string>
+    <string name="register_email_hint">Ingresa tu correo electrónico</string>
+    <string name="register_password_label">Contraseña</string>
+    <string name="register_password_hint">Crea una contraseña</string>
+    <string name="register_confirm_password_label">Confirmar contraseña</string>
+    <string name="register_confirm_password_hint">Confirma tu contraseña</string>
+    <string name="register_button">Crear cuenta</string>
+    <string name="register_have_account">¿Ya tienes una cuenta?</string>
+    <string name="register_sign_in">Iniciar sesión</string>
+    <string name="register_min_chars">Al menos %d caracteres</string>
+    <string name="register_error_username_required">El nombre de usuario es requerido</string>
+    <string name="register_error_passwords_dont_match">Las contraseñas no coinciden</string>
+    <string name="register_error_failed">Error en el registro. Inténtalo de nuevo.</string>
+    
+    <!-- ==================== SETUP ==================== -->
+    <string name="setup_title">Configura tu perfil</string>
+    <string name="setup_language_title">Selecciona tu idioma</string>
+    <string name="setup_language_subtitle">Los mensajes se traducirán a este idioma</string>
+    <string name="setup_country_title">Selecciona tu país</string>
+    <string name="setup_country_subtitle">Para preferencias de vocabulario regional</string>
+    <string name="setup_region_title">Selecciona tu región</string>
+    <string name="setup_region_subtitle">Opcional: Para traducciones más precisas</string>
+    <string name="setup_continue">Continuar</string>
+    <string name="setup_skip">Omitir</string>
+    <string name="setup_search_language">Buscar idiomas…</string>
+    <string name="setup_search_country">Buscar países…</string>
+    <string name="setup_no_results">No se encontraron resultados</string>
+    
+    <!-- ==================== CONVERSATIONS ==================== -->
+    <string name="conversations_title">Mensajes</string>
+    <string name="conversations_search_hint">Buscar conversaciones…</string>
+    <string name="conversations_empty_title">Sin conversaciones aún</string>
+    <string name="conversations_empty_subtitle">Inicia un nuevo chat para empezar a enviar mensajes</string>
+    <string name="conversations_new_chat">Nuevo chat</string>
+    <string name="conversations_delete">Eliminar</string>
+    <string name="conversations_delete_confirm_title">¿Eliminar conversación?</string>
+    <string name="conversations_delete_confirm_message">Esta conversación se eliminará de tu vista. Esto no se puede deshacer.</string>
+    <string name="conversations_group_chat">Chat grupal</string>
+    <string name="conversations_typing">escribiendo…</string>
+    
+    <!-- ==================== CHAT ==================== -->
+    <string name="chat_message_hint">Mensaje…</string>
+    <string name="chat_send">Enviar</string>
+    <string name="chat_typing">Alguien está escribiendo…</string>
+    <string name="chat_show_original">Original</string>
+    <string name="chat_translate">Traducir</string>
+    <string name="chat_copy">Copiar</string>
+    <string name="chat_reply">Responder</string>
+    <string name="chat_react">Reaccionar</string>
+    <string name="chat_delete">Eliminar</string>
+    <string name="chat_delete_for_me">Eliminar para mí</string>
+    <string name="chat_delete_for_everyone">Eliminar para todos</string>
+    <string name="chat_delete_confirm_title">¿Eliminar mensaje?</string>
+    <string name="chat_delete_confirm_message">¿Estás seguro de que quieres eliminar este mensaje?</string>
+    <string name="chat_message_deleted">Este mensaje fue eliminado</string>
+    <string name="chat_save_to_gallery">Guardar en galería</string>
+    <string name="chat_download">Descargar</string>
+    <string name="chat_image_saved">Imagen guardada en galería</string>
+    <string name="chat_download_started">Descarga iniciada</string>
+    <string name="chat_attachment_photo">Foto</string>
+    <string name="chat_attachment_camera">Cámara</string>
+    <string name="chat_attachment_document">Documento</string>
+    <string name="chat_attachment_gif">GIF</string>
+    <string name="chat_replying_to">Respondiendo a %s</string>
+    <string name="chat_sent_photo">Envió una foto</string>
+    <string name="chat_sent_document">Envió un documento</string>
+    <string name="chat_sent_gif">Envió un GIF</string>
+    
+    <!-- Chat Menu -->
+    <string name="chat_menu_add_people">Agregar personas</string>
+    <string name="chat_menu_remove_people">Eliminar personas</string>
+    <string name="chat_menu_group_info">Info del grupo</string>
+    <string name="chat_menu_view_profile">Ver perfil</string>
+    
+    <!-- ==================== NEW CHAT ==================== -->
+    <string name="new_chat_title">Nuevo chat</string>
+    <string name="new_chat_new_group">Nuevo grupo</string>
+    <string name="new_chat_direct">Directo</string>
+    <string name="new_chat_group">Grupo</string>
+    <string name="new_chat_search_hint">Buscar usuarios…</string>
+    <string name="new_chat_empty_title">Encuentra a alguien para chatear</string>
+    <string name="new_chat_empty_subtitle">Busca usuarios por nombre o correo</string>
+    <string name="new_chat_no_results">No se encontraron usuarios</string>
+    <string name="new_chat_create_group">Crear grupo</string>
+    <string name="new_chat_create_group_count">Crear grupo (%d miembros)</string>
+    <string name="new_chat_group_name_hint">Nombre del grupo</string>
+    <string name="new_chat_select_participants">Seleccionar participantes</string>
+    <string name="new_chat_selected">%d seleccionados</string>
+    
+    <!-- ==================== GROUP INFO ==================== -->
+    <string name="group_info_title">Info del grupo</string>
+    <string name="group_info_participants">Participantes</string>
+    <string name="group_info_participants_count">%d participantes</string>
+    <string name="group_info_edit_name">Editar nombre</string>
+    <string name="group_info_change_photo">Cambiar foto</string>
+    <string name="group_info_leave_group">Salir del grupo</string>
+    <string name="group_info_leave_confirm_title">¿Salir del grupo?</string>
+    <string name="group_info_leave_confirm_message">¿Estás seguro de que quieres salir de este grupo?</string>
+    
+    <!-- Add/Remove Participants -->
+    <string name="add_participants_title">Agregar personas</string>
+    <string name="add_participants_search_hint">Buscar usuarios…</string>
+    <string name="add_participants_add">Agregar</string>
+    <string name="add_participants_adding">Agregando…</string>
+    <string name="remove_participants_title">Eliminar personas</string>
+    <string name="remove_participants_remove">Eliminar</string>
+    <string name="remove_participants_confirm_title">¿Eliminar a %s?</string>
+    <string name="remove_participants_confirm_message">¿Estás seguro de que quieres eliminar a esta persona del grupo?</string>
+    
+    <!-- ==================== SETTINGS ==================== -->
+    <string name="settings_title">Configuración</string>
+    <string name="settings_preferences">PREFERENCIAS</string>
+    <string name="settings_about">ACERCA DE</string>
+    <string name="settings_profile">Perfil</string>
+    <string name="settings_profile_edit">Editar perfil</string>
+    <string name="settings_profile_picture">Foto de perfil</string>
+    <string name="settings_username">Nombre de usuario</string>
+    <string name="settings_email">Correo electrónico</string>
+    
+    <!-- Profile Photo -->
+    <string name="change_profile_photo">Cambiar foto de perfil</string>
+    <string name="take_photo">Tomar foto</string>
+    <string name="choose_from_gallery">Elegir de la galería</string>
+    <string name="remove_photo">Eliminar foto</string>
+    <string name="uploading_photo">Subiendo foto…</string>
+    <string name="edit_display_name">Editar nombre</string>
+    
+    <!-- Language Settings -->
+    <string name="settings_language_section">Idioma</string>
+    <string name="settings_message_language">Idioma</string>
+    <string name="settings_message_language_desc">Los mensajes se traducen a este idioma</string>
+    <string name="settings_app_language">Idioma de la app</string>
+    <string name="settings_app_language_desc">Cambiar el idioma de la interfaz</string>
+    <string name="settings_app_language_auto">Automático (idioma del dispositivo)</string>
+    <string name="settings_country">País</string>
+    <string name="settings_country_desc">Para vocabulario regional</string>
+    <string name="settings_region">Región</string>
+    <string name="settings_region_desc">Para traducciones más precisas</string>
+    <string name="not_set">No establecido</string>
+    
+    <!-- Notifications -->
+    <string name="settings_notifications_section">Notificaciones</string>
+    <string name="settings_notifications_enabled">Notificaciones push</string>
+    <string name="settings_notifications_sound">Sonido</string>
+    <string name="settings_notifications_vibrate">Vibración</string>
+    
+    <!-- About -->
+    <string name="settings_about_section">Acerca de</string>
+    <string name="settings_version">Versión</string>
+    <string name="settings_whats_new">Novedades</string>
+    <string name="settings_privacy_policy">Política de privacidad</string>
+    <string name="settings_terms_of_service">Términos de servicio</string>
+    <string name="settings_support">Soporte</string>
+    
+    <!-- Account -->
+    <string name="settings_account_section">Cuenta</string>
+    <string name="settings_logout">Cerrar sesión</string>
+    <string name="settings_logout_confirm_title">¿Cerrar sesión?</string>
+    <string name="settings_logout_confirm_message">¿Estás seguro de que quieres cerrar sesión?</string>
+    <string name="settings_delete_account">Eliminar cuenta</string>
+    <string name="settings_delete_account_confirm_title">¿Eliminar cuenta?</string>
+    <string name="settings_delete_account_confirm_message">Esto eliminará permanentemente tu cuenta y todos los datos. Esto no se puede deshacer.</string>
+    <string name="sign_out">Cerrar sesión</string>
+    <string name="sign_out_confirm">¿Estás seguro de que quieres cerrar sesión?</string>
+    
+    <!-- ==================== COMMON ==================== -->
+    <string name="ok">OK</string>
+    <string name="cancel">Cancelar</string>
+    <string name="done">Listo</string>
+    <string name="save">Guardar</string>
+    <string name="delete">Eliminar</string>
+    <string name="edit">Editar</string>
+    <string name="close">Cerrar</string>
+    <string name="back">Atrás</string>
+    <string name="next">Siguiente</string>
+    <string name="search">Buscar</string>
+    <string name="loading">Cargando…</string>
+    <string name="error">Error</string>
+    <string name="retry">Reintentar</string>
+    <string name="yes">Sí</string>
+    <string name="no">No</string>
+    
+    <!-- Error Messages -->
+    <string name="error_network">Error de red. Verifica tu conexión.</string>
+    <string name="error_server">Error del servidor. Inténtalo más tarde.</string>
+    <string name="error_unknown">Algo salió mal. Inténtalo de nuevo.</string>
+    <string name="error_session_expired">Tu sesión ha expirado. Inicia sesión de nuevo.</string>
+    <string name="error_permission_denied">Permiso denegado</string>
+    
+    <!-- Empty States -->
+    <string name="empty_no_data">No hay datos disponibles</string>
+    <string name="empty_no_messages">Sin mensajes aún</string>
+    <string name="empty_no_results">No se encontraron resultados</string>
+    
+    <!-- Accessibility -->
+    <string name="accessibility_back_button">Volver</string>
+    <string name="accessibility_send_message">Enviar mensaje</string>
+    <string name="accessibility_attach_file">Adjuntar archivo</string>
+    <string name="accessibility_take_photo">Tomar foto</string>
+    <string name="accessibility_open_menu">Abrir menú</string>
+    <string name="accessibility_close_menu">Cerrar menú</string>
+    <string name="accessibility_user_avatar">Avatar del usuario</string>
+    <string name="accessibility_emoji_picker">Abrir selector de emojis</string>
+    
+    <!-- Time/Date -->
+    <string name="time_just_now">Ahora mismo</string>
+    <string name="time_minutes_ago">hace %d min</string>
+    <string name="time_hours_ago">hace %d h</string>
+    <string name="time_yesterday">Ayer</string>
+    
+    <!-- Notifications -->
+    <string name="notification_channel_messages">Mensajes</string>
+    <string name="notification_channel_messages_desc">Notificaciones de mensajes nuevos</string>
+    <string name="notification_new_message">Nuevo mensaje de %s</string>
+    
+    <!-- What's New Dialog -->
+    <string name="whats_new_title">Novedades</string>
+    <string name="whats_new_version">Versión %s</string>
+    <string name="got_it">¡Entendido!</string>
+    
+    <!-- App Language Picker -->
+    <string name="language_picker_title">Seleccionar idioma de la app</string>
+    <string name="language_picker_auto">Automático (usar idioma del dispositivo)</string>
+    <string name="language_picker_current">Actual: %s</string>
+</resources>

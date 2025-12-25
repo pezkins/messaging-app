@@ -31,7 +31,7 @@ struct GroupInfoView: View {
                         groupNameSection
                         
                         // Participant Count
-                        Text("\(conversation.participants.count) participants")
+                        Text("group_info_participants".localized(with: conversation.participants.count))
                             .font(.subheadline)
                             .foregroundColor(.gray)
                         
@@ -41,7 +41,7 @@ struct GroupInfoView: View {
                         
                         // Participants Section
                         VStack(alignment: .leading, spacing: 16) {
-                            Text("Participants")
+                            Text("group_info_participants_header".localized)
                                 .font(.headline)
                                 .foregroundColor(.white)
                                 .padding(.horizontal)
@@ -55,7 +55,7 @@ struct GroupInfoView: View {
                     }
                 }
             }
-            .navigationTitle("Group Info")
+            .navigationTitle("group_info_title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -186,7 +186,7 @@ struct GroupInfoView: View {
                         .fontWeight(.medium)
                     
                     if user.id == authManager.currentUser?.id {
-                        Text("(You)")
+                        Text("group_info_you".localized)
                             .font(.caption)
                             .foregroundColor(.gray)
                     }

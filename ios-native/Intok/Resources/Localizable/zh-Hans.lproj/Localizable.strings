@@ -1,0 +1,269 @@
+/*
+ * Localizable.strings (Chinese Simplified - 简体中文)
+ * Intok
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "确定";
+"common_cancel" = "取消";
+"common_done" = "完成";
+"common_save" = "保存";
+"common_delete" = "删除";
+"common_edit" = "编辑";
+"common_close" = "关闭";
+"common_back" = "返回";
+"common_next" = "下一步";
+"common_continue" = "继续";
+"common_skip" = "跳过";
+"common_finish" = "完成";
+"common_loading" = "加载中...";
+"common_error" = "错误";
+"common_success" = "成功";
+"common_retry" = "重试";
+"common_try_again" = "再试一次";
+"common_search" = "搜索";
+"common_or" = "或";
+"common_yes" = "是";
+"common_no" = "否";
+"common_unknown" = "未知";
+"common_not_set" = "未设置";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "全球连接，自然交流";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "使用Apple继续";
+"login_continue_google" = "使用Google继续";
+"login_continue_email" = "使用邮箱继续";
+"login_terms_notice" = "继续即表示您同意我们的服务条款和隐私政策";
+"login_sign_in_apple" = "使用Apple登录";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "使用邮箱继续";
+"email_auth_welcome_back" = "欢迎回来";
+"email_auth_create_account" = "创建账户";
+"email_auth_whats_your_email" = "您的邮箱是？";
+"email_auth_check_account" = "我们将检查您是否有账户";
+"email_auth_email_label" = "邮箱";
+"email_auth_email_placeholder" = "输入邮箱";
+"email_auth_enter_password" = "输入密码";
+"email_auth_password_label" = "密码";
+"email_auth_sign_in" = "登录";
+"email_auth_forgot_password" = "忘记密码？";
+"email_auth_create_your_account" = "创建账户";
+"email_auth_display_name_label" = "显示名称";
+"email_auth_confirm_password_label" = "确认密码";
+"email_auth_password_hint" = "至少6个字符";
+"email_auth_passwords_dont_match" = "密码不匹配";
+"email_auth_preferred_language" = "首选语言";
+"email_auth_country" = "国家";
+"email_auth_create_account_button" = "创建账户";
+"email_auth_check_email_error" = "验证邮箱失败。请重试。";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "选择显示名称";
+"setup_how_others_see_you" = "其他人将看到此名称";
+"setup_enter_name_placeholder" = "输入您的名字";
+"setup_select_language" = "选择语言";
+"setup_messages_translated" = "消息将翻译成此语言";
+"setup_search_languages" = "搜索语言...";
+"setup_select_country" = "选择国家";
+"setup_country_optional" = "可选 - 帮助您与附近的用户连接";
+"setup_search_countries" = "搜索国家...";
+"setup_select_region" = "选择地区";
+"setup_region_accuracy" = "这有助于提高翻译准确性";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "消息";
+"conversations_search_placeholder" = "搜索对话...";
+"conversations_loading" = "加载对话中...";
+"conversations_empty_title" = "暂无对话";
+"conversations_empty_subtitle" = "点击撰写按钮开始对话";
+"conversations_start_new" = "开始新聊天";
+"conversations_error_title" = "出错了";
+"conversations_group_chat" = "群聊";
+"conversations_no_messages" = "暂无消息";
+"conversations_yesterday" = "昨天";
+"conversations_delete_title" = "删除对话";
+"conversations_delete_message" = "删除此对话？此操作无法撤销。";
+"conversations_delete_button" = "删除对话";
+"conversations_deleting" = "删除中...";
+"conversations_preview_photo" = "📷 照片";
+"conversations_preview_voice" = "🎤 语音消息";
+"conversations_preview_file" = "📎 文件";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "新消息";
+"new_chat_direct" = "私聊";
+"new_chat_group" = "群组";
+"new_chat_search_users" = "搜索用户...";
+"new_chat_no_results" = "未找到用户";
+"new_chat_create_group" = "创建群组";
+"new_chat_group_name_placeholder" = "群组名称（可选）";
+"new_chat_selected_count" = "创建群组（%d人）";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "输入消息...";
+"chat_send_button" = "发送";
+"chat_typing_indicator" = "正在输入...";
+"chat_read_receipt" = "已读";
+"chat_delivered" = "已送达";
+"chat_sending" = "发送中...";
+"chat_failed" = "发送失败";
+"chat_reply" = "回复";
+"chat_copy" = "复制";
+"chat_delete" = "删除";
+"chat_delete_for_me" = "删除（仅自己）";
+"chat_delete_for_everyone" = "删除（所有人）";
+"chat_delete_confirm" = "此操作无法撤销。";
+"chat_react" = "回应";
+"chat_save_photo" = "保存到相册";
+"chat_download_file" = "下载文件";
+"chat_image_saved" = "图片已保存到相册";
+"chat_uploading" = "上传中...";
+"chat_message_deleted" = "此消息已删除";
+"gif_try_different_search" = "尝试其他搜索词";
+"chat_show_original" = "显示原文";
+"chat_show_translation" = "显示翻译";
+"chat_translated_from" = "翻译自%@";
+"chat_attach_photo" = "照片";
+"chat_attach_camera" = "相机";
+"chat_attach_file" = "文件";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "翻译文档";
+"chat_group_info" = "群组信息";
+"chat_add_people" = "添加成员";
+"chat_remove_people" = "移除成员";
+"chat_leave_group" = "退出群组";
+"chat_view_profile" = "查看资料";
+"chat_search" = "搜索聊天";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "设置";
+"settings_preferences" = "偏好设置";
+"settings_about" = "关于";
+"settings_language" = "语言";
+"settings_country" = "国家";
+"settings_region" = "地区";
+"settings_app_language" = "应用语言";
+"settings_app_language_auto" = "自动（设备语言）";
+"settings_whats_new" = "新功能";
+"settings_version" = "版本";
+"settings_privacy_policy" = "隐私政策";
+"settings_terms_of_service" = "服务条款";
+"settings_help_support" = "帮助与支持";
+"settings_sign_out" = "退出登录";
+"settings_sign_out_confirm" = "确定要退出登录吗？";
+"settings_delete_account" = "删除账户";
+"settings_edit_name" = "编辑名称";
+"settings_display_name" = "显示名称";
+"settings_change_photo" = "更改头像";
+"settings_take_photo" = "拍照";
+"settings_choose_library" = "从相册选择";
+"settings_remove_photo" = "移除照片";
+"settings_photo_error" = "照片错误";
+"settings_photo_error_message" = "更新头像失败";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "群组信息";
+"group_info_participants" = "%d位成员";
+"group_info_participants_header" = "成员";
+"group_info_you" = "（你）";
+"group_info_edit_name" = "编辑群组名称";
+"group_info_group_name" = "群组名称";
+"group_add_participants_title" = "添加成员";
+"group_add_participants_search" = "搜索用户...";
+"group_add_participants_button" = "添加到群组";
+"group_add_participants_empty" = "没有可添加的用户";
+"group_remove_participants_title" = "移除成员";
+"group_remove_participants_confirm" = "将%@从群组中移除？";
+"group_remove_button" = "移除";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "自动（设备语言）";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "网络错误。请检查您的连接。";
+"error_server" = "服务器错误。请稍后重试。";
+"error_unknown" = "发生未知错误。";
+"error_authentication" = "认证失败。请重新登录。";
+"error_permission_denied" = "权限被拒绝。";
+"error_not_found" = "未找到。";
+"error_photo_access" = "需要访问照片库的权限。";
+"error_camera_access" = "需要访问相机的权限。";
+"error_file_too_large" = "文件太大。最大大小：%@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "照片访问";
+"permission_photos_message" = "允许Intok访问您的照片以分享图片。";
+"permission_camera_title" = "相机访问";
+"permission_camera_message" = "允许Intok访问您的相机以拍摄照片。";
+"permission_notifications_title" = "通知";
+"permission_notifications_message" = "允许Intok向您发送新消息通知。";
+"permission_go_to_settings" = "前往设置";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "刚刚";
+"time_minutes_ago" = "%d分钟前";
+"time_hours_ago" = "%d小时前";
+"time_yesterday" = "昨天";
+"time_days_ago" = "%d天前";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "返回";
+"accessibility_close_button" = "关闭";
+"accessibility_send_message" = "发送消息";
+"accessibility_attach_media" = "添加媒体";
+"accessibility_take_photo" = "拍照";
+"accessibility_select_emoji" = "选择表情";
+"accessibility_profile_picture" = "头像";
+"accessibility_unread_messages" = "%d条未读消息";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "暂无对话";
+"empty_messages" = "暂无消息";
+"empty_search_results" = "无结果";
+"empty_users" = "未找到用户";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "新消息";
+"notification_new_message_from" = "来自%@的新消息";
+"notification_photo" = "%@发送了一张照片";
+"notification_file" = "%@发送了一个文件";
+"notification_gif" = "%@发送了一个GIF";

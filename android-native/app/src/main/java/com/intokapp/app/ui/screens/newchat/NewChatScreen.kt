@@ -17,12 +17,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.intokapp.app.R
 import com.intokapp.app.data.constants.getLanguageByCode
 import com.intokapp.app.data.models.UserPublic
+import com.intokapp.app.data.repository.localizedString
 import com.intokapp.app.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -50,7 +53,7 @@ fun NewChatScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isGroupMode) "New Group" else "New Chat", color = White) },
+                title = { Text(if (isGroupMode) localizedString(R.string.new_chat_new_group, "new_chat.new_group_title") else localizedString(R.string.new_chat_title, "new_chat.new_chat_title"), color = White) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, null, tint = White)
@@ -80,7 +83,7 @@ fun NewChatScreen(
                 FilterChip(
                     selected = !isGroupMode,
                     onClick = { isGroupMode = false },
-                    label = { Text("Direct") },
+                    label = { Text(localizedString(R.string.new_chat_direct, "new_chat.new_chat_start_conversation")) },
                     modifier = Modifier.weight(1f),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = Purple500,
@@ -91,7 +94,7 @@ fun NewChatScreen(
                 FilterChip(
                     selected = isGroupMode,
                     onClick = { isGroupMode = true },
-                    label = { Text("Group") },
+                    label = { Text(localizedString(R.string.new_chat_group, "new_chat.new_group_title")) },
                     modifier = Modifier.weight(1f),
                     colors = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = Purple500,
@@ -105,7 +108,7 @@ fun NewChatScreen(
                 OutlinedTextField(
                     value = groupName,
                     onValueChange = { groupName = it },
-                    placeholder = { Text("Group Name", color = Surface500) },
+                    placeholder = { Text(localizedString(R.string.new_chat_group_name_hint, "new_chat.new_group_name_placeholder"), color = Surface500) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
@@ -126,7 +129,7 @@ fun NewChatScreen(
             OutlinedTextField(
                 value = searchText,
                 onValueChange = { searchText = it },
-                placeholder = { Text("Search users...", color = Surface500) },
+                placeholder = { Text(localizedString(R.string.new_chat_search_hint, "new_chat.new_chat_search_placeholder"), color = Surface500) },
                 leadingIcon = { Icon(Icons.Default.Search, null, tint = Surface500) },
                 trailingIcon = {
                     if (uiState.isSearching) {
@@ -198,7 +201,7 @@ fun NewChatScreen(
                                 tint = Surface500
                             )
                             Text(
-                                "No users found",
+                                localizedString(R.string.new_chat_no_results, "new_chat.new_chat_no_results"),
                                 color = Surface500,
                                 modifier = Modifier.padding(top = 8.dp)
                             )
@@ -252,7 +255,7 @@ fun NewChatScreen(
                         )
                     } else {
                         Text(
-                            "Create Group (${uiState.selectedUsers.size} members)",
+                            localizedString(R.string.new_chat_create_group, "new_chat.new_group_create_button"),
                             fontWeight = FontWeight.SemiBold
                         )
                     }

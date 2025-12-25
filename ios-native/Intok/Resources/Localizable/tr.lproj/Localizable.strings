@@ -1,0 +1,269 @@
+/*
+ * Localizable.strings (Turkish - Türkçe)
+ * Intok
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "Tamam";
+"common_cancel" = "İptal";
+"common_done" = "Bitti";
+"common_save" = "Kaydet";
+"common_delete" = "Sil";
+"common_edit" = "Düzenle";
+"common_close" = "Kapat";
+"common_back" = "Geri";
+"common_next" = "İleri";
+"common_continue" = "Devam";
+"common_skip" = "Atla";
+"common_finish" = "Bitir";
+"common_loading" = "Yükleniyor...";
+"common_error" = "Hata";
+"common_success" = "Başarılı";
+"common_retry" = "Tekrar Dene";
+"common_try_again" = "Tekrar Dene";
+"common_search" = "Ara";
+"common_or" = "veya";
+"common_yes" = "Evet";
+"common_no" = "Hayır";
+"common_unknown" = "Bilinmiyor";
+"common_not_set" = "Ayarlanmadı";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "Küresel bağlan, doğal iletişim kur";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "Apple ile Devam Et";
+"login_continue_google" = "Google ile Devam Et";
+"login_continue_email" = "E-posta ile Devam Et";
+"login_terms_notice" = "Devam ederek Hizmet Şartlarını ve Gizlilik Politikasını kabul edersiniz";
+"login_sign_in_apple" = "Apple ile Giriş Yap";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "E-posta ile Devam Et";
+"email_auth_welcome_back" = "Tekrar Hoş Geldiniz";
+"email_auth_create_account" = "Hesap Oluştur";
+"email_auth_whats_your_email" = "E-postanız nedir?";
+"email_auth_check_account" = "Hesabınız olup olmadığını kontrol edeceğiz";
+"email_auth_email_label" = "E-posta";
+"email_auth_email_placeholder" = "E-postanızı girin";
+"email_auth_enter_password" = "Şifrenizi girin";
+"email_auth_password_label" = "Şifre";
+"email_auth_sign_in" = "Giriş Yap";
+"email_auth_forgot_password" = "Şifremi unuttum?";
+"email_auth_create_your_account" = "Hesabınızı oluşturun";
+"email_auth_display_name_label" = "Görünen Ad";
+"email_auth_confirm_password_label" = "Şifreyi Onayla";
+"email_auth_password_hint" = "En az 6 karakter";
+"email_auth_passwords_dont_match" = "Şifreler eşleşmiyor";
+"email_auth_preferred_language" = "Tercih Edilen Dil";
+"email_auth_country" = "Ülke";
+"email_auth_create_account_button" = "Hesap Oluştur";
+"email_auth_check_email_error" = "E-posta kontrol edilemedi. Lütfen tekrar deneyin.";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "Görünen Ad Seçin";
+"setup_how_others_see_you" = "Diğerleri sizi böyle görecek";
+"setup_enter_name_placeholder" = "Adınızı girin";
+"setup_select_language" = "Dilinizi Seçin";
+"setup_messages_translated" = "Mesajlar bu dile çevrilecek";
+"setup_search_languages" = "Dil ara...";
+"setup_select_country" = "Ülkenizi Seçin";
+"setup_country_optional" = "İsteğe bağlı - yakındaki kullanıcılarla bağlantı kurmanıza yardımcı olur";
+"setup_search_countries" = "Ülke ara...";
+"setup_select_region" = "Bölgenizi Seçin";
+"setup_region_accuracy" = "Bu çeviri doğruluğuna yardımcı olur";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "Mesajlar";
+"conversations_search_placeholder" = "Sohbet ara...";
+"conversations_loading" = "Sohbetler yükleniyor...";
+"conversations_empty_title" = "Henüz sohbet yok";
+"conversations_empty_subtitle" = "Oluştur düğmesine dokunarak sohbet başlatın";
+"conversations_start_new" = "Yeni Sohbet Başlat";
+"conversations_error_title" = "Bir şeyler yanlış gitti";
+"conversations_group_chat" = "Grup Sohbeti";
+"conversations_no_messages" = "Henüz mesaj yok";
+"conversations_yesterday" = "Dün";
+"conversations_delete_title" = "Sohbeti Sil";
+"conversations_delete_message" = "Bu sohbeti silinsin mi? Bu geri alınamaz.";
+"conversations_delete_button" = "Sohbeti Sil";
+"conversations_deleting" = "Siliniyor...";
+"conversations_preview_photo" = "📷 Fotoğraf";
+"conversations_preview_voice" = "🎤 Sesli mesaj";
+"conversations_preview_file" = "📎 Dosya";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "Yeni Mesaj";
+"new_chat_direct" = "Direkt";
+"new_chat_group" = "Grup";
+"new_chat_search_users" = "Kullanıcı ara...";
+"new_chat_no_results" = "Kullanıcı bulunamadı";
+"new_chat_create_group" = "Grup Oluştur";
+"new_chat_group_name_placeholder" = "Grup adı (isteğe bağlı)";
+"new_chat_selected_count" = "Grup Oluştur (%d üye)";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "Mesaj yazın...";
+"chat_send_button" = "Gönder";
+"chat_typing_indicator" = "yazıyor...";
+"chat_read_receipt" = "Okundu";
+"chat_delivered" = "Teslim Edildi";
+"chat_sending" = "Gönderiliyor...";
+"chat_failed" = "Gönderilemedi";
+"chat_reply" = "Yanıtla";
+"chat_copy" = "Kopyala";
+"chat_delete" = "Sil";
+"chat_delete_for_me" = "Benim için sil";
+"chat_delete_for_everyone" = "Herkes için sil";
+"chat_delete_confirm" = "Bu işlem geri alınamaz.";
+"chat_react" = "Tepki ver";
+"chat_save_photo" = "Fotoğraflara Kaydet";
+"chat_download_file" = "Dosyayı İndir";
+"chat_image_saved" = "Resim Fotoğraflara kaydedildi";
+"chat_uploading" = "Yükleniyor...";
+"chat_message_deleted" = "Bu mesaj silindi";
+"gif_try_different_search" = "Farklı bir arama terimi deneyin";
+"chat_show_original" = "Orijinali Göster";
+"chat_show_translation" = "Çeviriyi Göster";
+"chat_translated_from" = "%@ dilinden çevrildi";
+"chat_attach_photo" = "Fotoğraf";
+"chat_attach_camera" = "Kamera";
+"chat_attach_file" = "Dosya";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "Belgeyi çevir";
+"chat_group_info" = "Grup Bilgisi";
+"chat_add_people" = "Kişi Ekle";
+"chat_remove_people" = "Kişi Çıkar";
+"chat_leave_group" = "Gruptan Ayrıl";
+"chat_view_profile" = "Profili Görüntüle";
+"chat_search" = "Sohbette Ara";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "Ayarlar";
+"settings_preferences" = "TERCİHLER";
+"settings_about" = "HAKKINDA";
+"settings_language" = "Dil";
+"settings_country" = "Ülke";
+"settings_region" = "Bölge";
+"settings_app_language" = "Uygulama Dili";
+"settings_app_language_auto" = "Otomatik (cihaz dili)";
+"settings_whats_new" = "Yenilikler";
+"settings_version" = "Sürüm";
+"settings_privacy_policy" = "Gizlilik Politikası";
+"settings_terms_of_service" = "Hizmet Şartları";
+"settings_help_support" = "Yardım ve Destek";
+"settings_sign_out" = "Çıkış Yap";
+"settings_sign_out_confirm" = "Çıkış yapmak istediğinizden emin misiniz?";
+"settings_delete_account" = "Hesabı Sil";
+"settings_edit_name" = "Adı Düzenle";
+"settings_display_name" = "Görünen Ad";
+"settings_change_photo" = "Profil Fotoğrafını Değiştir";
+"settings_take_photo" = "Fotoğraf Çek";
+"settings_choose_library" = "Galeriden Seç";
+"settings_remove_photo" = "Fotoğrafı Kaldır";
+"settings_photo_error" = "Fotoğraf Hatası";
+"settings_photo_error_message" = "Profil fotoğrafı güncellenemedi";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "Grup Bilgisi";
+"group_info_participants" = "%d Katılımcı";
+"group_info_participants_header" = "Katılımcılar";
+"group_info_you" = "(Sen)";
+"group_info_edit_name" = "Grup Adını Düzenle";
+"group_info_group_name" = "Grup Adı";
+"group_add_participants_title" = "Katılımcı Ekle";
+"group_add_participants_search" = "Eklenecek kullanıcı ara...";
+"group_add_participants_button" = "Gruba Ekle";
+"group_add_participants_empty" = "Eklenecek kullanıcı yok";
+"group_remove_participants_title" = "Katılımcı Çıkar";
+"group_remove_participants_confirm" = "%@ gruptan çıkarılsın mı?";
+"group_remove_button" = "Çıkar";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "Otomatik (cihaz dili)";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "Ağ hatası. Lütfen bağlantınızı kontrol edin.";
+"error_server" = "Sunucu hatası. Lütfen daha sonra tekrar deneyin.";
+"error_unknown" = "Bilinmeyen bir hata oluştu.";
+"error_authentication" = "Kimlik doğrulama başarısız. Lütfen tekrar giriş yapın.";
+"error_permission_denied" = "İzin reddedildi.";
+"error_not_found" = "Bulunamadı.";
+"error_photo_access" = "Fotoğraf kitaplığı erişimi gerekli.";
+"error_camera_access" = "Kamera erişimi gerekli.";
+"error_file_too_large" = "Dosya çok büyük. Maksimum boyut: %@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "Fotoğraf Erişimi";
+"permission_photos_message" = "Intok'un fotoğraflarınıza erişmesine izin verin.";
+"permission_camera_title" = "Kamera Erişimi";
+"permission_camera_message" = "Intok'un kameranıza erişmesine izin verin.";
+"permission_notifications_title" = "Bildirimler";
+"permission_notifications_message" = "Intok'un size bildirim göndermesine izin verin.";
+"permission_go_to_settings" = "Ayarlara Git";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "Az önce";
+"time_minutes_ago" = "%d dakika önce";
+"time_hours_ago" = "%d saat önce";
+"time_yesterday" = "Dün";
+"time_days_ago" = "%d gün önce";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "Geri git";
+"accessibility_close_button" = "Kapat";
+"accessibility_send_message" = "Mesaj gönder";
+"accessibility_attach_media" = "Medya ekle";
+"accessibility_take_photo" = "Fotoğraf çek";
+"accessibility_select_emoji" = "Emoji seç";
+"accessibility_profile_picture" = "Profil fotoğrafı";
+"accessibility_unread_messages" = "%d okunmamış mesaj";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "Sohbet yok";
+"empty_messages" = "Mesaj yok";
+"empty_search_results" = "Sonuç bulunamadı";
+"empty_users" = "Kullanıcı bulunamadı";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "Yeni mesaj";
+"notification_new_message_from" = "%@ yeni bir mesaj gönderdi";
+"notification_photo" = "%@ bir fotoğraf gönderdi";
+"notification_file" = "%@ bir dosya gönderdi";
+"notification_gif" = "%@ bir GIF gönderdi";

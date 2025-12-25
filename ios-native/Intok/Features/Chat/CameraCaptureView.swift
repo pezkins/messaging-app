@@ -54,18 +54,18 @@ struct CameraPermissionView: View {
                 .font(.system(size: 60))
                 .foregroundColor(Color(hex: "8B5CF6"))
             
-            Text("Camera Access Required")
+            Text("permission_camera_title".localized)
                 .font(.title2)
                 .fontWeight(.bold)
             
-            Text("Please enable camera access in Settings to take photos.")
+            Text("permission_camera_message".localized)
                 .font(.body)
                 .foregroundColor(.gray)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             
             Button(action: openSettings) {
-                Text("Open Settings")
+                Text("permission_go_to_settings".localized)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -76,7 +76,7 @@ struct CameraPermissionView: View {
             .padding(.horizontal, 40)
             
             Button(action: { dismiss() }) {
-                Text("Cancel")
+                Text("common_cancel".localized)
                     .foregroundColor(.gray)
             }
         }

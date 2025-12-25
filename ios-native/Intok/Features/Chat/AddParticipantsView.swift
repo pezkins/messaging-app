@@ -79,7 +79,7 @@ struct AddParticipantsView: View {
                             Image(systemName: "person.slash")
                                 .font(.largeTitle)
                                 .foregroundColor(.gray)
-                            Text("No users found")
+                            Text("empty_users".localized)
                                 .foregroundColor(.gray)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -96,11 +96,11 @@ struct AddParticipantsView: View {
                     }
                 }
             }
-            .navigationTitle("Add People")
+            .navigationTitle("group_add_participants_title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button("common_cancel".localized) {
                         dismiss()
                     }
                     .foregroundColor(Color(hex: "8B5CF6"))

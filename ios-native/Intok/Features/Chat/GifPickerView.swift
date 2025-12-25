@@ -35,11 +35,11 @@ struct GifPickerView: View {
                 }
             }
             .background(Color(hex: "0F0F0F"))
-            .navigationTitle("Send GIF")
+            .navigationTitle("chat_attach_gif".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button("common_cancel".localized) {
                         dismiss()
                     }
                     .foregroundColor(Color(hex: "8B5CF6"))
@@ -113,7 +113,7 @@ struct GifPickerView: View {
             Spacer()
             ProgressView()
                 .tint(Color(hex: "8B5CF6"))
-            Text("Loading GIFs...")
+            Text("common_loading".localized)
                 .font(.caption)
                 .foregroundColor(.gray)
                 .padding(.top, 8)
@@ -132,7 +132,7 @@ struct GifPickerView: View {
                 Text(error)
                     .font(.headline)
                     .foregroundColor(.gray)
-                Button("Try Again") {
+                Button("common_try_again".localized) {
                     Task { await loadTrendingGifs() }
                 }
                 .foregroundColor(Color(hex: "8B5CF6"))
@@ -140,10 +140,10 @@ struct GifPickerView: View {
                 Image(systemName: "face.smiling")
                     .font(.system(size: 48))
                     .foregroundColor(.gray)
-                Text(searchText.isEmpty ? "Loading GIFs..." : "No GIFs found")
+                Text(searchText.isEmpty ? "common_loading".localized : "empty_search_results".localized)
                     .font(.headline)
                     .foregroundColor(.gray)
-                Text("Try a different search term")
+                Text("gif_try_different_search".localized)
                     .font(.caption)
                     .foregroundColor(.gray.opacity(0.7))
             }

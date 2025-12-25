@@ -1,0 +1,269 @@
+/*
+ * Localizable.strings (Korean - 한국어)
+ * Intok
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "확인";
+"common_cancel" = "취소";
+"common_done" = "완료";
+"common_save" = "저장";
+"common_delete" = "삭제";
+"common_edit" = "편집";
+"common_close" = "닫기";
+"common_back" = "뒤로";
+"common_next" = "다음";
+"common_continue" = "계속";
+"common_skip" = "건너뛰기";
+"common_finish" = "완료";
+"common_loading" = "로딩 중...";
+"common_error" = "오류";
+"common_success" = "성공";
+"common_retry" = "재시도";
+"common_try_again" = "다시 시도";
+"common_search" = "검색";
+"common_or" = "또는";
+"common_yes" = "예";
+"common_no" = "아니요";
+"common_unknown" = "알 수 없음";
+"common_not_set" = "설정 안 됨";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "전 세계와 연결하고, 자연스럽게 소통하세요";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "Apple로 계속하기";
+"login_continue_google" = "Google로 계속하기";
+"login_continue_email" = "이메일로 계속하기";
+"login_terms_notice" = "계속하면 서비스 약관 및 개인정보 보호정책에 동의하게 됩니다";
+"login_sign_in_apple" = "Apple로 로그인";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "이메일로 계속하기";
+"email_auth_welcome_back" = "다시 오신 것을 환영합니다";
+"email_auth_create_account" = "계정 만들기";
+"email_auth_whats_your_email" = "이메일 주소를 입력하세요";
+"email_auth_check_account" = "계정이 있는지 확인합니다";
+"email_auth_email_label" = "이메일";
+"email_auth_email_placeholder" = "이메일 입력";
+"email_auth_enter_password" = "비밀번호를 입력하세요";
+"email_auth_password_label" = "비밀번호";
+"email_auth_sign_in" = "로그인";
+"email_auth_forgot_password" = "비밀번호를 잊으셨나요?";
+"email_auth_create_your_account" = "계정을 만드세요";
+"email_auth_display_name_label" = "표시 이름";
+"email_auth_confirm_password_label" = "비밀번호 확인";
+"email_auth_password_hint" = "최소 6자 이상";
+"email_auth_passwords_dont_match" = "비밀번호가 일치하지 않습니다";
+"email_auth_preferred_language" = "선호 언어";
+"email_auth_country" = "국가";
+"email_auth_create_account_button" = "계정 만들기";
+"email_auth_check_email_error" = "이메일 확인 실패. 다시 시도해 주세요.";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "표시 이름 선택";
+"setup_how_others_see_you" = "다른 사람들에게 보이는 이름입니다";
+"setup_enter_name_placeholder" = "이름 입력";
+"setup_select_language" = "언어 선택";
+"setup_messages_translated" = "메시지가 이 언어로 번역됩니다";
+"setup_search_languages" = "언어 검색...";
+"setup_select_country" = "국가 선택";
+"setup_country_optional" = "선택 사항 - 주변 사용자와 연결하는 데 도움됩니다";
+"setup_search_countries" = "국가 검색...";
+"setup_select_region" = "지역 선택";
+"setup_region_accuracy" = "번역 정확도 향상에 도움됩니다";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "메시지";
+"conversations_search_placeholder" = "대화 검색...";
+"conversations_loading" = "대화 로딩 중...";
+"conversations_empty_title" = "대화가 없습니다";
+"conversations_empty_subtitle" = "작성 버튼을 탭하여 대화를 시작하세요";
+"conversations_start_new" = "새 채팅 시작";
+"conversations_error_title" = "문제가 발생했습니다";
+"conversations_group_chat" = "그룹 채팅";
+"conversations_no_messages" = "메시지가 없습니다";
+"conversations_yesterday" = "어제";
+"conversations_delete_title" = "대화 삭제";
+"conversations_delete_message" = "이 대화를 삭제하시겠습니까? 취소할 수 없습니다.";
+"conversations_delete_button" = "대화 삭제";
+"conversations_deleting" = "삭제 중...";
+"conversations_preview_photo" = "📷 사진";
+"conversations_preview_voice" = "🎤 음성 메시지";
+"conversations_preview_file" = "📎 파일";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "새 메시지";
+"new_chat_direct" = "1:1 채팅";
+"new_chat_group" = "그룹";
+"new_chat_search_users" = "사용자 검색...";
+"new_chat_no_results" = "사용자를 찾을 수 없습니다";
+"new_chat_create_group" = "그룹 만들기";
+"new_chat_group_name_placeholder" = "그룹 이름 (선택 사항)";
+"new_chat_selected_count" = "그룹 만들기 (%d명)";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "메시지 입력...";
+"chat_send_button" = "보내기";
+"chat_typing_indicator" = "입력 중...";
+"chat_read_receipt" = "읽음";
+"chat_delivered" = "전송됨";
+"chat_sending" = "전송 중...";
+"chat_failed" = "전송 실패";
+"chat_reply" = "답장";
+"chat_copy" = "복사";
+"chat_delete" = "삭제";
+"chat_delete_for_me" = "나만 삭제";
+"chat_delete_for_everyone" = "모두에게서 삭제";
+"chat_delete_confirm" = "이 작업은 취소할 수 없습니다.";
+"chat_react" = "반응";
+"chat_save_photo" = "사진에 저장";
+"chat_download_file" = "파일 다운로드";
+"chat_image_saved" = "사진에 이미지 저장됨";
+"chat_uploading" = "업로드 중...";
+"chat_message_deleted" = "이 메시지가 삭제되었습니다";
+"gif_try_different_search" = "다른 검색어를 시도하세요";
+"chat_show_original" = "원문 보기";
+"chat_show_translation" = "번역 보기";
+"chat_translated_from" = "%@에서 번역됨";
+"chat_attach_photo" = "사진";
+"chat_attach_camera" = "카메라";
+"chat_attach_file" = "파일";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "문서 번역";
+"chat_group_info" = "그룹 정보";
+"chat_add_people" = "사람 추가";
+"chat_remove_people" = "사람 제거";
+"chat_leave_group" = "그룹 나가기";
+"chat_view_profile" = "프로필 보기";
+"chat_search" = "채팅에서 검색";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "설정";
+"settings_preferences" = "환경설정";
+"settings_about" = "정보";
+"settings_language" = "언어";
+"settings_country" = "국가";
+"settings_region" = "지역";
+"settings_app_language" = "앱 언어";
+"settings_app_language_auto" = "자동 (기기 언어)";
+"settings_whats_new" = "새로운 기능";
+"settings_version" = "버전";
+"settings_privacy_policy" = "개인정보 보호정책";
+"settings_terms_of_service" = "서비스 약관";
+"settings_help_support" = "도움말 및 지원";
+"settings_sign_out" = "로그아웃";
+"settings_sign_out_confirm" = "로그아웃하시겠습니까?";
+"settings_delete_account" = "계정 삭제";
+"settings_edit_name" = "이름 편집";
+"settings_display_name" = "표시 이름";
+"settings_change_photo" = "프로필 사진 변경";
+"settings_take_photo" = "사진 찍기";
+"settings_choose_library" = "라이브러리에서 선택";
+"settings_remove_photo" = "사진 제거";
+"settings_photo_error" = "사진 오류";
+"settings_photo_error_message" = "프로필 사진 업데이트 실패";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "그룹 정보";
+"group_info_participants" = "%d명의 참여자";
+"group_info_participants_header" = "참여자";
+"group_info_you" = "(나)";
+"group_info_edit_name" = "그룹 이름 편집";
+"group_info_group_name" = "그룹 이름";
+"group_add_participants_title" = "참여자 추가";
+"group_add_participants_search" = "사용자 검색...";
+"group_add_participants_button" = "그룹에 추가";
+"group_add_participants_empty" = "추가할 사용자가 없습니다";
+"group_remove_participants_title" = "참여자 제거";
+"group_remove_participants_confirm" = "%@을(를) 그룹에서 제거하시겠습니까?";
+"group_remove_button" = "제거";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "자동 (기기 언어)";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "네트워크 오류. 연결을 확인하세요.";
+"error_server" = "서버 오류. 나중에 다시 시도하세요.";
+"error_unknown" = "알 수 없는 오류가 발생했습니다.";
+"error_authentication" = "인증 실패. 다시 로그인하세요.";
+"error_permission_denied" = "권한이 거부되었습니다.";
+"error_not_found" = "찾을 수 없습니다.";
+"error_photo_access" = "사진 라이브러리 접근 권한이 필요합니다.";
+"error_camera_access" = "카메라 접근 권한이 필요합니다.";
+"error_file_too_large" = "파일이 너무 큽니다. 최대 크기: %@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "사진 접근";
+"permission_photos_message" = "Intok이 사진에 접근하도록 허용해 주세요.";
+"permission_camera_title" = "카메라 접근";
+"permission_camera_message" = "Intok이 카메라에 접근하도록 허용해 주세요.";
+"permission_notifications_title" = "알림";
+"permission_notifications_message" = "Intok이 알림을 보내도록 허용해 주세요.";
+"permission_go_to_settings" = "설정으로 이동";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "방금";
+"time_minutes_ago" = "%d분 전";
+"time_hours_ago" = "%d시간 전";
+"time_yesterday" = "어제";
+"time_days_ago" = "%d일 전";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "뒤로";
+"accessibility_close_button" = "닫기";
+"accessibility_send_message" = "메시지 보내기";
+"accessibility_attach_media" = "미디어 첨부";
+"accessibility_take_photo" = "사진 찍기";
+"accessibility_select_emoji" = "이모지 선택";
+"accessibility_profile_picture" = "프로필 사진";
+"accessibility_unread_messages" = "읽지 않은 메시지 %d개";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "대화 없음";
+"empty_messages" = "메시지 없음";
+"empty_search_results" = "결과 없음";
+"empty_users" = "사용자를 찾을 수 없습니다";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "새 메시지";
+"notification_new_message_from" = "%@님의 새 메시지";
+"notification_photo" = "%@님이 사진을 보냈습니다";
+"notification_file" = "%@님이 파일을 보냈습니다";
+"notification_gif" = "%@님이 GIF를 보냈습니다";

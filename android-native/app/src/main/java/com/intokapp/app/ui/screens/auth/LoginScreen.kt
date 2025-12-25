@@ -28,6 +28,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import com.intokapp.app.data.repository.localizedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -81,12 +83,12 @@ fun LoginScreen(
     if (showErrorDialog && errorMessage.isNotBlank()) {
         AlertDialog(
             onDismissRequest = { showErrorDialog = false },
-            title = { Text("Sign-In Error", color = White) },
+            title = { Text(localizedString(R.string.login_error_title, "errors.error_generic"), color = White) },
             text = { Text(errorMessage, color = Surface300) },
             containerColor = Surface900,
             confirmButton = {
                 TextButton(onClick = { showErrorDialog = false }) {
-                    Text("OK", color = Purple500)
+                    Text(localizedString(R.string.ok, "common.ok"), color = Purple500)
                 }
             }
         )
@@ -157,14 +159,14 @@ private fun InitialLoginContent(
         Spacer(modifier = Modifier.height(24.dp))
         
         Text(
-            text = "Intok",
+            text = localizedString(R.string.app_name, "common.app_name"),
             style = MaterialTheme.typography.displaySmall,
             fontWeight = FontWeight.Bold,
             color = White
         )
         
         Text(
-            text = "Connect globally, communicate naturally",
+            text = localizedString(R.string.login_subtitle, "auth.login_subtitle"),
             style = MaterialTheme.typography.bodyLarge,
             color = Surface400,
             textAlign = TextAlign.Center,
@@ -193,7 +195,7 @@ private fun InitialLoginContent(
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Purple500)
             } else {
-                Text(text = "Continue with Google", style = MaterialTheme.typography.titleMedium)
+                Text(text = localizedString(R.string.login_with_google, "auth.login_google_button"), style = MaterialTheme.typography.titleMedium)
             }
         }
         
@@ -201,7 +203,7 @@ private fun InitialLoginContent(
         
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Divider(modifier = Modifier.weight(1f), color = Surface700)
-            Text(text = "or", color = Surface500, modifier = Modifier.padding(horizontal = 16.dp))
+            Text(text = localizedString(R.string.login_or, "auth.login_or_continue_with"), color = Surface500, modifier = Modifier.padding(horizontal = 16.dp))
             Divider(modifier = Modifier.weight(1f), color = Surface700)
         }
         
@@ -214,13 +216,13 @@ private fun InitialLoginContent(
             shape = RoundedCornerShape(16.dp),
             colors = ButtonDefaults.outlinedButtonColors(contentColor = White)
         ) {
-            Text(text = "Continue with Email", style = MaterialTheme.typography.titleMedium)
+            Text(text = localizedString(R.string.login_with_email, "auth.login_create_account"), style = MaterialTheme.typography.titleMedium)
         }
         
         Spacer(modifier = Modifier.height(32.dp))
         
         Text(
-            text = "By continuing, you agree to our Terms of Service and Privacy Policy",
+            text = localizedString(R.string.login_terms, "auth.register_terms_prefix"),
             style = MaterialTheme.typography.bodySmall,
             color = Surface500,
             textAlign = TextAlign.Center
@@ -253,14 +255,14 @@ private fun EmailInputContent(
         Spacer(modifier = Modifier.height(24.dp))
         
         Text(
-            text = "Enter your email",
+            text = localizedString(R.string.login_enter_email, "auth.login_email_placeholder"),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = White
         )
         
         Text(
-            text = "We'll check if you have an account",
+            text = localizedString(R.string.login_check_account, "auth.login_no_account"),
             style = MaterialTheme.typography.bodyLarge,
             color = Surface400,
             modifier = Modifier.padding(top = 8.dp)
@@ -271,7 +273,7 @@ private fun EmailInputContent(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email address") },
+            label = { Text(localizedString(R.string.login_email_label, "auth.login_email_placeholder")) },
             modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             singleLine = true,
             keyboardOptions = KeyboardOptions(
@@ -318,7 +320,7 @@ private fun EmailInputContent(
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = White)
             } else {
-                Text(text = "Continue", style = MaterialTheme.typography.titleMedium)
+                Text(text = localizedString(R.string.setup_continue, "setup.setup_continue_button"), style = MaterialTheme.typography.titleMedium)
             }
         }
         
@@ -351,14 +353,14 @@ private fun PasswordInputContent(
         Spacer(modifier = Modifier.height(24.dp))
         
         Text(
-            text = "Welcome back!",
+            text = localizedString(R.string.login_welcome_back, "auth.login_title"),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = White
         )
         
         Text(
-            text = "Enter your password for ${uiState.email}",
+            text = localizedString(R.string.login_enter_password_for, "auth.login_password_placeholder"),
             style = MaterialTheme.typography.bodyLarge,
             color = Surface400,
             modifier = Modifier.padding(top = 8.dp)
@@ -369,7 +371,7 @@ private fun PasswordInputContent(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
+            label = { Text(localizedString(R.string.login_password_label, "auth.login_password_placeholder")) },
             modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
             singleLine = true,
             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
@@ -389,7 +391,7 @@ private fun PasswordInputContent(
                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                     Icon(
                         if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                        contentDescription = "Toggle password visibility",
+                        contentDescription = null,
                         tint = Surface400
                     )
                 }
@@ -426,7 +428,7 @@ private fun PasswordInputContent(
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = White)
             } else {
-                Text(text = "Sign In", style = MaterialTheme.typography.titleMedium)
+                Text(text = localizedString(R.string.login_button, "auth.login_button"), style = MaterialTheme.typography.titleMedium)
             }
         }
         
@@ -462,14 +464,14 @@ private fun RegistrationContent(
         Spacer(modifier = Modifier.height(16.dp))
         
         Text(
-            text = "Create your account",
+            text = localizedString(R.string.register_title, "auth.register_title"),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = White
         )
         
         Text(
-            text = "Set up your profile for ${uiState.email}",
+            text = localizedString(R.string.register_setup_profile, "auth.register_subtitle"),
             style = MaterialTheme.typography.bodyLarge,
             color = Surface400,
             modifier = Modifier.padding(top = 8.dp)
@@ -486,10 +488,10 @@ private fun RegistrationContent(
                 OutlinedTextField(
                     value = username,
                     onValueChange = { username = it },
-                    label = { Text("Display name") },
+                    label = { Text(localizedString(R.string.register_username_label, "auth.register_username_placeholder")) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
-                    supportingText = { Text("At least 3 characters", color = Surface500) },
+                    supportingText = { Text(localizedString(R.string.register_min_chars, "auth.auth_error_weak_password"), color = Surface500) },
                     colors = outlinedTextFieldColors()
                 )
             }
@@ -499,16 +501,16 @@ private fun RegistrationContent(
                 OutlinedTextField(
                     value = password,
                     onValueChange = { password = it },
-                    label = { Text("Password") },
+                    label = { Text(localizedString(R.string.login_password_label, "auth.login_password_placeholder")) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    supportingText = { Text("At least 6 characters", color = Surface500) },
+                    supportingText = { Text(localizedString(R.string.register_min_chars, "auth.auth_error_weak_password"), color = Surface500) },
                     trailingIcon = {
                         IconButton(onClick = { passwordVisible = !passwordVisible }) {
                             Icon(
                                 if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = "Toggle password",
+                                contentDescription = null,
                                 tint = Surface400
                             )
                         }
@@ -522,14 +524,14 @@ private fun RegistrationContent(
                 OutlinedTextField(
                     value = confirmPassword,
                     onValueChange = { confirmPassword = it },
-                    label = { Text("Confirm password") },
+                    label = { Text(localizedString(R.string.register_confirm_password_label, "auth.register_confirm_password_placeholder")) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                     isError = confirmPassword.isNotBlank() && !passwordsMatch,
                     supportingText = {
                         if (confirmPassword.isNotBlank() && !passwordsMatch) {
-                            Text("Passwords don't match", color = MaterialTheme.colorScheme.error)
+                            Text(localizedString(R.string.register_error_passwords_dont_match, "auth.auth_error_passwords_dont_match"), color = MaterialTheme.colorScheme.error)
                         }
                     },
                     colors = outlinedTextFieldColors()
@@ -539,7 +541,7 @@ private fun RegistrationContent(
             item {
                 // Language Picker
                 Text(
-                    text = "Preferred Language",
+                    text = localizedString(R.string.settings_message_language, "settings.settings_message_language"),
                     style = MaterialTheme.typography.labelLarge,
                     color = Surface400,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -568,7 +570,7 @@ private fun RegistrationContent(
             item {
                 // Country Picker
                 Text(
-                    text = "Country",
+                    text = localizedString(R.string.settings_country, "settings.settings_country"),
                     style = MaterialTheme.typography.labelLarge,
                     color = Surface400,
                     modifier = Modifier.padding(bottom = 8.dp)
@@ -614,7 +616,7 @@ private fun RegistrationContent(
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), color = White)
             } else {
-                Text(text = "Create Account", style = MaterialTheme.typography.titleMedium)
+                Text(text = localizedString(R.string.register_button, "auth.register_button"), style = MaterialTheme.typography.titleMedium)
             }
         }
         
@@ -624,7 +626,7 @@ private fun RegistrationContent(
     // Language Picker Dialog
     if (showLanguagePicker) {
         PickerDialog(
-            title = "Select Language",
+            title = localizedString(R.string.setup_language_title, "setup.setup_language_title"),
             items = LANGUAGES.map { Triple(it.code, "${it.native} (${it.name})", it.code == selectedLanguage) },
             onSelect = { selectedLanguage = it; showLanguagePicker = false },
             onDismiss = { showLanguagePicker = false }
@@ -634,7 +636,7 @@ private fun RegistrationContent(
     // Country Picker Dialog
     if (showCountryPicker) {
         PickerDialog(
-            title = "Select Country",
+            title = localizedString(R.string.setup_country_title, "setup.setup_country_title"),
             items = COUNTRIES.map { Triple(it.code, "${it.flag} ${it.name}", it.code == selectedCountry) },
             onSelect = { selectedCountry = it; showCountryPicker = false },
             onDismiss = { showCountryPicker = false }
@@ -685,7 +687,7 @@ private fun PickerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel", color = Purple500)
+                Text(localizedString(R.string.cancel, "common.cancel"), color = Purple500)
             }
         }
     )

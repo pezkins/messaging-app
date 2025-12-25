@@ -24,6 +24,18 @@ class WhatsNewManager @Inject constructor(
     
     val changelog = listOf(
         ChangelogEntry(
+            version = "0.3.0",
+            title = "Full App Localization",
+            changes = listOf(
+                "🌐 App language selection in Settings",
+                "🌍 Support for ALL 120+ languages",
+                "⚡ Tier 1: Instant offline support (9 languages)",
+                "☁️ Tier 2+: AI-translated on-demand (110+ languages)",
+                "🔄 Auto-detect device language on first launch",
+                "↔️ RTL support for Arabic, Hebrew, and more"
+            )
+        ),
+        ChangelogEntry(
             version = "0.2.1",
             title = "Connection Reliability",
             changes = listOf(

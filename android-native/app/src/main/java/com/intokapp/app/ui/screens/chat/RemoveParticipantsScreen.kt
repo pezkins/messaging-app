@@ -16,11 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
+import com.intokapp.app.data.repository.localizedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.intokapp.app.R
 import com.intokapp.app.data.models.UserPublic
 import com.intokapp.app.ui.theme.*
 
@@ -124,7 +127,7 @@ fun RemoveParticipantsScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Remove People", color = White, fontWeight = FontWeight.Bold) },
+                title = { Text(localizedString(R.string.remove_participants_title, "group.group_remove_participant"), color = White, fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, null, tint = White)

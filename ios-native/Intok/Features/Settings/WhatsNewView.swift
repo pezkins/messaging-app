@@ -17,7 +17,7 @@ struct WhatsNewView: View {
                                 .font(.system(size: 48))
                                 .foregroundColor(Color(hex: "8B5CF6"))
                             
-                            Text("What's New")
+                            Text("settings_whats_new".localized)
                                 .font(.title)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)

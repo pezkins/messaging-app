@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Intok</string>
+    
+    <!-- Authentication -->
+    <string name="login_title">Willkommen bei Intok</string>
+    <string name="login_subtitle">Überwinde Sprachbarrieren mit Echtzeitübersetzung</string>
+    <string name="login_email_label">E-Mail</string>
+    <string name="login_email_hint">E-Mail eingeben</string>
+    <string name="login_password_label">Passwort</string>
+    <string name="login_password_hint">Passwort eingeben</string>
+    <string name="login_button">Anmelden</string>
+    <string name="login_with_google">Mit Google fortfahren</string>
+    <string name="login_with_apple">Mit Apple fortfahren</string>
+    <string name="login_no_account">Noch kein Konto?</string>
+    <string name="login_create_account">Konto erstellen</string>
+    <string name="login_forgot_password">Passwort vergessen?</string>
+    <string name="login_or">oder</string>
+    <string name="login_error_invalid_email">Bitte gib eine gültige E-Mail ein</string>
+    <string name="login_error_invalid_password">Das Passwort muss mindestens 6 Zeichen haben</string>
+    <string name="login_error_failed">Anmeldung fehlgeschlagen. Bitte versuche es erneut.</string>
+    
+    <!-- Register -->
+    <string name="register_title">Konto erstellen</string>
+    <string name="register_subtitle">Tritt Intok bei und chatte in jeder Sprache</string>
+    <string name="register_username_label">Benutzername</string>
+    <string name="register_username_hint">Benutzernamen wählen</string>
+    <string name="register_email_label">E-Mail</string>
+    <string name="register_email_hint">E-Mail eingeben</string>
+    <string name="register_password_label">Passwort</string>
+    <string name="register_password_hint">Passwort erstellen</string>
+    <string name="register_confirm_password_label">Passwort bestätigen</string>
+    <string name="register_confirm_password_hint">Passwort bestätigen</string>
+    <string name="register_button">Konto erstellen</string>
+    <string name="register_have_account">Bereits ein Konto?</string>
+    <string name="register_sign_in">Anmelden</string>
+    <string name="register_error_username_required">Benutzername ist erforderlich</string>
+    <string name="register_error_passwords_dont_match">Passwörter stimmen nicht überein</string>
+    <string name="register_error_failed">Registrierung fehlgeschlagen. Bitte versuche es erneut.</string>
+    
+    <!-- Setup -->
+    <string name="setup_title">Profil einrichten</string>
+    <string name="setup_language_title">Sprache auswählen</string>
+    <string name="setup_language_subtitle">Nachrichten werden in diese Sprache übersetzt</string>
+    <string name="setup_country_title">Land auswählen</string>
+    <string name="setup_country_subtitle">Für regionale Vokabeleinstellungen</string>
+    <string name="setup_region_title">Region auswählen</string>
+    <string name="setup_region_subtitle">Optional: Für genauere Übersetzungen</string>
+    <string name="setup_continue">Weiter</string>
+    <string name="setup_skip">Überspringen</string>
+    <string name="setup_search_language">Sprachen suchen…</string>
+    <string name="setup_search_country">Länder suchen…</string>
+    <string name="setup_no_results">Keine Ergebnisse gefunden</string>
+    
+    <!-- Conversations -->
+    <string name="conversations_title">Nachrichten</string>
+    <string name="conversations_search_hint">Unterhaltungen suchen…</string>
+    <string name="conversations_empty_title">Noch keine Unterhaltungen</string>
+    <string name="conversations_empty_subtitle">Starte einen neuen Chat zum Nachrichtenschreiben</string>
+    <string name="conversations_new_chat">Neuer Chat</string>
+    <string name="conversations_delete">Löschen</string>
+    <string name="conversations_delete_confirm_title">Unterhaltung löschen?</string>
+    <string name="conversations_delete_confirm_message">Diese Unterhaltung wird aus deiner Ansicht entfernt. Dies kann nicht rückgängig gemacht werden.</string>
+    <string name="conversations_group_chat">Gruppenchat</string>
+    <string name="conversations_typing">tippt…</string>
+    
+    <!-- Chat -->
+    <string name="chat_message_hint">Nachricht…</string>
+    <string name="chat_send">Senden</string>
+    <string name="chat_typing">Jemand tippt…</string>
+    <string name="chat_show_original">Original</string>
+    <string name="chat_translate">Übersetzen</string>
+    <string name="chat_copy">Kopieren</string>
+    <string name="chat_reply">Antworten</string>
+    <string name="chat_react">Reagieren</string>
+    <string name="chat_delete">Löschen</string>
+    <string name="chat_delete_for_me">Für mich löschen</string>
+    <string name="chat_delete_for_everyone">Für alle löschen</string>
+    <string name="chat_delete_confirm_title">Nachricht löschen?</string>
+    <string name="chat_delete_confirm_message">Möchtest du diese Nachricht wirklich löschen?</string>
+    <string name="chat_message_deleted">Diese Nachricht wurde gelöscht</string>
+    <string name="chat_save_to_gallery">In Galerie speichern</string>
+    <string name="chat_download">Herunterladen</string>
+    <string name="chat_image_saved">Bild in Galerie gespeichert</string>
+    <string name="chat_download_started">Download gestartet</string>
+    <string name="chat_attachment_photo">Foto</string>
+    <string name="chat_attachment_camera">Kamera</string>
+    <string name="chat_attachment_document">Dokument</string>
+    <string name="chat_attachment_gif">GIF</string>
+    <string name="chat_replying_to">Antwort an %s</string>
+    <string name="chat_sent_photo">Foto gesendet</string>
+    <string name="chat_sent_document">Dokument gesendet</string>
+    <string name="chat_sent_gif">GIF gesendet</string>
+    <string name="chat_menu_add_people">Personen hinzufügen</string>
+    <string name="chat_menu_remove_people">Personen entfernen</string>
+    <string name="chat_menu_group_info">Gruppeninfo</string>
+    <string name="chat_menu_view_profile">Profil ansehen</string>
+    
+    <!-- Settings -->
+    <string name="settings_title">Einstellungen</string>
+    <string name="settings_profile">Profil</string>
+    <string name="settings_profile_edit">Profil bearbeiten</string>
+    <string name="settings_profile_picture">Profilbild</string>
+    <string name="settings_username">Benutzername</string>
+    <string name="settings_email">E-Mail</string>
+    <string name="settings_language_section">Sprache</string>
+    <string name="settings_message_language">Nachrichtensprache</string>
+    <string name="settings_message_language_desc">Nachrichten werden in diese Sprache übersetzt</string>
+    <string name="settings_app_language">App-Sprache</string>
+    <string name="settings_app_language_desc">Sprache der Benutzeroberfläche ändern</string>
+    <string name="settings_app_language_auto">Automatisch (Gerätesprache)</string>
+    <string name="settings_country">Land</string>
+    <string name="settings_country_desc">Für regionales Vokabular</string>
+    <string name="settings_region">Region</string>
+    <string name="settings_region_desc">Für genauere Übersetzungen</string>
+    <string name="settings_about_section">Info</string>
+    <string name="settings_version">Version</string>
+    <string name="settings_whats_new">Neuigkeiten</string>
+    <string name="settings_privacy_policy">Datenschutzrichtlinie</string>
+    <string name="settings_terms_of_service">Nutzungsbedingungen</string>
+    <string name="settings_support">Support</string>
+    <string name="settings_account_section">Konto</string>
+    <string name="settings_logout">Abmelden</string>
+    <string name="settings_logout_confirm_title">Abmelden?</string>
+    <string name="settings_logout_confirm_message">Möchtest du dich wirklich abmelden?</string>
+    <string name="settings_delete_account">Konto löschen</string>
+    <string name="settings_delete_account_confirm_title">Konto löschen?</string>
+    <string name="settings_delete_account_confirm_message">Dein Konto und alle Daten werden dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.</string>
+    
+    <!-- Common -->
+    <string name="ok">OK</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="done">Fertig</string>
+    <string name="save">Speichern</string>
+    <string name="delete">Löschen</string>
+    <string name="edit">Bearbeiten</string>
+    <string name="close">Schließen</string>
+    <string name="back">Zurück</string>
+    <string name="next">Weiter</string>
+    <string name="search">Suchen</string>
+    <string name="loading">Lädt…</string>
+    <string name="error">Fehler</string>
+    <string name="retry">Erneut versuchen</string>
+    <string name="yes">Ja</string>
+    <string name="no">Nein</string>
+    
+    <!-- Errors -->
+    <string name="error_network">Netzwerkfehler. Bitte überprüfe deine Verbindung.</string>
+    <string name="error_server">Serverfehler. Bitte versuche es später erneut.</string>
+    <string name="error_unknown">Etwas ist schiefgelaufen. Bitte versuche es erneut.</string>
+    <string name="error_session_expired">Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.</string>
+    <string name="error_permission_denied">Berechtigung verweigert</string>
+    
+    <!-- Language Picker -->
+    <string name="language_picker_title">App-Sprache auswählen</string>
+    <string name="language_picker_auto">Automatisch (Gerätesprache verwenden)</string>
+    <string name="language_picker_current">Aktuell: %s</string>
+</resources>

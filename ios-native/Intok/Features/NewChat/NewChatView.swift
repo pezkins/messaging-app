@@ -24,15 +24,15 @@ struct NewChatView: View {
                 VStack(spacing: 0) {
                     // Mode Toggle
                     Picker("", selection: $isGroupMode) {
-                        Text("Direct").tag(false)
-                        Text("Group").tag(true)
+                        Text("new_chat_direct".localized).tag(false)
+                        Text("new_chat_group".localized).tag(true)
                     }
                     .pickerStyle(.segmented)
                     .padding()
                     
                     // Group Name (if group mode)
                     if isGroupMode {
-                        TextField("Group Name", text: $groupName)
+                        TextField("new_chat_group_name_placeholder".localized, text: $groupName)
                             .textFieldStyle(.plain)
                             .padding()
                             .background(Color.white.opacity(0.1))
@@ -46,7 +46,7 @@ struct NewChatView: View {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.gray)
                         
-                        TextField("Search users...", text: $searchText)
+                        TextField("new_chat_search_users".localized, text: $searchText)
                             .textFieldStyle(.plain)
                             .foregroundColor(.white)
                             .onChange(of: searchText) { oldValue, newValue in
@@ -92,11 +92,11 @@ struct NewChatView: View {
                     }
                 }
             }
-            .navigationTitle(isGroupMode ? "New Group" : "New Chat")
+            .navigationTitle(isGroupMode ? "new_chat_create_group".localized : "new_chat_title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button("common_cancel".localized) {
                         dismiss()
                     }
                 }
@@ -133,7 +133,7 @@ struct NewChatView: View {
                 .font(.system(size: 50))
                 .foregroundColor(.gray)
             
-            Text("No users found")
+            Text("new_chat_no_results".localized)
                 .foregroundColor(.gray)
                 .padding(.top)
             
@@ -220,7 +220,7 @@ struct NewChatView: View {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white))
                 } else {
-                    Text("Create Group (\(selectedUsers.count) members)")
+                    Text("new_chat_selected_count".localized(with: selectedUsers.count))
                 }
             }
             .fontWeight(.semibold)

@@ -1,0 +1,265 @@
+/*
+ * Localizable.strings (Dutch - Nederlands)
+ * Intok
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "OK";
+"common_cancel" = "Annuleer";
+"common_done" = "Klaar";
+"common_save" = "Opslaan";
+"common_delete" = "Verwijder";
+"common_edit" = "Bewerk";
+"common_close" = "Sluit";
+"common_back" = "Terug";
+"common_next" = "Volgende";
+"common_continue" = "Doorgaan";
+"common_skip" = "Overslaan";
+"common_finish" = "Voltooien";
+"common_loading" = "Laden...";
+"common_error" = "Fout";
+"common_success" = "Gelukt";
+"common_retry" = "Opnieuw proberen";
+"common_try_again" = "Probeer opnieuw";
+"common_search" = "Zoeken";
+"common_or" = "of";
+"common_yes" = "Ja";
+"common_no" = "Nee";
+"common_unknown" = "Onbekend";
+"common_not_set" = "Niet ingesteld";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "Verbind wereldwijd, communiceer natuurlijk";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "Doorgaan met Apple";
+"login_continue_google" = "Doorgaan met Google";
+"login_continue_email" = "Doorgaan met e-mail";
+"login_terms_notice" = "Door door te gaan, ga je akkoord met onze Servicevoorwaarden en Privacybeleid";
+"login_sign_in_apple" = "Inloggen met Apple";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "Doorgaan met e-mail";
+"email_auth_welcome_back" = "Welkom terug";
+"email_auth_create_account" = "Account aanmaken";
+"email_auth_whats_your_email" = "Wat is je e-mail?";
+"email_auth_check_account" = "We controleren of je een account hebt";
+"email_auth_email_label" = "E-mail";
+"email_auth_email_placeholder" = "Voer je e-mail in";
+"email_auth_enter_password" = "Voer je wachtwoord in";
+"email_auth_password_label" = "Wachtwoord";
+"email_auth_sign_in" = "Inloggen";
+"email_auth_forgot_password" = "Wachtwoord vergeten?";
+"email_auth_create_your_account" = "Maak je account aan";
+"email_auth_display_name_label" = "Weergavenaam";
+"email_auth_confirm_password_label" = "Bevestig wachtwoord";
+"email_auth_password_hint" = "Minimaal 6 tekens";
+"email_auth_passwords_dont_match" = "Wachtwoorden komen niet overeen";
+"email_auth_preferred_language" = "Voorkeurstaal";
+"email_auth_country" = "Land";
+"email_auth_create_account_button" = "Account aanmaken";
+"email_auth_check_email_error" = "E-mail controleren mislukt. Probeer opnieuw.";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "Kies een weergavenaam";
+"setup_how_others_see_you" = "Zo zien anderen jou";
+"setup_enter_name_placeholder" = "Voer je naam in";
+"setup_select_language" = "Selecteer je taal";
+"setup_messages_translated" = "Berichten worden naar deze taal vertaald";
+"setup_search_languages" = "Talen zoeken...";
+"setup_select_country" = "Selecteer je land";
+"setup_country_optional" = "Optioneel - helpt je verbinden met gebruikers in de buurt";
+"setup_search_countries" = "Landen zoeken...";
+"setup_select_region" = "Selecteer je regio";
+"setup_region_accuracy" = "Dit helpt met vertaalnauwkeurigheid";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "Berichten";
+"conversations_search_placeholder" = "Gesprekken zoeken...";
+"conversations_loading" = "Gesprekken laden...";
+"conversations_empty_title" = "Nog geen gesprekken";
+"conversations_empty_subtitle" = "Start een gesprek door op de opstelknop te tikken";
+"conversations_start_new" = "Nieuwe chat starten";
+"conversations_error_title" = "Er ging iets mis";
+"conversations_group_chat" = "Groepschat";
+"conversations_no_messages" = "Nog geen berichten";
+"conversations_yesterday" = "Gisteren";
+"conversations_delete_title" = "Gesprek verwijderen";
+"conversations_delete_message" = "Dit gesprek verwijderen? Dit kan niet ongedaan worden gemaakt.";
+"conversations_delete_button" = "Gesprek verwijderen";
+"conversations_deleting" = "Verwijderen...";
+"conversations_preview_photo" = "📷 Foto";
+"conversations_preview_voice" = "🎤 Spraakbericht";
+"conversations_preview_file" = "📎 Bestand";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "Nieuw bericht";
+"new_chat_direct" = "Direct";
+"new_chat_group" = "Groep";
+"new_chat_search_users" = "Gebruikers zoeken...";
+"new_chat_no_results" = "Geen gebruikers gevonden";
+"new_chat_create_group" = "Groep aanmaken";
+"new_chat_group_name_placeholder" = "Groepsnaam (optioneel)";
+"new_chat_selected_count" = "Groep aanmaken (%d leden)";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "Typ een bericht...";
+"chat_send_button" = "Verzend";
+"chat_typing_indicator" = "typt...";
+"chat_read_receipt" = "Gelezen";
+"chat_delivered" = "Afgeleverd";
+"chat_sending" = "Verzenden...";
+"chat_failed" = "Verzenden mislukt";
+"chat_reply" = "Beantwoord";
+"chat_copy" = "Kopieer";
+"chat_delete" = "Verwijder";
+"chat_delete_for_me" = "Voor mij verwijderen";
+"chat_delete_for_everyone" = "Voor iedereen verwijderen";
+"chat_react" = "Reageer";
+"chat_save_photo" = "Opslaan in Foto's";
+"chat_download_file" = "Bestand downloaden";
+"chat_message_deleted" = "Dit bericht is verwijderd";
+"chat_show_original" = "Toon origineel";
+"chat_show_translation" = "Toon vertaling";
+"chat_translated_from" = "Vertaald uit het %@";
+"chat_attach_photo" = "Foto";
+"chat_attach_camera" = "Camera";
+"chat_attach_file" = "Bestand";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "Document vertalen";
+"chat_group_info" = "Groepsinfo";
+"chat_add_people" = "Mensen toevoegen";
+"chat_remove_people" = "Mensen verwijderen";
+"chat_leave_group" = "Groep verlaten";
+"chat_view_profile" = "Profiel bekijken";
+"chat_search" = "Zoeken in chat";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "Instellingen";
+"settings_preferences" = "VOORKEUREN";
+"settings_about" = "OVER";
+"settings_language" = "Taal";
+"settings_country" = "Land";
+"settings_region" = "Regio";
+"settings_app_language" = "App-taal";
+"settings_app_language_auto" = "Automatisch (apparaattaal)";
+"settings_whats_new" = "Wat is nieuw";
+"settings_version" = "Versie";
+"settings_privacy_policy" = "Privacybeleid";
+"settings_terms_of_service" = "Servicevoorwaarden";
+"settings_help_support" = "Help & Ondersteuning";
+"settings_sign_out" = "Uitloggen";
+"settings_sign_out_confirm" = "Weet je zeker dat je wilt uitloggen?";
+"settings_delete_account" = "Account verwijderen";
+"settings_edit_name" = "Naam bewerken";
+"settings_display_name" = "Weergavenaam";
+"settings_change_photo" = "Profielfoto wijzigen";
+"settings_take_photo" = "Foto maken";
+"settings_choose_library" = "Kies uit bibliotheek";
+"settings_remove_photo" = "Foto verwijderen";
+"settings_photo_error" = "Fotofout";
+"settings_photo_error_message" = "Profielfoto bijwerken mislukt";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "Groepsinfo";
+"group_info_participants" = "%d Deelnemers";
+"group_info_participants_header" = "Deelnemers";
+"group_info_you" = "(Jij)";
+"group_info_edit_name" = "Groepsnaam bewerken";
+"group_info_group_name" = "Groepsnaam";
+"group_add_participants_title" = "Deelnemers toevoegen";
+"group_add_participants_search" = "Zoek gebruikers om toe te voegen...";
+"group_add_participants_button" = "Toevoegen aan groep";
+"group_add_participants_empty" = "Geen gebruikers om toe te voegen";
+"group_remove_participants_title" = "Deelnemers verwijderen";
+"group_remove_participants_confirm" = "%@ uit de groep verwijderen?";
+"group_remove_button" = "Verwijder";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "Automatisch (apparaattaal)";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "Netwerkfout. Controleer je verbinding.";
+"error_server" = "Serverfout. Probeer later opnieuw.";
+"error_unknown" = "Er is een onbekende fout opgetreden.";
+"error_authentication" = "Authenticatie mislukt. Log opnieuw in.";
+"error_permission_denied" = "Toestemming geweigerd.";
+"error_not_found" = "Niet gevonden.";
+"error_photo_access" = "Toegang tot fotobibliotheek vereist.";
+"error_camera_access" = "Cameratoegang vereist.";
+"error_file_too_large" = "Bestand is te groot. Maximale grootte: %@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "Fototoegang";
+"permission_photos_message" = "Sta Intok toe om toegang te krijgen tot je foto's.";
+"permission_camera_title" = "Cameratoegang";
+"permission_camera_message" = "Sta Intok toe om toegang te krijgen tot je camera.";
+"permission_notifications_title" = "Meldingen";
+"permission_notifications_message" = "Sta Intok toe om je meldingen te sturen.";
+"permission_go_to_settings" = "Ga naar Instellingen";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "Zojuist";
+"time_minutes_ago" = "%d minuten geleden";
+"time_hours_ago" = "%d uur geleden";
+"time_yesterday" = "Gisteren";
+"time_days_ago" = "%d dagen geleden";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "Ga terug";
+"accessibility_close_button" = "Sluit";
+"accessibility_send_message" = "Bericht verzenden";
+"accessibility_attach_media" = "Media bijvoegen";
+"accessibility_take_photo" = "Foto maken";
+"accessibility_select_emoji" = "Emoji selecteren";
+"accessibility_profile_picture" = "Profielfoto";
+"accessibility_unread_messages" = "%d ongelezen berichten";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "Geen gesprekken";
+"empty_messages" = "Geen berichten";
+"empty_search_results" = "Geen resultaten";
+"empty_users" = "Geen gebruikers gevonden";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "Nieuw bericht";
+"notification_new_message_from" = "Nieuw bericht van %@";
+"notification_photo" = "%@ stuurde een foto";
+"notification_file" = "%@ stuurde een bestand";
+"notification_gif" = "%@ stuurde een GIF";

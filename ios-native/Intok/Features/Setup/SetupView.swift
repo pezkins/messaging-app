@@ -104,16 +104,16 @@ struct SetupView: View {
                 .font(.system(size: 80))
                 .foregroundColor(Color(hex: "8B5CF6"))
             
-            Text("Choose a Display Name")
+            Text("setup_choose_display_name".localized)
                 .font(.title)
                 .fontWeight(.bold)
                 .foregroundColor(.white)
             
-            Text("This is how others will see you")
+            Text("setup_how_others_see_you".localized)
                 .font(.subheadline)
                 .foregroundColor(.gray)
             
-            TextField("Enter your name", text: $displayName)
+            TextField("setup_enter_name_placeholder".localized, text: $displayName)
                 .textFieldStyle(.plain)
                 .padding()
                 .background(Color.white.opacity(0.1))
@@ -139,7 +139,7 @@ struct SetupView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text("Continue")
+                        Text("common_continue".localized)
                         Image(systemName: "arrow.right")
                     }
                 }
@@ -166,19 +166,19 @@ struct SetupView: View {
                     .font(.system(size: 60))
                     .foregroundColor(Color(hex: "8B5CF6"))
                 
-                Text("Select Your Language")
+                Text("setup_select_language".localized)
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 
-                Text("Messages will be translated to this language")
+                Text("setup_messages_translated".localized)
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
             .padding(.top, 40)
             
             // Search
-            TextField("Search languages...", text: $languageSearchText)
+            TextField("setup_search_languages".localized, text: $languageSearchText)
                 .textFieldStyle(.plain)
                 .padding()
                 .background(Color.white.opacity(0.1))
@@ -232,7 +232,7 @@ struct SetupView: View {
                         ProgressView()
                             .progressViewStyle(CircularProgressViewStyle(tint: .white))
                     } else {
-                        Text("Continue")
+                        Text("common_continue".localized)
                         Image(systemName: "arrow.right")
                     }
                 }
@@ -259,19 +259,19 @@ struct SetupView: View {
                     .font(.system(size: 60))
                     .foregroundColor(Color(hex: "8B5CF6"))
                 
-                Text("Select Your Country")
+                Text("setup_select_country".localized)
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 
-                Text("Optional - helps connect you with nearby users")
+                Text("setup_country_optional".localized)
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
             .padding(.top, 40)
             
             // Search
-            TextField("Search countries...", text: $countrySearchText)
+            TextField("setup_search_countries".localized, text: $countrySearchText)
                 .textFieldStyle(.plain)
                 .padding()
                 .background(Color.white.opacity(0.1))
@@ -317,7 +317,7 @@ struct SetupView: View {
                 Button(action: {
                     completeSetup()
                 }) {
-                    Text("Skip")
+                    Text("common_skip".localized)
                         .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -338,10 +338,10 @@ struct SetupView: View {
                         } else {
                             // Show "Continue" if country has regions, otherwise "Finish"
                             if countryHasRegions {
-                                Text("Continue")
+                                Text("common_continue".localized)
                                 Image(systemName: "arrow.right")
                             } else {
-                                Text("Finish")
+                                Text("common_finish".localized)
                                 Image(systemName: "checkmark")
                             }
                         }
@@ -368,12 +368,12 @@ struct SetupView: View {
                     .font(.system(size: 60))
                     .foregroundColor(Color(hex: "8B5CF6"))
                 
-                Text("Select Your Region")
+                Text("setup_select_region".localized)
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 
-                Text("This helps with translation accuracy")
+                Text("setup_region_accuracy".localized)
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
@@ -414,7 +414,7 @@ struct SetupView: View {
                 Button(action: {
                     completeSetup()
                 }) {
-                    Text("Skip")
+                    Text("common_skip".localized)
                         .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
@@ -433,7 +433,7 @@ struct SetupView: View {
                             ProgressView()
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                         } else {
-                            Text("Finish")
+                            Text("common_finish".localized)
                             Image(systemName: "checkmark")
                         }
                     }

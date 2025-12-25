@@ -14,6 +14,7 @@ import com.intokapp.app.data.network.ProfilePictureUploadRequest
 import com.intokapp.app.data.network.UpdateProfilePictureRequest
 import com.intokapp.app.data.repository.AuthRepository
 import com.intokapp.app.data.repository.AuthState
+import com.intokapp.app.data.repository.LocalizationManager
 import com.intokapp.app.data.repository.WhatsNewManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -46,6 +47,7 @@ class SettingsViewModel @Inject constructor(
     private val apiService: ApiService,
     private val okHttpClient: OkHttpClient,
     val whatsNewManager: WhatsNewManager,
+    val localizationManager: LocalizationManager,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
     
@@ -125,6 +127,14 @@ class SettingsViewModel @Inject constructor(
             
             _uiState.update { it.copy(isLoading = false) }
         }
+    }
+    
+    /**
+     * Update the app UI language.
+     * @param languageCode The language code to set, or "auto" for device language.
+     */
+    fun updateAppLanguage(languageCode: String) {
+        localizationManager.setLanguage(languageCode)
     }
     
     fun signOut() {

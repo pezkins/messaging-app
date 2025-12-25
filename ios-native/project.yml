@@ -37,6 +37,8 @@ targets:
           - "**/.DS_Store"
     resources:
       - path: Intok/Resources/Assets.xcassets
+      - path: Intok/Resources/Localizable
+        type: folder
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.pezkins.intok

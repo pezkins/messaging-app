@@ -28,12 +28,12 @@ struct LoginView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 24))
                     
                     // App Name
-                    Text("Intok")
+                    Text("app_name".localized)
                         .font(.displaySmall)
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                     
-                    Text("Connect globally, communicate naturally")
+                    Text("app_tagline".localized)
                         .font(.bodyLarge)
                         .foregroundColor(.surface400)
                         .multilineTextAlignment(.center)
@@ -50,7 +50,7 @@ struct LoginView: View {
                                     .tint(.white)
                             } else {
                                 Image(systemName: "apple.logo")
-                                Text("Continue with Apple")
+                                Text("login_continue_apple".localized)
                             }
                         }
                     }
@@ -77,7 +77,7 @@ struct LoginView: View {
                                 ProgressView()
                                     .tint(.purple500)
                             } else {
-                                Text("Continue with Google")
+                                Text("login_continue_google".localized)
                             }
                         }
                     }
@@ -94,7 +94,7 @@ struct LoginView: View {
                         Rectangle()
                             .fill(Color.surface700)
                             .frame(height: 1)
-                        Text("or")
+                        Text("common_or".localized)
                             .foregroundColor(.surface500)
                             .padding(.horizontal, 16)
                         Rectangle()
@@ -106,7 +106,7 @@ struct LoginView: View {
                     Button(action: {
                         showEmailAuth = true
                     }) {
-                        Text("Continue with Email")
+                        Text("login_continue_email".localized)
                     }
                     .buttonStyle(SecondaryButtonStyle())
                     
@@ -114,7 +114,7 @@ struct LoginView: View {
                         .frame(height: 16)
                     
                     // Terms
-                    Text("By continuing, you agree to our Terms of Service and Privacy Policy")
+                    Text("login_terms_notice".localized)
                         .font(.bodySmall)
                         .foregroundColor(.surface500)
                         .multilineTextAlignment(.center)
@@ -124,13 +124,14 @@ struct LoginView: View {
                 }
                 .padding(.horizontal, 24)
             }
+            .localizedLayoutDirection()
             .navigationDestination(isPresented: $showEmailAuth) {
                 EmailAuthView()
             }
-            .alert("Sign in with Apple", isPresented: $appleAuthManager.showError) {
-                Button("OK") { }
+            .alert("login_sign_in_apple".localized, isPresented: $appleAuthManager.showError) {
+                Button("common_ok".localized) { }
             } message: {
-                Text(appleAuthManager.errorMessage ?? "An error occurred")
+                Text(appleAuthManager.errorMessage ?? "error_unknown".localized)
             }
         }
     }

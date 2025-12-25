@@ -1,0 +1,265 @@
+/*
+ * Localizable.strings (Danish - Dansk)
+ * Intok
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "OK";
+"common_cancel" = "Annuller";
+"common_done" = "Færdig";
+"common_save" = "Gem";
+"common_delete" = "Slet";
+"common_edit" = "Rediger";
+"common_close" = "Luk";
+"common_back" = "Tilbage";
+"common_next" = "Næste";
+"common_continue" = "Fortsæt";
+"common_skip" = "Spring over";
+"common_finish" = "Afslut";
+"common_loading" = "Indlæser...";
+"common_error" = "Fejl";
+"common_success" = "Succes";
+"common_retry" = "Prøv igen";
+"common_try_again" = "Prøv igen";
+"common_search" = "Søg";
+"common_or" = "eller";
+"common_yes" = "Ja";
+"common_no" = "Nej";
+"common_unknown" = "Ukendt";
+"common_not_set" = "Ikke angivet";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "Forbind globalt, kommuniker naturligt";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "Fortsæt med Apple";
+"login_continue_google" = "Fortsæt med Google";
+"login_continue_email" = "Fortsæt med e-mail";
+"login_terms_notice" = "Ved at fortsætte accepterer du vores Servicevilkår og Privatlivspolitik";
+"login_sign_in_apple" = "Log ind med Apple";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "Fortsæt med e-mail";
+"email_auth_welcome_back" = "Velkommen tilbage";
+"email_auth_create_account" = "Opret konto";
+"email_auth_whats_your_email" = "Hvad er din e-mail?";
+"email_auth_check_account" = "Vi tjekker om du har en konto";
+"email_auth_email_label" = "E-mail";
+"email_auth_email_placeholder" = "Indtast din e-mail";
+"email_auth_enter_password" = "Indtast din adgangskode";
+"email_auth_password_label" = "Adgangskode";
+"email_auth_sign_in" = "Log ind";
+"email_auth_forgot_password" = "Glemt adgangskode?";
+"email_auth_create_your_account" = "Opret din konto";
+"email_auth_display_name_label" = "Visningsnavn";
+"email_auth_confirm_password_label" = "Bekræft adgangskode";
+"email_auth_password_hint" = "Mindst 6 tegn";
+"email_auth_passwords_dont_match" = "Adgangskoderne matcher ikke";
+"email_auth_preferred_language" = "Foretrukket sprog";
+"email_auth_country" = "Land";
+"email_auth_create_account_button" = "Opret konto";
+"email_auth_check_email_error" = "Kunne ikke tjekke e-mail. Prøv igen.";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "Vælg et visningsnavn";
+"setup_how_others_see_you" = "Sådan vil andre se dig";
+"setup_enter_name_placeholder" = "Indtast dit navn";
+"setup_select_language" = "Vælg dit sprog";
+"setup_messages_translated" = "Beskeder oversættes til dette sprog";
+"setup_search_languages" = "Søg sprog...";
+"setup_select_country" = "Vælg dit land";
+"setup_country_optional" = "Valgfrit - hjælper med at forbinde dig med brugere i nærheden";
+"setup_search_countries" = "Søg lande...";
+"setup_select_region" = "Vælg din region";
+"setup_region_accuracy" = "Dette hjælper med oversættelsesnøjagtighed";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "Beskeder";
+"conversations_search_placeholder" = "Søg samtaler...";
+"conversations_loading" = "Indlæser samtaler...";
+"conversations_empty_title" = "Ingen samtaler endnu";
+"conversations_empty_subtitle" = "Start en samtale ved at trykke på skriv-knappen";
+"conversations_start_new" = "Start ny chat";
+"conversations_error_title" = "Noget gik galt";
+"conversations_group_chat" = "Gruppechat";
+"conversations_no_messages" = "Ingen beskeder endnu";
+"conversations_yesterday" = "I går";
+"conversations_delete_title" = "Slet samtale";
+"conversations_delete_message" = "Slet denne samtale? Dette kan ikke fortrydes.";
+"conversations_delete_button" = "Slet samtale";
+"conversations_deleting" = "Sletter...";
+"conversations_preview_photo" = "📷 Foto";
+"conversations_preview_voice" = "🎤 Talebesked";
+"conversations_preview_file" = "📎 Fil";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "Ny besked";
+"new_chat_direct" = "Direkte";
+"new_chat_group" = "Gruppe";
+"new_chat_search_users" = "Søg brugere...";
+"new_chat_no_results" = "Ingen brugere fundet";
+"new_chat_create_group" = "Opret gruppe";
+"new_chat_group_name_placeholder" = "Gruppenavn (valgfrit)";
+"new_chat_selected_count" = "Opret gruppe (%d medlemmer)";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "Skriv en besked...";
+"chat_send_button" = "Send";
+"chat_typing_indicator" = "skriver...";
+"chat_read_receipt" = "Læst";
+"chat_delivered" = "Leveret";
+"chat_sending" = "Sender...";
+"chat_failed" = "Kunne ikke sende";
+"chat_reply" = "Svar";
+"chat_copy" = "Kopier";
+"chat_delete" = "Slet";
+"chat_delete_for_me" = "Slet for mig";
+"chat_delete_for_everyone" = "Slet for alle";
+"chat_react" = "Reager";
+"chat_save_photo" = "Gem til Fotos";
+"chat_download_file" = "Download fil";
+"chat_message_deleted" = "Denne besked er blevet slettet";
+"chat_show_original" = "Vis original";
+"chat_show_translation" = "Vis oversættelse";
+"chat_translated_from" = "Oversat fra %@";
+"chat_attach_photo" = "Foto";
+"chat_attach_camera" = "Kamera";
+"chat_attach_file" = "Fil";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "Oversæt dokument";
+"chat_group_info" = "Gruppeinfo";
+"chat_add_people" = "Tilføj personer";
+"chat_remove_people" = "Fjern personer";
+"chat_leave_group" = "Forlad gruppe";
+"chat_view_profile" = "Se profil";
+"chat_search" = "Søg i chat";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "Indstillinger";
+"settings_preferences" = "PRÆFERENCER";
+"settings_about" = "OM";
+"settings_language" = "Sprog";
+"settings_country" = "Land";
+"settings_region" = "Region";
+"settings_app_language" = "App-sprog";
+"settings_app_language_auto" = "Automatisk (enhedens sprog)";
+"settings_whats_new" = "Nyheder";
+"settings_version" = "Version";
+"settings_privacy_policy" = "Privatlivspolitik";
+"settings_terms_of_service" = "Servicevilkår";
+"settings_help_support" = "Hjælp & Support";
+"settings_sign_out" = "Log ud";
+"settings_sign_out_confirm" = "Er du sikker på, at du vil logge ud?";
+"settings_delete_account" = "Slet konto";
+"settings_edit_name" = "Rediger navn";
+"settings_display_name" = "Visningsnavn";
+"settings_change_photo" = "Skift profilbillede";
+"settings_take_photo" = "Tag foto";
+"settings_choose_library" = "Vælg fra bibliotek";
+"settings_remove_photo" = "Fjern foto";
+"settings_photo_error" = "Fotofejl";
+"settings_photo_error_message" = "Kunne ikke opdatere profilbillede";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "Gruppeinfo";
+"group_info_participants" = "%d Deltagere";
+"group_info_participants_header" = "Deltagere";
+"group_info_you" = "(Dig)";
+"group_info_edit_name" = "Rediger gruppenavn";
+"group_info_group_name" = "Gruppenavn";
+"group_add_participants_title" = "Tilføj deltagere";
+"group_add_participants_search" = "Søg brugere at tilføje...";
+"group_add_participants_button" = "Tilføj til gruppe";
+"group_add_participants_empty" = "Ingen brugere at tilføje";
+"group_remove_participants_title" = "Fjern deltagere";
+"group_remove_participants_confirm" = "Fjern %@ fra gruppen?";
+"group_remove_button" = "Fjern";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "Automatisk (enhedens sprog)";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "Netværksfejl. Tjek din forbindelse.";
+"error_server" = "Serverfejl. Prøv igen senere.";
+"error_unknown" = "Der opstod en ukendt fejl.";
+"error_authentication" = "Godkendelse mislykkedes. Log ind igen.";
+"error_permission_denied" = "Adgang nægtet.";
+"error_not_found" = "Ikke fundet.";
+"error_photo_access" = "Adgang til fotobibliotek kræves.";
+"error_camera_access" = "Kameraadgang kræves.";
+"error_file_too_large" = "Filen er for stor. Maks størrelse: %@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "Fotoadgang";
+"permission_photos_message" = "Tillad Intok at få adgang til dine fotos.";
+"permission_camera_title" = "Kameraadgang";
+"permission_camera_message" = "Tillad Intok at få adgang til dit kamera.";
+"permission_notifications_title" = "Notifikationer";
+"permission_notifications_message" = "Tillad Intok at sende dig notifikationer.";
+"permission_go_to_settings" = "Gå til Indstillinger";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "Lige nu";
+"time_minutes_ago" = "%d minutter siden";
+"time_hours_ago" = "%d timer siden";
+"time_yesterday" = "I går";
+"time_days_ago" = "%d dage siden";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "Tilbage";
+"accessibility_close_button" = "Luk";
+"accessibility_send_message" = "Send besked";
+"accessibility_attach_media" = "Vedhæft medie";
+"accessibility_take_photo" = "Tag et foto";
+"accessibility_select_emoji" = "Vælg emoji";
+"accessibility_profile_picture" = "Profilbillede";
+"accessibility_unread_messages" = "%d ulæste beskeder";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "Ingen samtaler";
+"empty_messages" = "Ingen beskeder";
+"empty_search_results" = "Ingen resultater";
+"empty_users" = "Ingen brugere fundet";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "Ny besked";
+"notification_new_message_from" = "Ny besked fra %@";
+"notification_photo" = "%@ sendte et foto";
+"notification_file" = "%@ sendte en fil";
+"notification_gif" = "%@ sendte en GIF";

@@ -8,9 +8,12 @@ struct SettingsView: View {
     @State private var showingLanguagePicker = false
     @State private var showingCountryPicker = false
     @State private var showingRegionPicker = false
+    @State private var showingAppLanguagePicker = false
     @State private var showingEditName = false
     @State private var showingWhatsNew = false
     @State private var showingSignOutConfirm = false
+    
+    @StateObject private var localizationManager = LocalizationManager.shared
     
     @State private var editingName = ""
     @State private var isLoading = false
@@ -48,7 +51,8 @@ struct SettingsView: View {
                     .padding()
                 }
             }
-            .navigationTitle("Settings")
+            .localizedLayoutDirection()
+            .navigationTitle("settings_title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -69,38 +73,41 @@ struct SettingsView: View {
                     RegionPickerSheet(countryCode: countryCode, onSelect: updateRegion)
                 }
             }
+            .sheet(isPresented: $showingAppLanguagePicker) {
+                AppLanguagePickerSheet(localizationManager: localizationManager)
+            }
             .sheet(isPresented: $showingWhatsNew) {
                 WhatsNewSheet()
             }
-            .alert("Edit Display Name", isPresented: $showingEditName) {
-                TextField("Display Name", text: $editingName)
-                Button("Cancel", role: .cancel) { }
-                Button("Save") {
+            .alert("settings_edit_name".localized, isPresented: $showingEditName) {
+                TextField("settings_display_name".localized, text: $editingName)
+                Button("common_cancel".localized, role: .cancel) { }
+                Button("common_save".localized) {
                     Task { await updateDisplayName() }
                 }
             }
-            .confirmationDialog("Sign Out", isPresented: $showingSignOutConfirm) {
-                Button("Sign Out", role: .destructive) {
+            .confirmationDialog("settings_sign_out".localized, isPresented: $showingSignOutConfirm) {
+                Button("settings_sign_out".localized, role: .destructive) {
                     Task { await authManager.signOut() }
                 }
-                Button("Cancel", role: .cancel) { }
+                Button("common_cancel".localized, role: .cancel) { }
             } message: {
-                Text("Are you sure you want to sign out?")
+                Text("settings_sign_out_confirm".localized)
             }
             // Image source picker action sheet
-            .confirmationDialog("Change Profile Photo", isPresented: $showingImageSourcePicker) {
-                Button("Take Photo") {
+            .confirmationDialog("settings_change_photo".localized, isPresented: $showingImageSourcePicker) {
+                Button("settings_take_photo".localized) {
                     showingCamera = true
                 }
-                Button("Choose from Library") {
+                Button("settings_choose_library".localized) {
                     showingPhotoPicker = true
                 }
                 if authManager.currentUser?.avatarUrl != nil {
-                    Button("Remove Photo", role: .destructive) {
+                    Button("settings_remove_photo".localized, role: .destructive) {
                         Task { await removeProfilePhoto() }
                     }
                 }
-                Button("Cancel", role: .cancel) { }
+                Button("common_cancel".localized, role: .cancel) { }
             }
             // Photo library picker
             .photosPicker(isPresented: $showingPhotoPicker, selection: $selectedPhotoItem, matching: .images)
@@ -114,10 +121,10 @@ struct SettingsView: View {
                 }
             }
             // Photo error alert
-            .alert("Photo Error", isPresented: $showPhotoError) {
-                Button("OK") { }
+            .alert("settings_photo_error".localized, isPresented: $showPhotoError) {
+                Button("common_ok".localized) { }
             } message: {
-                Text(photoError ?? "Failed to update profile photo")
+                Text(photoError ?? "settings_photo_error_message".localized)
             }
         }
     }
@@ -221,18 +228,30 @@ struct SettingsView: View {
     // MARK: - Preferences Section
     var preferencesSection: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("PREFERENCES")
+            Text("settings_preferences".localized)
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundColor(.gray)
                 .padding(.leading, 4)
             
             VStack(spacing: 0) {
-                // Language
+                // App UI Language (NEW)
+                settingsRow(
+                    icon: "textformat",
+                    iconColor: Color.cyan,
+                    title: "settings_app_language".localized,
+                    value: getAppLanguageDisplayName(),
+                    action: { showingAppLanguagePicker = true }
+                )
+                
+                Divider()
+                    .background(Color.white.opacity(0.1))
+                
+                // Message Translation Language
                 settingsRow(
                     icon: "globe",
                     iconColor: Color(hex: "8B5CF6"),
-                    title: "Language",
+                    title: "settings_language".localized,
                     value: getLanguageName(authManager.currentUser?.preferredLanguage ?? "en"),
                     action: { showingLanguagePicker = true }
                 )
@@ -244,7 +263,7 @@ struct SettingsView: View {
                 settingsRow(
                     icon: "map",
                     iconColor: Color.green,
-                    title: "Country",
+                    title: "settings_country".localized,
                     value: getCountryName(authManager.currentUser?.preferredCountry),
                     action: { showingCountryPicker = true }
                 )
@@ -258,7 +277,7 @@ struct SettingsView: View {
                     settingsRow(
                         icon: "mappin.and.ellipse",
                         iconColor: Color.orange,
-                        title: "Region",
+                        title: "settings_region".localized,
                         value: getRegionName(authManager.currentUser?.preferredCountry, authManager.currentUser?.preferredRegion),
                         action: { showingRegionPicker = true }
                     )
@@ -269,10 +288,22 @@ struct SettingsView: View {
         }
     }
     
+    // Get display name for current app language
+    func getAppLanguageDisplayName() -> String {
+        if localizationManager.appLanguage == "auto" {
+            let deviceLang = localizationManager.currentLanguageCode
+            if let language = getLanguageByCode(deviceLang) {
+                return "Auto (\(language.name))"
+            }
+            return "Auto"
+        }
+        return getLanguageName(localizationManager.appLanguage)
+    }
+    
     // MARK: - About Section
     var aboutSection: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("ABOUT")
+            Text("settings_about".localized)
                 .font(.caption)
                 .fontWeight(.semibold)
                 .foregroundColor(.gray)
@@ -283,7 +314,7 @@ struct SettingsView: View {
                 settingsRow(
                     icon: "sparkles",
                     iconColor: Color.yellow,
-                    title: "What's New",
+                    title: "settings_whats_new".localized,
                     value: nil,
                     action: { showingWhatsNew = true }
                 )
@@ -297,7 +328,7 @@ struct SettingsView: View {
                         .foregroundColor(.blue)
                         .frame(width: 24)
                     
-                    Text("Version")
+                    Text("settings_version".localized)
                         .foregroundColor(.white)
                     
                     Spacer()
@@ -319,7 +350,7 @@ struct SettingsView: View {
         }) {
             HStack {
                 Image(systemName: "rectangle.portrait.and.arrow.right")
-                Text("Sign Out")
+                Text("settings_sign_out".localized)
             }
             .font(.headline)
             .foregroundColor(.red)
@@ -362,12 +393,12 @@ struct SettingsView: View {
     }
     
     func getCountryName(_ code: String?) -> String {
-        guard let code = code else { return "Not set" }
+        guard let code = code else { return "common_not_set".localized }
         return getCountryByCode(code)?.name ?? code
     }
     
     func getRegionName(_ countryCode: String?, _ regionCode: String?) -> String {
-        guard let countryCode = countryCode, let regionCode = regionCode else { return "Not set" }
+        guard let countryCode = countryCode, let regionCode = regionCode else { return "common_not_set".localized }
         return getRegionByCode(countryCode, regionCode: regionCode)?.name ?? regionCode
     }
     
@@ -566,7 +597,7 @@ struct LanguagePickerSheet: View {
                 Color(hex: "0F0F0F").ignoresSafeArea()
                 
                 VStack {
-                    TextField("Search languages...", text: $searchText)
+                    TextField("setup_search_languages".localized, text: $searchText)
                         .textFieldStyle(.plain)
                         .padding()
                         .background(Color.white.opacity(0.1))
@@ -596,11 +627,11 @@ struct LanguagePickerSheet: View {
                     .scrollContentBackground(.hidden)
                 }
             }
-            .navigationTitle("Select Language")
+            .navigationTitle("setup_select_language".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
+                    Button("common_cancel".localized) { dismiss() }
                 }
             }
         }
@@ -629,7 +660,7 @@ struct CountryPickerSheet: View {
                 Color(hex: "0F0F0F").ignoresSafeArea()
                 
                 VStack {
-                    TextField("Search countries...", text: $searchText)
+                    TextField("setup_search_countries".localized, text: $searchText)
                         .textFieldStyle(.plain)
                         .padding()
                         .background(Color.white.opacity(0.1))
@@ -656,11 +687,11 @@ struct CountryPickerSheet: View {
                     .scrollContentBackground(.hidden)
                 }
             }
-            .navigationTitle("Select Country")
+            .navigationTitle("setup_select_country".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
+                    Button("common_cancel".localized) { dismiss() }
                 }
             }
         }
@@ -684,7 +715,7 @@ struct RegionPickerSheet: View {
                 
                 VStack {
                     if regions.isEmpty {
-                        Text("No regions available for this country")
+                        Text("empty_search_results".localized)
                             .foregroundColor(.gray)
                             .padding()
                     } else {
@@ -706,11 +737,113 @@ struct RegionPickerSheet: View {
                     }
                 }
             }
-            .navigationTitle("Select Region")
+            .navigationTitle("setup_select_region".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") { dismiss() }
+                    Button("common_cancel".localized) { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - App Language Picker Sheet
+struct AppLanguagePickerSheet: View {
+    @Environment(\.dismiss) var dismiss
+    @ObservedObject var localizationManager: LocalizationManager
+    
+    @State private var searchText = ""
+    
+    var filteredLanguages: [Language] {
+        if searchText.isEmpty {
+            return LANGUAGES
+        }
+        return LANGUAGES.filter {
+            $0.name.localizedCaseInsensitiveContains(searchText) ||
+            $0.native.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+    
+    var body: some View {
+        NavigationView {
+            ZStack {
+                Color(hex: "0F0F0F").ignoresSafeArea()
+                
+                VStack(spacing: 0) {
+                    // Search bar
+                    TextField("setup_search_languages".localized, text: $searchText)
+                        .textFieldStyle(.plain)
+                        .padding()
+                        .background(Color.white.opacity(0.1))
+                        .cornerRadius(12)
+                        .foregroundColor(.white)
+                        .padding()
+                    
+                    List {
+                        // Auto option (use device language)
+                        Button(action: {
+                            localizationManager.appLanguage = "auto"
+                            dismiss()
+                        }) {
+                            HStack {
+                                VStack(alignment: .leading) {
+                                    Text("language_auto".localized)
+                                        .foregroundColor(.white)
+                                    Text("settings_app_language_auto".localized)
+                                        .font(.caption)
+                                        .foregroundColor(.gray)
+                                }
+                                Spacer()
+                                if localizationManager.appLanguage == "auto" {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(Color(hex: "8B5CF6"))
+                                }
+                            }
+                        }
+                        .listRowBackground(
+                            localizationManager.appLanguage == "auto" ?
+                            Color(hex: "8B5CF6").opacity(0.2) :
+                            Color.white.opacity(0.05)
+                        )
+                        
+                        // All languages
+                        ForEach(filteredLanguages) { language in
+                            Button(action: {
+                                localizationManager.appLanguage = language.code
+                                dismiss()
+                            }) {
+                                HStack {
+                                    VStack(alignment: .leading) {
+                                        Text(language.name)
+                                            .foregroundColor(.white)
+                                        Text(language.native)
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
+                                    Spacer()
+                                    if localizationManager.appLanguage == language.code {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(Color(hex: "8B5CF6"))
+                                    }
+                                }
+                            }
+                            .listRowBackground(
+                                localizationManager.appLanguage == language.code ?
+                                Color(hex: "8B5CF6").opacity(0.2) :
+                                Color.white.opacity(0.05)
+                            )
+                        }
+                    }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
+                }
+            }
+            .navigationTitle("settings_app_language".localized)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("common_cancel".localized) { dismiss() }
                 }
             }
         }
@@ -737,7 +870,7 @@ struct WhatsNewSheet: View {
                             VStack(alignment: .leading, spacing: 8) {
                                 // Version header
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text("Version \(entry.version)")
+                                    Text("\("settings_version".localized) \(entry.version)")
                                         .font(index == 0 ? .title2 : .headline)
                                         .fontWeight(.bold)
                                         .foregroundColor(.white)
@@ -766,11 +899,11 @@ struct WhatsNewSheet: View {
                     .padding()
                 }
             }
-            .navigationTitle("What's New")
+            .navigationTitle("settings_whats_new".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") { dismiss() }
+                    Button("common_done".localized) { dismiss() }
                 }
             }
         }

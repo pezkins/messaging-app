@@ -1,9 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.Intok" parent="android:Theme.Material.Light.NoActionBar">
+    <!-- AppCompat theme required for per-app language support -->
+    <style name="Theme.Intok" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:statusBarColor">@color/surface_950</item>
         <item name="android:navigationBarColor">@color/surface_950</item>
         <item name="android:windowLightStatusBar">false</item>
+        <!-- Material3 color scheme for Compose -->
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorPrimaryDark">@color/purple_700</item>
+        <item name="colorAccent">@color/accent_500</item>
     </style>
 </resources>
 

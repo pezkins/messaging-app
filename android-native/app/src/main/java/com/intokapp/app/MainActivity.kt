@@ -6,26 +6,30 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.intokapp.app.data.network.ApiService
 import com.intokapp.app.data.network.IntokFirebaseMessagingService
 import com.intokapp.app.data.network.TokenManager
 import com.intokapp.app.data.network.WebSocketService
+import com.intokapp.app.data.repository.LocalizationManager
+import com.intokapp.app.data.repository.LocalStringProvider
+import com.intokapp.app.data.repository.StringProvider
 import com.intokapp.app.ui.navigation.IntokNavigation
 import com.intokapp.app.ui.theme.IntokTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     
     @Inject
     lateinit var apiService: ApiService
@@ -35,6 +39,12 @@ class MainActivity : ComponentActivity() {
     
     @Inject
     lateinit var webSocketService: WebSocketService
+    
+    @Inject
+    lateinit var localizationManager: LocalizationManager
+    
+    @Inject
+    lateinit var stringProvider: StringProvider
     
     companion object {
         private const val TAG = "MainActivity"
@@ -55,6 +65,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         
+        // Apply saved language preference (must be done before setContent)
+        localizationManager.applyLanguagePreference()
+        
         // Request notification permission for Android 13+
         requestNotificationPermission()
         
@@ -65,12 +78,14 @@ class MainActivity : ComponentActivity() {
         }
         
         setContent {
-            IntokTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    IntokNavigation(pendingConversationId = pendingConversationId)
+            CompositionLocalProvider(LocalStringProvider provides stringProvider) {
+                IntokTheme {
+                    Surface(
+                        modifier = Modifier.fillMaxSize(),
+                        color = MaterialTheme.colorScheme.background
+                    ) {
+                        IntokNavigation(pendingConversationId = pendingConversationId)
+                    }
                 }
             }
         }

@@ -3,6 +3,10 @@
     <!-- Primary Purple -->
     <color name="purple_500">#8B5CF6</color>
     <color name="purple_600">#7C3AED</color>
+    <color name="purple_700">#6D28D9</color>
+    
+    <!-- Accent -->
+    <color name="accent_500">#F59E0B</color>
     
     <!-- Surface Colors -->
     <color name="surface_900">#0F172A</color>

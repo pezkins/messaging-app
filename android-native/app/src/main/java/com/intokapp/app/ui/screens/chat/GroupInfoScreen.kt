@@ -21,6 +21,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import com.intokapp.app.data.repository.localizedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -28,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.intokapp.app.R
 import com.intokapp.app.data.models.Conversation
 import com.intokapp.app.data.models.UserPublic
 import com.intokapp.app.ui.theme.*
@@ -78,7 +81,7 @@ fun GroupInfoScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Group Info", color = White) },
+                    title = { Text(localizedString(R.string.group_info_title, "group.group_info_title"), color = White) },
                     navigationIcon = {
                         IconButton(onClick = onBackClick) {
                             Icon(Icons.Default.ArrowBack, null, tint = White)
@@ -104,7 +107,7 @@ fun GroupInfoScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Group Info", color = White) },
+                title = { Text(stringResource(R.string.group_info_title), color = White) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, null, tint = White)

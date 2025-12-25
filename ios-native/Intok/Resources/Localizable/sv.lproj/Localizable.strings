@@ -1,0 +1,265 @@
+/*
+ * Localizable.strings (Swedish - Svenska)
+ * Intok
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "OK";
+"common_cancel" = "Avbryt";
+"common_done" = "Klar";
+"common_save" = "Spara";
+"common_delete" = "Radera";
+"common_edit" = "Redigera";
+"common_close" = "Stäng";
+"common_back" = "Tillbaka";
+"common_next" = "Nästa";
+"common_continue" = "Fortsätt";
+"common_skip" = "Hoppa över";
+"common_finish" = "Slutför";
+"common_loading" = "Laddar...";
+"common_error" = "Fel";
+"common_success" = "Lyckades";
+"common_retry" = "Försök igen";
+"common_try_again" = "Försök igen";
+"common_search" = "Sök";
+"common_or" = "eller";
+"common_yes" = "Ja";
+"common_no" = "Nej";
+"common_unknown" = "Okänt";
+"common_not_set" = "Inte angett";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "Anslut globalt, kommunicera naturligt";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "Fortsätt med Apple";
+"login_continue_google" = "Fortsätt med Google";
+"login_continue_email" = "Fortsätt med e-post";
+"login_terms_notice" = "Genom att fortsätta godkänner du våra användarvillkor och integritetspolicy";
+"login_sign_in_apple" = "Logga in med Apple";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "Fortsätt med e-post";
+"email_auth_welcome_back" = "Välkommen tillbaka";
+"email_auth_create_account" = "Skapa konto";
+"email_auth_whats_your_email" = "Vad är din e-post?";
+"email_auth_check_account" = "Vi kontrollerar om du har ett konto";
+"email_auth_email_label" = "E-post";
+"email_auth_email_placeholder" = "Ange din e-post";
+"email_auth_enter_password" = "Ange ditt lösenord";
+"email_auth_password_label" = "Lösenord";
+"email_auth_sign_in" = "Logga in";
+"email_auth_forgot_password" = "Glömt lösenord?";
+"email_auth_create_your_account" = "Skapa ditt konto";
+"email_auth_display_name_label" = "Visningsnamn";
+"email_auth_confirm_password_label" = "Bekräfta lösenord";
+"email_auth_password_hint" = "Minst 6 tecken";
+"email_auth_passwords_dont_match" = "Lösenorden matchar inte";
+"email_auth_preferred_language" = "Föredraget språk";
+"email_auth_country" = "Land";
+"email_auth_create_account_button" = "Skapa konto";
+"email_auth_check_email_error" = "Kunde inte kontrollera e-post. Försök igen.";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "Välj ett visningsnamn";
+"setup_how_others_see_you" = "Så här ser andra dig";
+"setup_enter_name_placeholder" = "Ange ditt namn";
+"setup_select_language" = "Välj ditt språk";
+"setup_messages_translated" = "Meddelanden översätts till detta språk";
+"setup_search_languages" = "Sök språk...";
+"setup_select_country" = "Välj ditt land";
+"setup_country_optional" = "Valfritt - hjälper dig ansluta till användare i närheten";
+"setup_search_countries" = "Sök länder...";
+"setup_select_region" = "Välj din region";
+"setup_region_accuracy" = "Detta hjälper med översättningsnoggrannhet";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "Meddelanden";
+"conversations_search_placeholder" = "Sök konversationer...";
+"conversations_loading" = "Laddar konversationer...";
+"conversations_empty_title" = "Inga konversationer ännu";
+"conversations_empty_subtitle" = "Starta en konversation genom att trycka på skriv-knappen";
+"conversations_start_new" = "Starta ny chatt";
+"conversations_error_title" = "Något gick fel";
+"conversations_group_chat" = "Gruppchatt";
+"conversations_no_messages" = "Inga meddelanden ännu";
+"conversations_yesterday" = "Igår";
+"conversations_delete_title" = "Radera konversation";
+"conversations_delete_message" = "Radera denna konversation? Detta kan inte ångras.";
+"conversations_delete_button" = "Radera konversation";
+"conversations_deleting" = "Raderar...";
+"conversations_preview_photo" = "📷 Foto";
+"conversations_preview_voice" = "🎤 Röstmeddelande";
+"conversations_preview_file" = "📎 Fil";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "Nytt meddelande";
+"new_chat_direct" = "Direkt";
+"new_chat_group" = "Grupp";
+"new_chat_search_users" = "Sök användare...";
+"new_chat_no_results" = "Inga användare hittades";
+"new_chat_create_group" = "Skapa grupp";
+"new_chat_group_name_placeholder" = "Gruppnamn (valfritt)";
+"new_chat_selected_count" = "Skapa grupp (%d medlemmar)";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "Skriv ett meddelande...";
+"chat_send_button" = "Skicka";
+"chat_typing_indicator" = "skriver...";
+"chat_read_receipt" = "Läst";
+"chat_delivered" = "Levererat";
+"chat_sending" = "Skickar...";
+"chat_failed" = "Kunde inte skicka";
+"chat_reply" = "Svara";
+"chat_copy" = "Kopiera";
+"chat_delete" = "Radera";
+"chat_delete_for_me" = "Radera för mig";
+"chat_delete_for_everyone" = "Radera för alla";
+"chat_react" = "Reagera";
+"chat_save_photo" = "Spara till Bilder";
+"chat_download_file" = "Ladda ner fil";
+"chat_message_deleted" = "Detta meddelande har raderats";
+"chat_show_original" = "Visa original";
+"chat_show_translation" = "Visa översättning";
+"chat_translated_from" = "Översatt från %@";
+"chat_attach_photo" = "Foto";
+"chat_attach_camera" = "Kamera";
+"chat_attach_file" = "Fil";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "Översätt dokument";
+"chat_group_info" = "Gruppinfo";
+"chat_add_people" = "Lägg till personer";
+"chat_remove_people" = "Ta bort personer";
+"chat_leave_group" = "Lämna grupp";
+"chat_view_profile" = "Visa profil";
+"chat_search" = "Sök i chatt";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "Inställningar";
+"settings_preferences" = "INSTÄLLNINGAR";
+"settings_about" = "OM";
+"settings_language" = "Språk";
+"settings_country" = "Land";
+"settings_region" = "Region";
+"settings_app_language" = "Appspråk";
+"settings_app_language_auto" = "Automatisk (enhetens språk)";
+"settings_whats_new" = "Nyheter";
+"settings_version" = "Version";
+"settings_privacy_policy" = "Integritetspolicy";
+"settings_terms_of_service" = "Användarvillkor";
+"settings_help_support" = "Hjälp & Support";
+"settings_sign_out" = "Logga ut";
+"settings_sign_out_confirm" = "Är du säker på att du vill logga ut?";
+"settings_delete_account" = "Radera konto";
+"settings_edit_name" = "Redigera namn";
+"settings_display_name" = "Visningsnamn";
+"settings_change_photo" = "Ändra profilbild";
+"settings_take_photo" = "Ta foto";
+"settings_choose_library" = "Välj från bibliotek";
+"settings_remove_photo" = "Ta bort foto";
+"settings_photo_error" = "Fotofel";
+"settings_photo_error_message" = "Kunde inte uppdatera profilbild";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "Gruppinfo";
+"group_info_participants" = "%d Deltagare";
+"group_info_participants_header" = "Deltagare";
+"group_info_you" = "(Du)";
+"group_info_edit_name" = "Redigera gruppnamn";
+"group_info_group_name" = "Gruppnamn";
+"group_add_participants_title" = "Lägg till deltagare";
+"group_add_participants_search" = "Sök användare att lägga till...";
+"group_add_participants_button" = "Lägg till i grupp";
+"group_add_participants_empty" = "Inga användare att lägga till";
+"group_remove_participants_title" = "Ta bort deltagare";
+"group_remove_participants_confirm" = "Ta bort %@ från gruppen?";
+"group_remove_button" = "Ta bort";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "Automatisk (enhetens språk)";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "Nätverksfel. Kontrollera din anslutning.";
+"error_server" = "Serverfel. Försök igen senare.";
+"error_unknown" = "Ett okänt fel uppstod.";
+"error_authentication" = "Autentiseringen misslyckades. Logga in igen.";
+"error_permission_denied" = "Åtkomst nekad.";
+"error_not_found" = "Hittades inte.";
+"error_photo_access" = "Åtkomst till fotobibliotek krävs.";
+"error_camera_access" = "Kameraåtkomst krävs.";
+"error_file_too_large" = "Filen är för stor. Maxstorlek: %@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "Fotoåtkomst";
+"permission_photos_message" = "Tillåt Intok att komma åt dina foton.";
+"permission_camera_title" = "Kameraåtkomst";
+"permission_camera_message" = "Tillåt Intok att komma åt din kamera.";
+"permission_notifications_title" = "Aviseringar";
+"permission_notifications_message" = "Tillåt Intok att skicka aviseringar till dig.";
+"permission_go_to_settings" = "Gå till Inställningar";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "Just nu";
+"time_minutes_ago" = "%d minuter sedan";
+"time_hours_ago" = "%d timmar sedan";
+"time_yesterday" = "Igår";
+"time_days_ago" = "%d dagar sedan";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "Tillbaka";
+"accessibility_close_button" = "Stäng";
+"accessibility_send_message" = "Skicka meddelande";
+"accessibility_attach_media" = "Bifoga media";
+"accessibility_take_photo" = "Ta ett foto";
+"accessibility_select_emoji" = "Välj emoji";
+"accessibility_profile_picture" = "Profilbild";
+"accessibility_unread_messages" = "%d olästa meddelanden";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "Inga konversationer";
+"empty_messages" = "Inga meddelanden";
+"empty_search_results" = "Inga resultat";
+"empty_users" = "Inga användare hittades";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "Nytt meddelande";
+"notification_new_message_from" = "Nytt meddelande från %@";
+"notification_photo" = "%@ skickade ett foto";
+"notification_file" = "%@ skickade en fil";
+"notification_gif" = "%@ skickade en GIF";

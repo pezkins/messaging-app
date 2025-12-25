@@ -28,7 +28,7 @@ struct RemoveParticipantsView: View {
                         Image(systemName: "person.2.slash")
                             .font(.largeTitle)
                             .foregroundColor(.gray)
-                        Text("No participants to remove")
+                        Text("group_add_participants_empty".localized)
                             .foregroundColor(.gray)
                     }
                 } else {
@@ -43,11 +43,11 @@ struct RemoveParticipantsView: View {
                     .scrollContentBackground(.hidden)
                 }
             }
-            .navigationTitle("Remove People")
+            .navigationTitle("group_remove_participants_title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
+                    Button("common_cancel".localized) {
                         dismiss()
                     }
                     .foregroundColor(Color(hex: "8B5CF6"))
@@ -58,7 +58,7 @@ struct RemoveParticipantsView: View {
                     Color.black.opacity(0.3)
                         .ignoresSafeArea()
                         .overlay {
-                            ProgressView("Removing...")
+                            ProgressView("common_loading".localized)
                                 .padding()
                                 .background(Color(hex: "2A2A2A"))
                                 .cornerRadius(12)
@@ -66,28 +66,28 @@ struct RemoveParticipantsView: View {
                 }
             }
             .confirmationDialog(
-                "Remove from Group",
+                "group_remove_button".localized,
                 isPresented: $showConfirmation,
                 titleVisibility: .visible
             ) {
-                Button("Remove", role: .destructive) {
+                Button("group_remove_button".localized, role: .destructive) {
                     if let userId = selectedUserId {
                         Task { await removeUser(userId) }
                     }
                 }
-                Button("Cancel", role: .cancel) {
+                Button("common_cancel".localized, role: .cancel) {
                     selectedUserId = nil
                 }
             } message: {
                 if let userId = selectedUserId,
                    let user = removableParticipants.first(where: { $0.id == userId }) {
-                    Text("Are you sure you want to remove \(user.username) from this group?")
+                    Text("group_remove_participants_confirm".localized(with: user.username))
                 }
             }
-            .alert("Error", isPresented: $showError) {
-                Button("OK") { }
+            .alert("common_error".localized, isPresented: $showError) {
+                Button("common_ok".localized) { }
             } message: {
-                Text(errorMessage ?? "An error occurred")
+                Text(errorMessage ?? "error_unknown".localized)
             }
         }
     }

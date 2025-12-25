@@ -1,0 +1,269 @@
+/*
+ * Localizable.strings (Vietnamese - Tiếng Việt)
+ * Intok
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "OK";
+"common_cancel" = "Hủy";
+"common_done" = "Xong";
+"common_save" = "Lưu";
+"common_delete" = "Xóa";
+"common_edit" = "Sửa";
+"common_close" = "Đóng";
+"common_back" = "Quay lại";
+"common_next" = "Tiếp";
+"common_continue" = "Tiếp tục";
+"common_skip" = "Bỏ qua";
+"common_finish" = "Hoàn tất";
+"common_loading" = "Đang tải...";
+"common_error" = "Lỗi";
+"common_success" = "Thành công";
+"common_retry" = "Thử lại";
+"common_try_again" = "Thử lại";
+"common_search" = "Tìm kiếm";
+"common_or" = "hoặc";
+"common_yes" = "Có";
+"common_no" = "Không";
+"common_unknown" = "Không rõ";
+"common_not_set" = "Chưa đặt";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "Kết nối toàn cầu, giao tiếp tự nhiên";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "Tiếp tục với Apple";
+"login_continue_google" = "Tiếp tục với Google";
+"login_continue_email" = "Tiếp tục với Email";
+"login_terms_notice" = "Bằng cách tiếp tục, bạn đồng ý với Điều khoản Dịch vụ và Chính sách Bảo mật";
+"login_sign_in_apple" = "Đăng nhập với Apple";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "Tiếp tục với Email";
+"email_auth_welcome_back" = "Chào mừng trở lại";
+"email_auth_create_account" = "Tạo tài khoản";
+"email_auth_whats_your_email" = "Email của bạn là gì?";
+"email_auth_check_account" = "Chúng tôi sẽ kiểm tra xem bạn có tài khoản không";
+"email_auth_email_label" = "Email";
+"email_auth_email_placeholder" = "Nhập email";
+"email_auth_enter_password" = "Nhập mật khẩu";
+"email_auth_password_label" = "Mật khẩu";
+"email_auth_sign_in" = "Đăng nhập";
+"email_auth_forgot_password" = "Quên mật khẩu?";
+"email_auth_create_your_account" = "Tạo tài khoản của bạn";
+"email_auth_display_name_label" = "Tên hiển thị";
+"email_auth_confirm_password_label" = "Xác nhận mật khẩu";
+"email_auth_password_hint" = "Ít nhất 6 ký tự";
+"email_auth_passwords_dont_match" = "Mật khẩu không khớp";
+"email_auth_preferred_language" = "Ngôn ngữ ưa thích";
+"email_auth_country" = "Quốc gia";
+"email_auth_create_account_button" = "Tạo tài khoản";
+"email_auth_check_email_error" = "Không thể kiểm tra email. Vui lòng thử lại.";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "Chọn tên hiển thị";
+"setup_how_others_see_you" = "Đây là cách người khác sẽ thấy bạn";
+"setup_enter_name_placeholder" = "Nhập tên của bạn";
+"setup_select_language" = "Chọn ngôn ngữ";
+"setup_messages_translated" = "Tin nhắn sẽ được dịch sang ngôn ngữ này";
+"setup_search_languages" = "Tìm ngôn ngữ...";
+"setup_select_country" = "Chọn quốc gia";
+"setup_country_optional" = "Tùy chọn - giúp kết nối với người dùng gần đó";
+"setup_search_countries" = "Tìm quốc gia...";
+"setup_select_region" = "Chọn khu vực";
+"setup_region_accuracy" = "Điều này giúp độ chính xác dịch thuật";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "Tin nhắn";
+"conversations_search_placeholder" = "Tìm cuộc trò chuyện...";
+"conversations_loading" = "Đang tải cuộc trò chuyện...";
+"conversations_empty_title" = "Chưa có cuộc trò chuyện";
+"conversations_empty_subtitle" = "Bắt đầu cuộc trò chuyện bằng cách nhấn nút soạn";
+"conversations_start_new" = "Bắt đầu trò chuyện";
+"conversations_error_title" = "Đã xảy ra lỗi";
+"conversations_group_chat" = "Nhóm chat";
+"conversations_no_messages" = "Chưa có tin nhắn";
+"conversations_yesterday" = "Hôm qua";
+"conversations_delete_title" = "Xóa cuộc trò chuyện";
+"conversations_delete_message" = "Xóa cuộc trò chuyện này? Không thể hoàn tác.";
+"conversations_delete_button" = "Xóa cuộc trò chuyện";
+"conversations_deleting" = "Đang xóa...";
+"conversations_preview_photo" = "📷 Ảnh";
+"conversations_preview_voice" = "🎤 Tin nhắn thoại";
+"conversations_preview_file" = "📎 Tệp";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "Tin nhắn mới";
+"new_chat_direct" = "Trực tiếp";
+"new_chat_group" = "Nhóm";
+"new_chat_search_users" = "Tìm người dùng...";
+"new_chat_no_results" = "Không tìm thấy người dùng";
+"new_chat_create_group" = "Tạo nhóm";
+"new_chat_group_name_placeholder" = "Tên nhóm (tùy chọn)";
+"new_chat_selected_count" = "Tạo nhóm (%d thành viên)";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "Nhập tin nhắn...";
+"chat_send_button" = "Gửi";
+"chat_typing_indicator" = "đang nhập...";
+"chat_read_receipt" = "Đã xem";
+"chat_delivered" = "Đã gửi";
+"chat_sending" = "Đang gửi...";
+"chat_failed" = "Gửi thất bại";
+"chat_reply" = "Trả lời";
+"chat_copy" = "Sao chép";
+"chat_delete" = "Xóa";
+"chat_delete_for_me" = "Xóa cho tôi";
+"chat_delete_for_everyone" = "Xóa cho mọi người";
+"chat_delete_confirm" = "Không thể hoàn tác hành động này.";
+"chat_react" = "Phản ứng";
+"chat_save_photo" = "Lưu vào Ảnh";
+"chat_download_file" = "Tải tệp";
+"chat_image_saved" = "Đã lưu hình ảnh vào Ảnh";
+"chat_uploading" = "Đang tải lên...";
+"chat_message_deleted" = "Tin nhắn này đã bị xóa";
+"gif_try_different_search" = "Thử từ khóa tìm kiếm khác";
+"chat_show_original" = "Hiện bản gốc";
+"chat_show_translation" = "Hiện bản dịch";
+"chat_translated_from" = "Dịch từ %@";
+"chat_attach_photo" = "Ảnh";
+"chat_attach_camera" = "Máy ảnh";
+"chat_attach_file" = "Tệp";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "Dịch tài liệu";
+"chat_group_info" = "Thông tin nhóm";
+"chat_add_people" = "Thêm người";
+"chat_remove_people" = "Xóa người";
+"chat_leave_group" = "Rời nhóm";
+"chat_view_profile" = "Xem hồ sơ";
+"chat_search" = "Tìm trong chat";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "Cài đặt";
+"settings_preferences" = "TÙY CHỌN";
+"settings_about" = "GIỚI THIỆU";
+"settings_language" = "Ngôn ngữ";
+"settings_country" = "Quốc gia";
+"settings_region" = "Khu vực";
+"settings_app_language" = "Ngôn ngữ ứng dụng";
+"settings_app_language_auto" = "Tự động (ngôn ngữ thiết bị)";
+"settings_whats_new" = "Có gì mới";
+"settings_version" = "Phiên bản";
+"settings_privacy_policy" = "Chính sách bảo mật";
+"settings_terms_of_service" = "Điều khoản dịch vụ";
+"settings_help_support" = "Trợ giúp & Hỗ trợ";
+"settings_sign_out" = "Đăng xuất";
+"settings_sign_out_confirm" = "Bạn có chắc muốn đăng xuất?";
+"settings_delete_account" = "Xóa tài khoản";
+"settings_edit_name" = "Sửa tên";
+"settings_display_name" = "Tên hiển thị";
+"settings_change_photo" = "Đổi ảnh đại diện";
+"settings_take_photo" = "Chụp ảnh";
+"settings_choose_library" = "Chọn từ thư viện";
+"settings_remove_photo" = "Xóa ảnh";
+"settings_photo_error" = "Lỗi ảnh";
+"settings_photo_error_message" = "Không thể cập nhật ảnh đại diện";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "Thông tin nhóm";
+"group_info_participants" = "%d Thành viên";
+"group_info_participants_header" = "Thành viên";
+"group_info_you" = "(Bạn)";
+"group_info_edit_name" = "Sửa tên nhóm";
+"group_info_group_name" = "Tên nhóm";
+"group_add_participants_title" = "Thêm thành viên";
+"group_add_participants_search" = "Tìm người để thêm...";
+"group_add_participants_button" = "Thêm vào nhóm";
+"group_add_participants_empty" = "Không có người để thêm";
+"group_remove_participants_title" = "Xóa thành viên";
+"group_remove_participants_confirm" = "Xóa %@ khỏi nhóm?";
+"group_remove_button" = "Xóa";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "Tự động (ngôn ngữ thiết bị)";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "Lỗi mạng. Vui lòng kiểm tra kết nối.";
+"error_server" = "Lỗi máy chủ. Vui lòng thử lại sau.";
+"error_unknown" = "Đã xảy ra lỗi không xác định.";
+"error_authentication" = "Xác thực thất bại. Vui lòng đăng nhập lại.";
+"error_permission_denied" = "Quyền bị từ chối.";
+"error_not_found" = "Không tìm thấy.";
+"error_photo_access" = "Cần quyền truy cập thư viện ảnh.";
+"error_camera_access" = "Cần quyền truy cập máy ảnh.";
+"error_file_too_large" = "Tệp quá lớn. Kích thước tối đa: %@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "Truy cập ảnh";
+"permission_photos_message" = "Cho phép Intok truy cập ảnh của bạn.";
+"permission_camera_title" = "Truy cập máy ảnh";
+"permission_camera_message" = "Cho phép Intok truy cập máy ảnh.";
+"permission_notifications_title" = "Thông báo";
+"permission_notifications_message" = "Cho phép Intok gửi thông báo.";
+"permission_go_to_settings" = "Đi đến Cài đặt";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "Vừa xong";
+"time_minutes_ago" = "%d phút trước";
+"time_hours_ago" = "%d giờ trước";
+"time_yesterday" = "Hôm qua";
+"time_days_ago" = "%d ngày trước";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "Quay lại";
+"accessibility_close_button" = "Đóng";
+"accessibility_send_message" = "Gửi tin nhắn";
+"accessibility_attach_media" = "Đính kèm phương tiện";
+"accessibility_take_photo" = "Chụp ảnh";
+"accessibility_select_emoji" = "Chọn emoji";
+"accessibility_profile_picture" = "Ảnh đại diện";
+"accessibility_unread_messages" = "%d tin nhắn chưa đọc";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "Không có cuộc trò chuyện";
+"empty_messages" = "Không có tin nhắn";
+"empty_search_results" = "Không có kết quả";
+"empty_users" = "Không tìm thấy người dùng";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "Tin nhắn mới";
+"notification_new_message_from" = "Tin nhắn mới từ %@";
+"notification_photo" = "%@ đã gửi một ảnh";
+"notification_file" = "%@ đã gửi một tệp";
+"notification_gif" = "%@ đã gửi một GIF";

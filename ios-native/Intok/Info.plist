@@ -4,8 +4,6 @@
 <dict>
 	<key>API_URL</key>
 	<string>https://aji93f9i0k.execute-api.us-east-1.amazonaws.com/prod</string>
-	<key>GIPHY_API_KEY</key>
-	<string>GlVGYHkr3WSBnllca54iNt0yFbjz7L65</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -45,10 +43,6 @@
 	<string>Intok needs microphone access for voice messages</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Intok needs photo library access to share images in chats</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>remote-notification</string>
-	</array>
 	<key>WS_URL</key>
 	<string>wss://ksupcb7ucf.execute-api.us-east-1.amazonaws.com/prod</string>
 </dict>

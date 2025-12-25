@@ -1,0 +1,266 @@
+/*
+ * Localizable.strings (Hebrew - עברית)
+ * Intok
+ * RTL Language
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "אישור";
+"common_cancel" = "ביטול";
+"common_done" = "סיום";
+"common_save" = "שמור";
+"common_delete" = "מחק";
+"common_edit" = "ערוך";
+"common_close" = "סגור";
+"common_back" = "חזרה";
+"common_next" = "הבא";
+"common_continue" = "המשך";
+"common_skip" = "דלג";
+"common_finish" = "סיים";
+"common_loading" = "טוען...";
+"common_error" = "שגיאה";
+"common_success" = "הצלחה";
+"common_retry" = "נסה שוב";
+"common_try_again" = "נסה שוב";
+"common_search" = "חיפוש";
+"common_or" = "או";
+"common_yes" = "כן";
+"common_no" = "לא";
+"common_unknown" = "לא ידוע";
+"common_not_set" = "לא הוגדר";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "התחבר גלובלית, תקשר באופן טבעי";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "המשך עם Apple";
+"login_continue_google" = "המשך עם Google";
+"login_continue_email" = "המשך עם אימייל";
+"login_terms_notice" = "בהמשך, אתה מסכים לתנאי השירות ומדיניות הפרטיות שלנו";
+"login_sign_in_apple" = "התחבר עם Apple";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "המשך עם אימייל";
+"email_auth_welcome_back" = "ברוך שובך";
+"email_auth_create_account" = "צור חשבון";
+"email_auth_whats_your_email" = "מה האימייל שלך?";
+"email_auth_check_account" = "נבדוק אם יש לך חשבון";
+"email_auth_email_label" = "אימייל";
+"email_auth_email_placeholder" = "הזן את האימייל שלך";
+"email_auth_enter_password" = "הזן את הסיסמה שלך";
+"email_auth_password_label" = "סיסמה";
+"email_auth_sign_in" = "התחבר";
+"email_auth_forgot_password" = "שכחת סיסמה?";
+"email_auth_create_your_account" = "צור את החשבון שלך";
+"email_auth_display_name_label" = "שם תצוגה";
+"email_auth_confirm_password_label" = "אשר סיסמה";
+"email_auth_password_hint" = "לפחות 6 תווים";
+"email_auth_passwords_dont_match" = "הסיסמאות לא תואמות";
+"email_auth_preferred_language" = "שפה מועדפת";
+"email_auth_country" = "מדינה";
+"email_auth_create_account_button" = "צור חשבון";
+"email_auth_check_email_error" = "בדיקת האימייל נכשלה. נסה שוב.";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "בחר שם תצוגה";
+"setup_how_others_see_you" = "כך אחרים יראו אותך";
+"setup_enter_name_placeholder" = "הזן את שמך";
+"setup_select_language" = "בחר את השפה שלך";
+"setup_messages_translated" = "הודעות יתורגמו לשפה זו";
+"setup_search_languages" = "חפש שפות...";
+"setup_select_country" = "בחר את המדינה שלך";
+"setup_country_optional" = "אופציונלי - עוזר להתחבר למשתמשים קרובים";
+"setup_search_countries" = "חפש מדינות...";
+"setup_select_region" = "בחר את האזור שלך";
+"setup_region_accuracy" = "זה עוזר לדיוק התרגום";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "הודעות";
+"conversations_search_placeholder" = "חפש שיחות...";
+"conversations_loading" = "טוען שיחות...";
+"conversations_empty_title" = "אין שיחות עדיין";
+"conversations_empty_subtitle" = "התחל שיחה על ידי לחיצה על כפתור החיבור";
+"conversations_start_new" = "התחל צ'אט חדש";
+"conversations_error_title" = "משהו השתבש";
+"conversations_group_chat" = "צ'אט קבוצתי";
+"conversations_no_messages" = "אין הודעות עדיין";
+"conversations_yesterday" = "אתמול";
+"conversations_delete_title" = "מחק שיחה";
+"conversations_delete_message" = "למחוק שיחה זו? לא ניתן לבטל.";
+"conversations_delete_button" = "מחק שיחה";
+"conversations_deleting" = "מוחק...";
+"conversations_preview_photo" = "📷 תמונה";
+"conversations_preview_voice" = "🎤 הודעה קולית";
+"conversations_preview_file" = "📎 קובץ";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "הודעה חדשה";
+"new_chat_direct" = "ישיר";
+"new_chat_group" = "קבוצה";
+"new_chat_search_users" = "חפש משתמשים...";
+"new_chat_no_results" = "לא נמצאו משתמשים";
+"new_chat_create_group" = "צור קבוצה";
+"new_chat_group_name_placeholder" = "שם קבוצה (אופציונלי)";
+"new_chat_selected_count" = "צור קבוצה (%d חברים)";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "הקלד הודעה...";
+"chat_send_button" = "שלח";
+"chat_typing_indicator" = "מקליד...";
+"chat_read_receipt" = "נקרא";
+"chat_delivered" = "נמסר";
+"chat_sending" = "שולח...";
+"chat_failed" = "השליחה נכשלה";
+"chat_reply" = "השב";
+"chat_copy" = "העתק";
+"chat_delete" = "מחק";
+"chat_delete_for_me" = "מחק לי";
+"chat_delete_for_everyone" = "מחק לכולם";
+"chat_react" = "הגב";
+"chat_save_photo" = "שמור לתמונות";
+"chat_download_file" = "הורד קובץ";
+"chat_message_deleted" = "הודעה זו נמחקה";
+"chat_show_original" = "הצג מקור";
+"chat_show_translation" = "הצג תרגום";
+"chat_translated_from" = "תורגם מ-%@";
+"chat_attach_photo" = "תמונה";
+"chat_attach_camera" = "מצלמה";
+"chat_attach_file" = "קובץ";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "תרגם מסמך";
+"chat_group_info" = "מידע על הקבוצה";
+"chat_add_people" = "הוסף אנשים";
+"chat_remove_people" = "הסר אנשים";
+"chat_leave_group" = "עזוב קבוצה";
+"chat_view_profile" = "צפה בפרופיל";
+"chat_search" = "חפש בצ'אט";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "הגדרות";
+"settings_preferences" = "העדפות";
+"settings_about" = "אודות";
+"settings_language" = "שפה";
+"settings_country" = "מדינה";
+"settings_region" = "אזור";
+"settings_app_language" = "שפת האפליקציה";
+"settings_app_language_auto" = "אוטומטי (שפת המכשיר)";
+"settings_whats_new" = "מה חדש";
+"settings_version" = "גרסה";
+"settings_privacy_policy" = "מדיניות פרטיות";
+"settings_terms_of_service" = "תנאי שירות";
+"settings_help_support" = "עזרה ותמיכה";
+"settings_sign_out" = "התנתק";
+"settings_sign_out_confirm" = "האם אתה בטוח שברצונך להתנתק?";
+"settings_delete_account" = "מחק חשבון";
+"settings_edit_name" = "ערוך שם";
+"settings_display_name" = "שם תצוגה";
+"settings_change_photo" = "שנה תמונת פרופיל";
+"settings_take_photo" = "צלם תמונה";
+"settings_choose_library" = "בחר מהספרייה";
+"settings_remove_photo" = "הסר תמונה";
+"settings_photo_error" = "שגיאת תמונה";
+"settings_photo_error_message" = "עדכון תמונת הפרופיל נכשל";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "מידע על הקבוצה";
+"group_info_participants" = "%d משתתפים";
+"group_info_participants_header" = "משתתפים";
+"group_info_you" = "(אתה)";
+"group_info_edit_name" = "ערוך שם קבוצה";
+"group_info_group_name" = "שם קבוצה";
+"group_add_participants_title" = "הוסף משתתפים";
+"group_add_participants_search" = "חפש משתמשים להוספה...";
+"group_add_participants_button" = "הוסף לקבוצה";
+"group_add_participants_empty" = "אין משתמשים להוספה";
+"group_remove_participants_title" = "הסר משתתפים";
+"group_remove_participants_confirm" = "להסיר את %@ מהקבוצה?";
+"group_remove_button" = "הסר";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "אוטומטי (שפת המכשיר)";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "שגיאת רשת. בדוק את החיבור שלך.";
+"error_server" = "שגיאת שרת. נסה שוב מאוחר יותר.";
+"error_unknown" = "אירעה שגיאה לא ידועה.";
+"error_authentication" = "האימות נכשל. התחבר שוב.";
+"error_permission_denied" = "ההרשאה נדחתה.";
+"error_not_found" = "לא נמצא.";
+"error_photo_access" = "נדרשת גישה לספריית התמונות.";
+"error_camera_access" = "נדרשת גישה למצלמה.";
+"error_file_too_large" = "הקובץ גדול מדי. גודל מקסימלי: %@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "גישה לתמונות";
+"permission_photos_message" = "אפשר ל-Intok גישה לתמונות שלך.";
+"permission_camera_title" = "גישה למצלמה";
+"permission_camera_message" = "אפשר ל-Intok גישה למצלמה שלך.";
+"permission_notifications_title" = "התראות";
+"permission_notifications_message" = "אפשר ל-Intok לשלוח לך התראות.";
+"permission_go_to_settings" = "עבור להגדרות";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "עכשיו";
+"time_minutes_ago" = "לפני %d דקות";
+"time_hours_ago" = "לפני %d שעות";
+"time_yesterday" = "אתמול";
+"time_days_ago" = "לפני %d ימים";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "חזרה";
+"accessibility_close_button" = "סגור";
+"accessibility_send_message" = "שלח הודעה";
+"accessibility_attach_media" = "צרף מדיה";
+"accessibility_take_photo" = "צלם תמונה";
+"accessibility_select_emoji" = "בחר אמוג'י";
+"accessibility_profile_picture" = "תמונת פרופיל";
+"accessibility_unread_messages" = "%d הודעות שלא נקראו";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "אין שיחות";
+"empty_messages" = "אין הודעות";
+"empty_search_results" = "אין תוצאות";
+"empty_users" = "לא נמצאו משתמשים";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "הודעה חדשה";
+"notification_new_message_from" = "הודעה חדשה מ-%@";
+"notification_photo" = "%@ שלח/ה תמונה";
+"notification_file" = "%@ שלח/ה קובץ";
+"notification_gif" = "%@ שלח/ה GIF";

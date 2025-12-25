@@ -129,6 +129,19 @@ interface ApiService {
     ): ConversationResponse
     
     // ============================================
+    // UI Translation Endpoints
+    // ============================================
+    
+    @GET("api/translate/ui-strings")
+    suspend fun getUIStrings(): UIStringsResponse
+    
+    @POST("api/translate/ui-strings")
+    suspend fun translateUIStrings(@Body request: TranslateUIStringsRequest): TranslatedUIStringsResponse
+    
+    @GET("api/translate/languages")
+    suspend fun getSupportedLanguages(): SupportedLanguagesResponse
+    
+    // ============================================
     // Delete Endpoints
     // ============================================
     
@@ -277,4 +290,40 @@ data class DeleteConversationResponse(
     val conversationId: String
 )
 
+// ============================================
+// UI Translation Models
+// ============================================
+
+data class TranslateUIStringsRequest(
+    val targetLanguage: String,
+    val targetCountry: String? = null,
+    val forceRefresh: Boolean = false
+)
+
+data class UIStringsResponse(
+    val language: String,
+    val version: String,
+    val stringCount: Int,
+    val strings: Map<String, String>
+)
+
+data class TranslatedUIStringsResponse(
+    val language: String,
+    val country: String? = null,
+    val translations: Map<String, String>,
+    val version: String,
+    val generatedAt: String,
+    val cached: Boolean,
+    val generationTimeMs: Long? = null
+)
+
+data class SupportedLanguagesResponse(
+    val count: Int,
+    val languages: List<LanguageInfo>
+)
+
+data class LanguageInfo(
+    val code: String,
+    val name: String
+)
 

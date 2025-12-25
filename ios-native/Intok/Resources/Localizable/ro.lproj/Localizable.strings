@@ -1,0 +1,265 @@
+/*
+ * Localizable.strings (Romanian - Română)
+ * Intok
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "OK";
+"common_cancel" = "Anulare";
+"common_done" = "Terminat";
+"common_save" = "Salvează";
+"common_delete" = "Șterge";
+"common_edit" = "Editează";
+"common_close" = "Închide";
+"common_back" = "Înapoi";
+"common_next" = "Următorul";
+"common_continue" = "Continuă";
+"common_skip" = "Omite";
+"common_finish" = "Finalizare";
+"common_loading" = "Se încarcă...";
+"common_error" = "Eroare";
+"common_success" = "Succes";
+"common_retry" = "Reîncearcă";
+"common_try_again" = "Încearcă din nou";
+"common_search" = "Căutare";
+"common_or" = "sau";
+"common_yes" = "Da";
+"common_no" = "Nu";
+"common_unknown" = "Necunoscut";
+"common_not_set" = "Nesetat";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "Conectați-vă global, comunicați natural";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "Continuă cu Apple";
+"login_continue_google" = "Continuă cu Google";
+"login_continue_email" = "Continuă cu email";
+"login_terms_notice" = "Continuând, ești de acord cu Termenii serviciului și Politica de confidențialitate";
+"login_sign_in_apple" = "Conectare cu Apple";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "Continuă cu email";
+"email_auth_welcome_back" = "Bine ai revenit";
+"email_auth_create_account" = "Creează cont";
+"email_auth_whats_your_email" = "Care este email-ul tău?";
+"email_auth_check_account" = "Verificăm dacă ai un cont";
+"email_auth_email_label" = "Email";
+"email_auth_email_placeholder" = "Introdu email-ul";
+"email_auth_enter_password" = "Introdu parola";
+"email_auth_password_label" = "Parolă";
+"email_auth_sign_in" = "Conectare";
+"email_auth_forgot_password" = "Ai uitat parola?";
+"email_auth_create_your_account" = "Creează-ți contul";
+"email_auth_display_name_label" = "Nume afișat";
+"email_auth_confirm_password_label" = "Confirmă parola";
+"email_auth_password_hint" = "Minim 6 caractere";
+"email_auth_passwords_dont_match" = "Parolele nu se potrivesc";
+"email_auth_preferred_language" = "Limba preferată";
+"email_auth_country" = "Țară";
+"email_auth_create_account_button" = "Creează cont";
+"email_auth_check_email_error" = "Verificarea email-ului a eșuat. Încearcă din nou.";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "Alege un nume afișat";
+"setup_how_others_see_you" = "Așa te vor vedea ceilalți";
+"setup_enter_name_placeholder" = "Introdu numele tău";
+"setup_select_language" = "Selectează limba";
+"setup_messages_translated" = "Mesajele vor fi traduse în această limbă";
+"setup_search_languages" = "Caută limbi...";
+"setup_select_country" = "Selectează țara";
+"setup_country_optional" = "Opțional - ajută la conectarea cu utilizatori din apropiere";
+"setup_search_countries" = "Caută țări...";
+"setup_select_region" = "Selectează regiunea";
+"setup_region_accuracy" = "Aceasta ajută la precizia traducerii";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "Mesaje";
+"conversations_search_placeholder" = "Caută conversații...";
+"conversations_loading" = "Se încarcă conversațiile...";
+"conversations_empty_title" = "Nicio conversație încă";
+"conversations_empty_subtitle" = "Începe o conversație apăsând butonul de compunere";
+"conversations_start_new" = "Începe un chat nou";
+"conversations_error_title" = "Ceva nu a funcționat";
+"conversations_group_chat" = "Chat de grup";
+"conversations_no_messages" = "Niciun mesaj încă";
+"conversations_yesterday" = "Ieri";
+"conversations_delete_title" = "Șterge conversația";
+"conversations_delete_message" = "Ștergi această conversație? Nu poate fi anulat.";
+"conversations_delete_button" = "Șterge conversația";
+"conversations_deleting" = "Se șterge...";
+"conversations_preview_photo" = "📷 Poză";
+"conversations_preview_voice" = "🎤 Mesaj vocal";
+"conversations_preview_file" = "📎 Fișier";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "Mesaj nou";
+"new_chat_direct" = "Direct";
+"new_chat_group" = "Grup";
+"new_chat_search_users" = "Caută utilizatori...";
+"new_chat_no_results" = "Niciun utilizator găsit";
+"new_chat_create_group" = "Creează grup";
+"new_chat_group_name_placeholder" = "Nume grup (opțional)";
+"new_chat_selected_count" = "Creează grup (%d membri)";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "Scrie un mesaj...";
+"chat_send_button" = "Trimite";
+"chat_typing_indicator" = "scrie...";
+"chat_read_receipt" = "Citit";
+"chat_delivered" = "Livrat";
+"chat_sending" = "Se trimite...";
+"chat_failed" = "Trimiterea a eșuat";
+"chat_reply" = "Răspunde";
+"chat_copy" = "Copiază";
+"chat_delete" = "Șterge";
+"chat_delete_for_me" = "Șterge pentru mine";
+"chat_delete_for_everyone" = "Șterge pentru toți";
+"chat_react" = "Reacționează";
+"chat_save_photo" = "Salvează în Poze";
+"chat_download_file" = "Descarcă fișier";
+"chat_message_deleted" = "Acest mesaj a fost șters";
+"chat_show_original" = "Arată originalul";
+"chat_show_translation" = "Arată traducerea";
+"chat_translated_from" = "Tradus din %@";
+"chat_attach_photo" = "Poză";
+"chat_attach_camera" = "Cameră";
+"chat_attach_file" = "Fișier";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "Traduce documentul";
+"chat_group_info" = "Info grup";
+"chat_add_people" = "Adaugă persoane";
+"chat_remove_people" = "Elimină persoane";
+"chat_leave_group" = "Părăsește grupul";
+"chat_view_profile" = "Vezi profil";
+"chat_search" = "Caută în chat";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "Setări";
+"settings_preferences" = "PREFERINȚE";
+"settings_about" = "DESPRE";
+"settings_language" = "Limbă";
+"settings_country" = "Țară";
+"settings_region" = "Regiune";
+"settings_app_language" = "Limba aplicației";
+"settings_app_language_auto" = "Automat (limba dispozitivului)";
+"settings_whats_new" = "Ce e nou";
+"settings_version" = "Versiune";
+"settings_privacy_policy" = "Politica de confidențialitate";
+"settings_terms_of_service" = "Termenii serviciului";
+"settings_help_support" = "Ajutor & Suport";
+"settings_sign_out" = "Deconectare";
+"settings_sign_out_confirm" = "Sigur vrei să te deconectezi?";
+"settings_delete_account" = "Șterge contul";
+"settings_edit_name" = "Editează numele";
+"settings_display_name" = "Nume afișat";
+"settings_change_photo" = "Schimbă poza de profil";
+"settings_take_photo" = "Fă o poză";
+"settings_choose_library" = "Alege din bibliotecă";
+"settings_remove_photo" = "Elimină poza";
+"settings_photo_error" = "Eroare poză";
+"settings_photo_error_message" = "Actualizarea pozei de profil a eșuat";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "Info grup";
+"group_info_participants" = "%d Participanți";
+"group_info_participants_header" = "Participanți";
+"group_info_you" = "(Tu)";
+"group_info_edit_name" = "Editează numele grupului";
+"group_info_group_name" = "Nume grup";
+"group_add_participants_title" = "Adaugă participanți";
+"group_add_participants_search" = "Caută utilizatori de adăugat...";
+"group_add_participants_button" = "Adaugă în grup";
+"group_add_participants_empty" = "Niciun utilizator de adăugat";
+"group_remove_participants_title" = "Elimină participanți";
+"group_remove_participants_confirm" = "Elimini pe %@ din grup?";
+"group_remove_button" = "Elimină";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "Automat (limba dispozitivului)";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "Eroare de rețea. Verifică conexiunea.";
+"error_server" = "Eroare server. Încearcă mai târziu.";
+"error_unknown" = "A apărut o eroare necunoscută.";
+"error_authentication" = "Autentificarea a eșuat. Conectează-te din nou.";
+"error_permission_denied" = "Permisiune refuzată.";
+"error_not_found" = "Negăsit.";
+"error_photo_access" = "Este necesar accesul la biblioteca foto.";
+"error_camera_access" = "Este necesar accesul la cameră.";
+"error_file_too_large" = "Fișierul este prea mare. Dimensiune maximă: %@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "Acces la poze";
+"permission_photos_message" = "Permite Intok să acceseze pozele tale.";
+"permission_camera_title" = "Acces la cameră";
+"permission_camera_message" = "Permite Intok să acceseze camera.";
+"permission_notifications_title" = "Notificări";
+"permission_notifications_message" = "Permite Intok să îți trimită notificări.";
+"permission_go_to_settings" = "Mergi la Setări";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "Chiar acum";
+"time_minutes_ago" = "Acum %d minute";
+"time_hours_ago" = "Acum %d ore";
+"time_yesterday" = "Ieri";
+"time_days_ago" = "Acum %d zile";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "Înapoi";
+"accessibility_close_button" = "Închide";
+"accessibility_send_message" = "Trimite mesaj";
+"accessibility_attach_media" = "Atașează media";
+"accessibility_take_photo" = "Fă o poză";
+"accessibility_select_emoji" = "Selectează emoji";
+"accessibility_profile_picture" = "Poză de profil";
+"accessibility_unread_messages" = "%d mesaje necitite";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "Nicio conversație";
+"empty_messages" = "Niciun mesaj";
+"empty_search_results" = "Niciun rezultat";
+"empty_users" = "Niciun utilizator găsit";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "Mesaj nou";
+"notification_new_message_from" = "Mesaj nou de la %@";
+"notification_photo" = "%@ a trimis o poză";
+"notification_file" = "%@ a trimis un fișier";
+"notification_gif" = "%@ a trimis un GIF";

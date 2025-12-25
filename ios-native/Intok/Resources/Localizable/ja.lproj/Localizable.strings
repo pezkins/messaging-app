@@ -1,0 +1,269 @@
+/*
+ * Localizable.strings (Japanese - 日本語)
+ * Intok
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "OK";
+"common_cancel" = "キャンセル";
+"common_done" = "完了";
+"common_save" = "保存";
+"common_delete" = "削除";
+"common_edit" = "編集";
+"common_close" = "閉じる";
+"common_back" = "戻る";
+"common_next" = "次へ";
+"common_continue" = "続ける";
+"common_skip" = "スキップ";
+"common_finish" = "完了";
+"common_loading" = "読み込み中...";
+"common_error" = "エラー";
+"common_success" = "成功";
+"common_retry" = "再試行";
+"common_try_again" = "もう一度試す";
+"common_search" = "検索";
+"common_or" = "または";
+"common_yes" = "はい";
+"common_no" = "いいえ";
+"common_unknown" = "不明";
+"common_not_set" = "未設定";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "世界とつながり、自然にコミュニケーション";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "Appleで続ける";
+"login_continue_google" = "Googleで続ける";
+"login_continue_email" = "メールで続ける";
+"login_terms_notice" = "続行すると、利用規約とプライバシーポリシーに同意したことになります";
+"login_sign_in_apple" = "Appleでサインイン";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "メールで続ける";
+"email_auth_welcome_back" = "おかえりなさい";
+"email_auth_create_account" = "アカウント作成";
+"email_auth_whats_your_email" = "メールアドレスは？";
+"email_auth_check_account" = "アカウントの有無を確認します";
+"email_auth_email_label" = "メール";
+"email_auth_email_placeholder" = "メールを入力";
+"email_auth_enter_password" = "パスワードを入力";
+"email_auth_password_label" = "パスワード";
+"email_auth_sign_in" = "サインイン";
+"email_auth_forgot_password" = "パスワードをお忘れですか？";
+"email_auth_create_your_account" = "アカウントを作成";
+"email_auth_display_name_label" = "表示名";
+"email_auth_confirm_password_label" = "パスワード確認";
+"email_auth_password_hint" = "6文字以上";
+"email_auth_passwords_dont_match" = "パスワードが一致しません";
+"email_auth_preferred_language" = "優先言語";
+"email_auth_country" = "国";
+"email_auth_create_account_button" = "アカウント作成";
+"email_auth_check_email_error" = "メール確認に失敗しました。もう一度お試しください。";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "表示名を選択";
+"setup_how_others_see_you" = "他のユーザーに表示される名前です";
+"setup_enter_name_placeholder" = "名前を入力";
+"setup_select_language" = "言語を選択";
+"setup_messages_translated" = "メッセージはこの言語に翻訳されます";
+"setup_search_languages" = "言語を検索...";
+"setup_select_country" = "国を選択";
+"setup_country_optional" = "任意 - 近くのユーザーとの接続に役立ちます";
+"setup_search_countries" = "国を検索...";
+"setup_select_region" = "地域を選択";
+"setup_region_accuracy" = "翻訳精度の向上に役立ちます";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "メッセージ";
+"conversations_search_placeholder" = "会話を検索...";
+"conversations_loading" = "会話を読み込み中...";
+"conversations_empty_title" = "会話がありません";
+"conversations_empty_subtitle" = "作成ボタンをタップして会話を始めましょう";
+"conversations_start_new" = "新しいチャット";
+"conversations_error_title" = "エラーが発生しました";
+"conversations_group_chat" = "グループチャット";
+"conversations_no_messages" = "メッセージがありません";
+"conversations_yesterday" = "昨日";
+"conversations_delete_title" = "会話を削除";
+"conversations_delete_message" = "この会話を削除しますか？この操作は取り消せません。";
+"conversations_delete_button" = "会話を削除";
+"conversations_deleting" = "削除中...";
+"conversations_preview_photo" = "📷 写真";
+"conversations_preview_voice" = "🎤 音声メッセージ";
+"conversations_preview_file" = "📎 ファイル";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "新規メッセージ";
+"new_chat_direct" = "ダイレクト";
+"new_chat_group" = "グループ";
+"new_chat_search_users" = "ユーザーを検索...";
+"new_chat_no_results" = "ユーザーが見つかりません";
+"new_chat_create_group" = "グループ作成";
+"new_chat_group_name_placeholder" = "グループ名（任意）";
+"new_chat_selected_count" = "グループ作成（%d人）";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "メッセージを入力...";
+"chat_send_button" = "送信";
+"chat_typing_indicator" = "入力中...";
+"chat_read_receipt" = "既読";
+"chat_delivered" = "配信済み";
+"chat_sending" = "送信中...";
+"chat_failed" = "送信失敗";
+"chat_reply" = "返信";
+"chat_copy" = "コピー";
+"chat_delete" = "削除";
+"chat_delete_for_me" = "自分のみ削除";
+"chat_delete_for_everyone" = "全員から削除";
+"chat_delete_confirm" = "この操作は取り消せません。";
+"chat_react" = "リアクション";
+"chat_save_photo" = "写真に保存";
+"chat_download_file" = "ファイルをダウンロード";
+"chat_image_saved" = "画像を写真に保存しました";
+"chat_uploading" = "アップロード中...";
+"chat_message_deleted" = "このメッセージは削除されました";
+"gif_try_different_search" = "別の検索語をお試しください";
+"chat_show_original" = "原文を表示";
+"chat_show_translation" = "翻訳を表示";
+"chat_translated_from" = "%@から翻訳";
+"chat_attach_photo" = "写真";
+"chat_attach_camera" = "カメラ";
+"chat_attach_file" = "ファイル";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "ドキュメントを翻訳";
+"chat_group_info" = "グループ情報";
+"chat_add_people" = "メンバーを追加";
+"chat_remove_people" = "メンバーを削除";
+"chat_leave_group" = "グループを退出";
+"chat_view_profile" = "プロフィールを見る";
+"chat_search" = "チャット内を検索";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "設定";
+"settings_preferences" = "設定";
+"settings_about" = "情報";
+"settings_language" = "言語";
+"settings_country" = "国";
+"settings_region" = "地域";
+"settings_app_language" = "アプリの言語";
+"settings_app_language_auto" = "自動（端末の言語）";
+"settings_whats_new" = "新機能";
+"settings_version" = "バージョン";
+"settings_privacy_policy" = "プライバシーポリシー";
+"settings_terms_of_service" = "利用規約";
+"settings_help_support" = "ヘルプ＆サポート";
+"settings_sign_out" = "サインアウト";
+"settings_sign_out_confirm" = "サインアウトしますか？";
+"settings_delete_account" = "アカウント削除";
+"settings_edit_name" = "名前を編集";
+"settings_display_name" = "表示名";
+"settings_change_photo" = "プロフィール写真を変更";
+"settings_take_photo" = "写真を撮る";
+"settings_choose_library" = "ライブラリから選択";
+"settings_remove_photo" = "写真を削除";
+"settings_photo_error" = "写真エラー";
+"settings_photo_error_message" = "プロフィール写真の更新に失敗しました";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "グループ情報";
+"group_info_participants" = "%d人の参加者";
+"group_info_participants_header" = "参加者";
+"group_info_you" = "（あなた）";
+"group_info_edit_name" = "グループ名を編集";
+"group_info_group_name" = "グループ名";
+"group_add_participants_title" = "参加者を追加";
+"group_add_participants_search" = "ユーザーを検索...";
+"group_add_participants_button" = "グループに追加";
+"group_add_participants_empty" = "追加できるユーザーがいません";
+"group_remove_participants_title" = "参加者を削除";
+"group_remove_participants_confirm" = "%@をグループから削除しますか？";
+"group_remove_button" = "削除";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "自動（端末の言語）";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "ネットワークエラー。接続を確認してください。";
+"error_server" = "サーバーエラー。後でもう一度お試しください。";
+"error_unknown" = "不明なエラーが発生しました。";
+"error_authentication" = "認証に失敗しました。再度サインインしてください。";
+"error_permission_denied" = "権限が拒否されました。";
+"error_not_found" = "見つかりません。";
+"error_photo_access" = "写真ライブラリへのアクセスが必要です。";
+"error_camera_access" = "カメラへのアクセスが必要です。";
+"error_file_too_large" = "ファイルが大きすぎます。最大サイズ：%@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "写真へのアクセス";
+"permission_photos_message" = "Intokが写真にアクセスすることを許可してください。";
+"permission_camera_title" = "カメラへのアクセス";
+"permission_camera_message" = "Intokがカメラにアクセスすることを許可してください。";
+"permission_notifications_title" = "通知";
+"permission_notifications_message" = "Intokから通知を受け取ることを許可してください。";
+"permission_go_to_settings" = "設定へ";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "たった今";
+"time_minutes_ago" = "%d分前";
+"time_hours_ago" = "%d時間前";
+"time_yesterday" = "昨日";
+"time_days_ago" = "%d日前";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "戻る";
+"accessibility_close_button" = "閉じる";
+"accessibility_send_message" = "メッセージを送信";
+"accessibility_attach_media" = "メディアを添付";
+"accessibility_take_photo" = "写真を撮る";
+"accessibility_select_emoji" = "絵文字を選択";
+"accessibility_profile_picture" = "プロフィール写真";
+"accessibility_unread_messages" = "%d件の未読メッセージ";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "会話がありません";
+"empty_messages" = "メッセージがありません";
+"empty_search_results" = "結果が見つかりません";
+"empty_users" = "ユーザーが見つかりません";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "新しいメッセージ";
+"notification_new_message_from" = "%@からの新しいメッセージ";
+"notification_photo" = "%@が写真を送信しました";
+"notification_file" = "%@がファイルを送信しました";
+"notification_gif" = "%@がGIFを送信しました";

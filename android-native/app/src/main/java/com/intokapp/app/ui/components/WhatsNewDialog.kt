@@ -8,9 +8,12 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.intokapp.app.R
 import com.intokapp.app.data.repository.ChangelogEntry
+import com.intokapp.app.data.repository.localizedString
 import com.intokapp.app.ui.theme.*
 
 @Composable
@@ -30,7 +33,7 @@ fun WhatsNewAutoDialog(
         },
         title = {
             Text(
-                "What's New",
+                localizedString(R.string.whats_new_title, "settings.settings_whats_new"),
                 fontWeight = FontWeight.Bold,
                 color = White
             )
@@ -63,7 +66,7 @@ fun WhatsNewAutoDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Got it!", color = Purple500, fontWeight = FontWeight.SemiBold)
+                Text(localizedString(R.string.got_it, "common.done"), color = Purple500, fontWeight = FontWeight.SemiBold)
             }
         },
         containerColor = Surface800,

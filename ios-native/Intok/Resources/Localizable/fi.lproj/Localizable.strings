@@ -1,0 +1,265 @@
+/*
+ * Localizable.strings (Finnish - Suomi)
+ * Intok
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "OK";
+"common_cancel" = "Peruuta";
+"common_done" = "Valmis";
+"common_save" = "Tallenna";
+"common_delete" = "Poista";
+"common_edit" = "Muokkaa";
+"common_close" = "Sulje";
+"common_back" = "Takaisin";
+"common_next" = "Seuraava";
+"common_continue" = "Jatka";
+"common_skip" = "Ohita";
+"common_finish" = "Valmis";
+"common_loading" = "Ladataan...";
+"common_error" = "Virhe";
+"common_success" = "Onnistui";
+"common_retry" = "Yritä uudelleen";
+"common_try_again" = "Yritä uudelleen";
+"common_search" = "Haku";
+"common_or" = "tai";
+"common_yes" = "Kyllä";
+"common_no" = "Ei";
+"common_unknown" = "Tuntematon";
+"common_not_set" = "Ei asetettu";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "Yhdisty maailmanlaajuisesti, kommunikoi luonnollisesti";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "Jatka Applella";
+"login_continue_google" = "Jatka Googlella";
+"login_continue_email" = "Jatka sähköpostilla";
+"login_terms_notice" = "Jatkamalla hyväksyt käyttöehtomme ja tietosuojakäytäntömme";
+"login_sign_in_apple" = "Kirjaudu Applella";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "Jatka sähköpostilla";
+"email_auth_welcome_back" = "Tervetuloa takaisin";
+"email_auth_create_account" = "Luo tili";
+"email_auth_whats_your_email" = "Mikä on sähköpostisi?";
+"email_auth_check_account" = "Tarkistamme, onko sinulla tili";
+"email_auth_email_label" = "Sähköposti";
+"email_auth_email_placeholder" = "Syötä sähköpostisi";
+"email_auth_enter_password" = "Syötä salasanasi";
+"email_auth_password_label" = "Salasana";
+"email_auth_sign_in" = "Kirjaudu";
+"email_auth_forgot_password" = "Unohditko salasanan?";
+"email_auth_create_your_account" = "Luo tilisi";
+"email_auth_display_name_label" = "Näyttönimi";
+"email_auth_confirm_password_label" = "Vahvista salasana";
+"email_auth_password_hint" = "Vähintään 6 merkkiä";
+"email_auth_passwords_dont_match" = "Salasanat eivät täsmää";
+"email_auth_preferred_language" = "Ensisijainen kieli";
+"email_auth_country" = "Maa";
+"email_auth_create_account_button" = "Luo tili";
+"email_auth_check_email_error" = "Sähköpostin tarkistus epäonnistui. Yritä uudelleen.";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "Valitse näyttönimi";
+"setup_how_others_see_you" = "Näin muut näkevät sinut";
+"setup_enter_name_placeholder" = "Syötä nimesi";
+"setup_select_language" = "Valitse kielesi";
+"setup_messages_translated" = "Viestit käännetään tälle kielelle";
+"setup_search_languages" = "Hae kieliä...";
+"setup_select_country" = "Valitse maasi";
+"setup_country_optional" = "Valinnainen - auttaa yhdistämään lähellä oleviin käyttäjiin";
+"setup_search_countries" = "Hae maita...";
+"setup_select_region" = "Valitse alueesi";
+"setup_region_accuracy" = "Tämä auttaa käännöstarkkuudessa";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "Viestit";
+"conversations_search_placeholder" = "Hae keskusteluja...";
+"conversations_loading" = "Ladataan keskusteluja...";
+"conversations_empty_title" = "Ei keskusteluja vielä";
+"conversations_empty_subtitle" = "Aloita keskustelu napauttamalla kirjoituspainiketta";
+"conversations_start_new" = "Aloita uusi keskustelu";
+"conversations_error_title" = "Jokin meni pieleen";
+"conversations_group_chat" = "Ryhmäkeskustelu";
+"conversations_no_messages" = "Ei viestejä vielä";
+"conversations_yesterday" = "Eilen";
+"conversations_delete_title" = "Poista keskustelu";
+"conversations_delete_message" = "Poistetaanko tämä keskustelu? Tätä ei voi kumota.";
+"conversations_delete_button" = "Poista keskustelu";
+"conversations_deleting" = "Poistetaan...";
+"conversations_preview_photo" = "📷 Kuva";
+"conversations_preview_voice" = "🎤 Ääniviesti";
+"conversations_preview_file" = "📎 Tiedosto";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "Uusi viesti";
+"new_chat_direct" = "Suora";
+"new_chat_group" = "Ryhmä";
+"new_chat_search_users" = "Hae käyttäjiä...";
+"new_chat_no_results" = "Käyttäjiä ei löytynyt";
+"new_chat_create_group" = "Luo ryhmä";
+"new_chat_group_name_placeholder" = "Ryhmän nimi (valinnainen)";
+"new_chat_selected_count" = "Luo ryhmä (%d jäsentä)";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "Kirjoita viesti...";
+"chat_send_button" = "Lähetä";
+"chat_typing_indicator" = "kirjoittaa...";
+"chat_read_receipt" = "Luettu";
+"chat_delivered" = "Toimitettu";
+"chat_sending" = "Lähetetään...";
+"chat_failed" = "Lähetys epäonnistui";
+"chat_reply" = "Vastaa";
+"chat_copy" = "Kopioi";
+"chat_delete" = "Poista";
+"chat_delete_for_me" = "Poista minulta";
+"chat_delete_for_everyone" = "Poista kaikilta";
+"chat_react" = "Reagoi";
+"chat_save_photo" = "Tallenna Kuviin";
+"chat_download_file" = "Lataa tiedosto";
+"chat_message_deleted" = "Tämä viesti on poistettu";
+"chat_show_original" = "Näytä alkuperäinen";
+"chat_show_translation" = "Näytä käännös";
+"chat_translated_from" = "Käännetty kielestä %@";
+"chat_attach_photo" = "Kuva";
+"chat_attach_camera" = "Kamera";
+"chat_attach_file" = "Tiedosto";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "Käännä dokumentti";
+"chat_group_info" = "Ryhmän tiedot";
+"chat_add_people" = "Lisää henkilöitä";
+"chat_remove_people" = "Poista henkilöitä";
+"chat_leave_group" = "Poistu ryhmästä";
+"chat_view_profile" = "Näytä profiili";
+"chat_search" = "Hae keskustelusta";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "Asetukset";
+"settings_preferences" = "ASETUKSET";
+"settings_about" = "TIETOJA";
+"settings_language" = "Kieli";
+"settings_country" = "Maa";
+"settings_region" = "Alue";
+"settings_app_language" = "Sovelluksen kieli";
+"settings_app_language_auto" = "Automaattinen (laitteen kieli)";
+"settings_whats_new" = "Mitä uutta";
+"settings_version" = "Versio";
+"settings_privacy_policy" = "Tietosuojakäytäntö";
+"settings_terms_of_service" = "Käyttöehdot";
+"settings_help_support" = "Ohje & tuki";
+"settings_sign_out" = "Kirjaudu ulos";
+"settings_sign_out_confirm" = "Haluatko varmasti kirjautua ulos?";
+"settings_delete_account" = "Poista tili";
+"settings_edit_name" = "Muokkaa nimeä";
+"settings_display_name" = "Näyttönimi";
+"settings_change_photo" = "Vaihda profiilikuva";
+"settings_take_photo" = "Ota kuva";
+"settings_choose_library" = "Valitse kirjastosta";
+"settings_remove_photo" = "Poista kuva";
+"settings_photo_error" = "Kuvavirhe";
+"settings_photo_error_message" = "Profiilikuvan päivitys epäonnistui";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "Ryhmän tiedot";
+"group_info_participants" = "%d Osallistujaa";
+"group_info_participants_header" = "Osallistujat";
+"group_info_you" = "(Sinä)";
+"group_info_edit_name" = "Muokkaa ryhmän nimeä";
+"group_info_group_name" = "Ryhmän nimi";
+"group_add_participants_title" = "Lisää osallistujia";
+"group_add_participants_search" = "Hae käyttäjiä lisättäväksi...";
+"group_add_participants_button" = "Lisää ryhmään";
+"group_add_participants_empty" = "Ei käyttäjiä lisättäväksi";
+"group_remove_participants_title" = "Poista osallistujia";
+"group_remove_participants_confirm" = "Poistetaanko %@ ryhmästä?";
+"group_remove_button" = "Poista";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "Automaattinen (laitteen kieli)";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "Verkkovirhe. Tarkista yhteytesi.";
+"error_server" = "Palvelinvirhe. Yritä myöhemmin uudelleen.";
+"error_unknown" = "Tuntematon virhe tapahtui.";
+"error_authentication" = "Todennus epäonnistui. Kirjaudu uudelleen.";
+"error_permission_denied" = "Lupa evätty.";
+"error_not_found" = "Ei löytynyt.";
+"error_photo_access" = "Kuvakirjaston käyttöoikeus vaaditaan.";
+"error_camera_access" = "Kameran käyttöoikeus vaaditaan.";
+"error_file_too_large" = "Tiedosto on liian suuri. Enimmäiskoko: %@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "Kuvien käyttöoikeus";
+"permission_photos_message" = "Salli Intokin käyttää kuviasi.";
+"permission_camera_title" = "Kameran käyttöoikeus";
+"permission_camera_message" = "Salli Intokin käyttää kameraasi.";
+"permission_notifications_title" = "Ilmoitukset";
+"permission_notifications_message" = "Salli Intokin lähettää ilmoituksia.";
+"permission_go_to_settings" = "Siirry asetuksiin";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "Juuri nyt";
+"time_minutes_ago" = "%d minuuttia sitten";
+"time_hours_ago" = "%d tuntia sitten";
+"time_yesterday" = "Eilen";
+"time_days_ago" = "%d päivää sitten";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "Takaisin";
+"accessibility_close_button" = "Sulje";
+"accessibility_send_message" = "Lähetä viesti";
+"accessibility_attach_media" = "Liitä media";
+"accessibility_take_photo" = "Ota kuva";
+"accessibility_select_emoji" = "Valitse emoji";
+"accessibility_profile_picture" = "Profiilikuva";
+"accessibility_unread_messages" = "%d lukematonta viestiä";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "Ei keskusteluja";
+"empty_messages" = "Ei viestejä";
+"empty_search_results" = "Ei tuloksia";
+"empty_users" = "Käyttäjiä ei löytynyt";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "Uusi viesti";
+"notification_new_message_from" = "Uusi viesti käyttäjältä %@";
+"notification_photo" = "%@ lähetti kuvan";
+"notification_file" = "%@ lähetti tiedoston";
+"notification_gif" = "%@ lähetti GIF:in";

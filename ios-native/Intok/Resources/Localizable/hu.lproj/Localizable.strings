@@ -1,0 +1,265 @@
+/*
+ * Localizable.strings (Hungarian - Magyar)
+ * Intok
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "OK";
+"common_cancel" = "Mégse";
+"common_done" = "Kész";
+"common_save" = "Mentés";
+"common_delete" = "Törlés";
+"common_edit" = "Szerkesztés";
+"common_close" = "Bezárás";
+"common_back" = "Vissza";
+"common_next" = "Következő";
+"common_continue" = "Folytatás";
+"common_skip" = "Kihagyás";
+"common_finish" = "Befejezés";
+"common_loading" = "Betöltés...";
+"common_error" = "Hiba";
+"common_success" = "Sikeres";
+"common_retry" = "Újra";
+"common_try_again" = "Próbáld újra";
+"common_search" = "Keresés";
+"common_or" = "vagy";
+"common_yes" = "Igen";
+"common_no" = "Nem";
+"common_unknown" = "Ismeretlen";
+"common_not_set" = "Nincs beállítva";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "Kapcsolódj globálisan, kommunikálj természetesen";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "Folytatás Apple-lel";
+"login_continue_google" = "Folytatás Google-lel";
+"login_continue_email" = "Folytatás e-maillel";
+"login_terms_notice" = "A folytatással elfogadod a Szolgáltatási feltételeket és az Adatvédelmi irányelveket";
+"login_sign_in_apple" = "Bejelentkezés Apple-lel";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "Folytatás e-maillel";
+"email_auth_welcome_back" = "Üdv újra";
+"email_auth_create_account" = "Fiók létrehozása";
+"email_auth_whats_your_email" = "Mi az e-mail címed?";
+"email_auth_check_account" = "Ellenőrizzük, van-e fiókod";
+"email_auth_email_label" = "E-mail";
+"email_auth_email_placeholder" = "Add meg az e-mail címed";
+"email_auth_enter_password" = "Add meg a jelszavad";
+"email_auth_password_label" = "Jelszó";
+"email_auth_sign_in" = "Bejelentkezés";
+"email_auth_forgot_password" = "Elfelejtetted a jelszavad?";
+"email_auth_create_your_account" = "Hozd létre a fiókodat";
+"email_auth_display_name_label" = "Megjelenített név";
+"email_auth_confirm_password_label" = "Jelszó megerősítése";
+"email_auth_password_hint" = "Legalább 6 karakter";
+"email_auth_passwords_dont_match" = "A jelszavak nem egyeznek";
+"email_auth_preferred_language" = "Preferált nyelv";
+"email_auth_country" = "Ország";
+"email_auth_create_account_button" = "Fiók létrehozása";
+"email_auth_check_email_error" = "Az e-mail ellenőrzése sikertelen. Próbáld újra.";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "Válassz megjelenített nevet";
+"setup_how_others_see_you" = "Így fognak látni mások";
+"setup_enter_name_placeholder" = "Add meg a neved";
+"setup_select_language" = "Válaszd ki a nyelved";
+"setup_messages_translated" = "Az üzenetek erre a nyelvre lesznek fordítva";
+"setup_search_languages" = "Nyelvek keresése...";
+"setup_select_country" = "Válaszd ki az országod";
+"setup_country_optional" = "Opcionális - segít kapcsolatba lépni közeli felhasználókkal";
+"setup_search_countries" = "Országok keresése...";
+"setup_select_region" = "Válaszd ki a régiód";
+"setup_region_accuracy" = "Ez segít a fordítás pontosságában";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "Üzenetek";
+"conversations_search_placeholder" = "Beszélgetések keresése...";
+"conversations_loading" = "Beszélgetések betöltése...";
+"conversations_empty_title" = "Még nincsenek beszélgetések";
+"conversations_empty_subtitle" = "Indíts beszélgetést az írás gombra koppintva";
+"conversations_start_new" = "Új beszélgetés indítása";
+"conversations_error_title" = "Valami hiba történt";
+"conversations_group_chat" = "Csoportos beszélgetés";
+"conversations_no_messages" = "Még nincsenek üzenetek";
+"conversations_yesterday" = "Tegnap";
+"conversations_delete_title" = "Beszélgetés törlése";
+"conversations_delete_message" = "Törli ezt a beszélgetést? Ez nem vonható vissza.";
+"conversations_delete_button" = "Beszélgetés törlése";
+"conversations_deleting" = "Törlés...";
+"conversations_preview_photo" = "📷 Fotó";
+"conversations_preview_voice" = "🎤 Hangüzenet";
+"conversations_preview_file" = "📎 Fájl";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "Új üzenet";
+"new_chat_direct" = "Közvetlen";
+"new_chat_group" = "Csoport";
+"new_chat_search_users" = "Felhasználók keresése...";
+"new_chat_no_results" = "Nem található felhasználó";
+"new_chat_create_group" = "Csoport létrehozása";
+"new_chat_group_name_placeholder" = "Csoport neve (opcionális)";
+"new_chat_selected_count" = "Csoport létrehozása (%d tag)";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "Írj üzenetet...";
+"chat_send_button" = "Küldés";
+"chat_typing_indicator" = "ír...";
+"chat_read_receipt" = "Elolvasva";
+"chat_delivered" = "Kézbesítve";
+"chat_sending" = "Küldés...";
+"chat_failed" = "Küldés sikertelen";
+"chat_reply" = "Válasz";
+"chat_copy" = "Másolás";
+"chat_delete" = "Törlés";
+"chat_delete_for_me" = "Törlés nekem";
+"chat_delete_for_everyone" = "Törlés mindenkinek";
+"chat_react" = "Reagálás";
+"chat_save_photo" = "Mentés a Fotókba";
+"chat_download_file" = "Fájl letöltése";
+"chat_message_deleted" = "Ez az üzenet törölve lett";
+"chat_show_original" = "Eredeti megjelenítése";
+"chat_show_translation" = "Fordítás megjelenítése";
+"chat_translated_from" = "Fordítva innen: %@";
+"chat_attach_photo" = "Fotó";
+"chat_attach_camera" = "Kamera";
+"chat_attach_file" = "Fájl";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "Dokumentum fordítása";
+"chat_group_info" = "Csoport információ";
+"chat_add_people" = "Emberek hozzáadása";
+"chat_remove_people" = "Emberek eltávolítása";
+"chat_leave_group" = "Csoport elhagyása";
+"chat_view_profile" = "Profil megtekintése";
+"chat_search" = "Keresés a beszélgetésben";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "Beállítások";
+"settings_preferences" = "BEÁLLÍTÁSOK";
+"settings_about" = "NÉVJEGY";
+"settings_language" = "Nyelv";
+"settings_country" = "Ország";
+"settings_region" = "Régió";
+"settings_app_language" = "Alkalmazás nyelve";
+"settings_app_language_auto" = "Automatikus (eszköz nyelve)";
+"settings_whats_new" = "Újdonságok";
+"settings_version" = "Verzió";
+"settings_privacy_policy" = "Adatvédelmi irányelvek";
+"settings_terms_of_service" = "Szolgáltatási feltételek";
+"settings_help_support" = "Súgó és támogatás";
+"settings_sign_out" = "Kijelentkezés";
+"settings_sign_out_confirm" = "Biztosan ki szeretnél jelentkezni?";
+"settings_delete_account" = "Fiók törlése";
+"settings_edit_name" = "Név szerkesztése";
+"settings_display_name" = "Megjelenített név";
+"settings_change_photo" = "Profilkép módosítása";
+"settings_take_photo" = "Fénykép készítése";
+"settings_choose_library" = "Kiválasztás a könyvtárból";
+"settings_remove_photo" = "Fotó eltávolítása";
+"settings_photo_error" = "Fotó hiba";
+"settings_photo_error_message" = "A profilkép frissítése sikertelen";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "Csoport információ";
+"group_info_participants" = "%d Résztvevő";
+"group_info_participants_header" = "Résztvevők";
+"group_info_you" = "(Te)";
+"group_info_edit_name" = "Csoport nevének szerkesztése";
+"group_info_group_name" = "Csoport neve";
+"group_add_participants_title" = "Résztvevők hozzáadása";
+"group_add_participants_search" = "Felhasználók keresése hozzáadáshoz...";
+"group_add_participants_button" = "Hozzáadás a csoporthoz";
+"group_add_participants_empty" = "Nincs hozzáadható felhasználó";
+"group_remove_participants_title" = "Résztvevők eltávolítása";
+"group_remove_participants_confirm" = "Eltávolítod %@-t a csoportból?";
+"group_remove_button" = "Eltávolítás";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "Automatikus (eszköz nyelve)";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "Hálózati hiba. Ellenőrizd a kapcsolatot.";
+"error_server" = "Szerverhiba. Próbáld később.";
+"error_unknown" = "Ismeretlen hiba történt.";
+"error_authentication" = "Hitelesítés sikertelen. Jelentkezz be újra.";
+"error_permission_denied" = "Engedély megtagadva.";
+"error_not_found" = "Nem található.";
+"error_photo_access" = "Fotókönyvtár hozzáférés szükséges.";
+"error_camera_access" = "Kamera hozzáférés szükséges.";
+"error_file_too_large" = "A fájl túl nagy. Max méret: %@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "Fotó hozzáférés";
+"permission_photos_message" = "Engedélyezd az Intoknak a fotóidhoz való hozzáférést.";
+"permission_camera_title" = "Kamera hozzáférés";
+"permission_camera_message" = "Engedélyezd az Intoknak a kamerához való hozzáférést.";
+"permission_notifications_title" = "Értesítések";
+"permission_notifications_message" = "Engedélyezd az Intoknak az értesítések küldését.";
+"permission_go_to_settings" = "Ugrás a Beállításokhoz";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "Most";
+"time_minutes_ago" = "%d perce";
+"time_hours_ago" = "%d órája";
+"time_yesterday" = "Tegnap";
+"time_days_ago" = "%d napja";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "Vissza";
+"accessibility_close_button" = "Bezárás";
+"accessibility_send_message" = "Üzenet küldése";
+"accessibility_attach_media" = "Média csatolása";
+"accessibility_take_photo" = "Fotó készítése";
+"accessibility_select_emoji" = "Emoji kiválasztása";
+"accessibility_profile_picture" = "Profilkép";
+"accessibility_unread_messages" = "%d olvasatlan üzenet";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "Nincsenek beszélgetések";
+"empty_messages" = "Nincsenek üzenetek";
+"empty_search_results" = "Nincs találat";
+"empty_users" = "Nem található felhasználó";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "Új üzenet";
+"notification_new_message_from" = "Új üzenet tőle: %@";
+"notification_photo" = "%@ fotót küldött";
+"notification_file" = "%@ fájlt küldött";
+"notification_gif" = "%@ GIF-et küldött";

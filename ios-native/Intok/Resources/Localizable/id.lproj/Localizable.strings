@@ -1,0 +1,265 @@
+/*
+ * Localizable.strings (Indonesian - Bahasa Indonesia)
+ * Intok
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "OK";
+"common_cancel" = "Batal";
+"common_done" = "Selesai";
+"common_save" = "Simpan";
+"common_delete" = "Hapus";
+"common_edit" = "Edit";
+"common_close" = "Tutup";
+"common_back" = "Kembali";
+"common_next" = "Lanjut";
+"common_continue" = "Lanjutkan";
+"common_skip" = "Lewati";
+"common_finish" = "Selesai";
+"common_loading" = "Memuat...";
+"common_error" = "Error";
+"common_success" = "Berhasil";
+"common_retry" = "Coba lagi";
+"common_try_again" = "Coba lagi";
+"common_search" = "Cari";
+"common_or" = "atau";
+"common_yes" = "Ya";
+"common_no" = "Tidak";
+"common_unknown" = "Tidak diketahui";
+"common_not_set" = "Belum diatur";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "Terhubung secara global, berkomunikasi secara alami";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "Lanjutkan dengan Apple";
+"login_continue_google" = "Lanjutkan dengan Google";
+"login_continue_email" = "Lanjutkan dengan Email";
+"login_terms_notice" = "Dengan melanjutkan, Anda menyetujui Ketentuan Layanan dan Kebijakan Privasi kami";
+"login_sign_in_apple" = "Masuk dengan Apple";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "Lanjutkan dengan Email";
+"email_auth_welcome_back" = "Selamat Datang Kembali";
+"email_auth_create_account" = "Buat Akun";
+"email_auth_whats_your_email" = "Apa email Anda?";
+"email_auth_check_account" = "Kami akan memeriksa apakah Anda memiliki akun";
+"email_auth_email_label" = "Email";
+"email_auth_email_placeholder" = "Masukkan email Anda";
+"email_auth_enter_password" = "Masukkan kata sandi";
+"email_auth_password_label" = "Kata Sandi";
+"email_auth_sign_in" = "Masuk";
+"email_auth_forgot_password" = "Lupa kata sandi?";
+"email_auth_create_your_account" = "Buat akun Anda";
+"email_auth_display_name_label" = "Nama Tampilan";
+"email_auth_confirm_password_label" = "Konfirmasi Kata Sandi";
+"email_auth_password_hint" = "Minimal 6 karakter";
+"email_auth_passwords_dont_match" = "Kata sandi tidak cocok";
+"email_auth_preferred_language" = "Bahasa Pilihan";
+"email_auth_country" = "Negara";
+"email_auth_create_account_button" = "Buat Akun";
+"email_auth_check_email_error" = "Gagal memeriksa email. Silakan coba lagi.";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "Pilih Nama Tampilan";
+"setup_how_others_see_you" = "Ini cara orang lain akan melihat Anda";
+"setup_enter_name_placeholder" = "Masukkan nama Anda";
+"setup_select_language" = "Pilih Bahasa Anda";
+"setup_messages_translated" = "Pesan akan diterjemahkan ke bahasa ini";
+"setup_search_languages" = "Cari bahasa...";
+"setup_select_country" = "Pilih Negara Anda";
+"setup_country_optional" = "Opsional - membantu menghubungkan Anda dengan pengguna terdekat";
+"setup_search_countries" = "Cari negara...";
+"setup_select_region" = "Pilih Wilayah Anda";
+"setup_region_accuracy" = "Ini membantu akurasi terjemahan";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "Pesan";
+"conversations_search_placeholder" = "Cari percakapan...";
+"conversations_loading" = "Memuat percakapan...";
+"conversations_empty_title" = "Belum ada percakapan";
+"conversations_empty_subtitle" = "Mulai percakapan dengan mengetuk tombol tulis";
+"conversations_start_new" = "Mulai Chat Baru";
+"conversations_error_title" = "Terjadi kesalahan";
+"conversations_group_chat" = "Chat Grup";
+"conversations_no_messages" = "Belum ada pesan";
+"conversations_yesterday" = "Kemarin";
+"conversations_delete_title" = "Hapus Percakapan";
+"conversations_delete_message" = "Hapus percakapan ini? Ini tidak dapat dibatalkan.";
+"conversations_delete_button" = "Hapus Percakapan";
+"conversations_deleting" = "Menghapus...";
+"conversations_preview_photo" = "📷 Foto";
+"conversations_preview_voice" = "🎤 Pesan suara";
+"conversations_preview_file" = "📎 File";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "Pesan Baru";
+"new_chat_direct" = "Langsung";
+"new_chat_group" = "Grup";
+"new_chat_search_users" = "Cari pengguna...";
+"new_chat_no_results" = "Pengguna tidak ditemukan";
+"new_chat_create_group" = "Buat Grup";
+"new_chat_group_name_placeholder" = "Nama grup (opsional)";
+"new_chat_selected_count" = "Buat Grup (%d anggota)";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "Ketik pesan...";
+"chat_send_button" = "Kirim";
+"chat_typing_indicator" = "mengetik...";
+"chat_read_receipt" = "Dibaca";
+"chat_delivered" = "Terkirim";
+"chat_sending" = "Mengirim...";
+"chat_failed" = "Gagal mengirim";
+"chat_reply" = "Balas";
+"chat_copy" = "Salin";
+"chat_delete" = "Hapus";
+"chat_delete_for_me" = "Hapus untuk saya";
+"chat_delete_for_everyone" = "Hapus untuk semua";
+"chat_react" = "Reaksi";
+"chat_save_photo" = "Simpan ke Foto";
+"chat_download_file" = "Unduh File";
+"chat_message_deleted" = "Pesan ini telah dihapus";
+"chat_show_original" = "Tampilkan Asli";
+"chat_show_translation" = "Tampilkan Terjemahan";
+"chat_translated_from" = "Diterjemahkan dari %@";
+"chat_attach_photo" = "Foto";
+"chat_attach_camera" = "Kamera";
+"chat_attach_file" = "File";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "Terjemahkan dokumen";
+"chat_group_info" = "Info Grup";
+"chat_add_people" = "Tambah Orang";
+"chat_remove_people" = "Hapus Orang";
+"chat_leave_group" = "Keluar Grup";
+"chat_view_profile" = "Lihat Profil";
+"chat_search" = "Cari di Chat";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "Pengaturan";
+"settings_preferences" = "PREFERENSI";
+"settings_about" = "TENTANG";
+"settings_language" = "Bahasa";
+"settings_country" = "Negara";
+"settings_region" = "Wilayah";
+"settings_app_language" = "Bahasa Aplikasi";
+"settings_app_language_auto" = "Otomatis (bahasa perangkat)";
+"settings_whats_new" = "Yang Baru";
+"settings_version" = "Versi";
+"settings_privacy_policy" = "Kebijakan Privasi";
+"settings_terms_of_service" = "Ketentuan Layanan";
+"settings_help_support" = "Bantuan & Dukungan";
+"settings_sign_out" = "Keluar";
+"settings_sign_out_confirm" = "Apakah Anda yakin ingin keluar?";
+"settings_delete_account" = "Hapus Akun";
+"settings_edit_name" = "Edit Nama";
+"settings_display_name" = "Nama Tampilan";
+"settings_change_photo" = "Ubah Foto Profil";
+"settings_take_photo" = "Ambil Foto";
+"settings_choose_library" = "Pilih dari Perpustakaan";
+"settings_remove_photo" = "Hapus Foto";
+"settings_photo_error" = "Error Foto";
+"settings_photo_error_message" = "Gagal memperbarui foto profil";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "Info Grup";
+"group_info_participants" = "%d Peserta";
+"group_info_participants_header" = "Peserta";
+"group_info_you" = "(Anda)";
+"group_info_edit_name" = "Edit Nama Grup";
+"group_info_group_name" = "Nama Grup";
+"group_add_participants_title" = "Tambah Peserta";
+"group_add_participants_search" = "Cari pengguna untuk ditambahkan...";
+"group_add_participants_button" = "Tambah ke Grup";
+"group_add_participants_empty" = "Tidak ada pengguna untuk ditambahkan";
+"group_remove_participants_title" = "Hapus Peserta";
+"group_remove_participants_confirm" = "Hapus %@ dari grup?";
+"group_remove_button" = "Hapus";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "Otomatis (bahasa perangkat)";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "Error jaringan. Periksa koneksi Anda.";
+"error_server" = "Error server. Coba lagi nanti.";
+"error_unknown" = "Terjadi error yang tidak diketahui.";
+"error_authentication" = "Autentikasi gagal. Silakan masuk lagi.";
+"error_permission_denied" = "Izin ditolak.";
+"error_not_found" = "Tidak ditemukan.";
+"error_photo_access" = "Diperlukan akses ke perpustakaan foto.";
+"error_camera_access" = "Diperlukan akses ke kamera.";
+"error_file_too_large" = "File terlalu besar. Ukuran maksimum: %@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "Akses Foto";
+"permission_photos_message" = "Izinkan Intok mengakses foto Anda.";
+"permission_camera_title" = "Akses Kamera";
+"permission_camera_message" = "Izinkan Intok mengakses kamera Anda.";
+"permission_notifications_title" = "Notifikasi";
+"permission_notifications_message" = "Izinkan Intok mengirim notifikasi kepada Anda.";
+"permission_go_to_settings" = "Buka Pengaturan";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "Baru saja";
+"time_minutes_ago" = "%d menit yang lalu";
+"time_hours_ago" = "%d jam yang lalu";
+"time_yesterday" = "Kemarin";
+"time_days_ago" = "%d hari yang lalu";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "Kembali";
+"accessibility_close_button" = "Tutup";
+"accessibility_send_message" = "Kirim pesan";
+"accessibility_attach_media" = "Lampirkan media";
+"accessibility_take_photo" = "Ambil foto";
+"accessibility_select_emoji" = "Pilih emoji";
+"accessibility_profile_picture" = "Foto profil";
+"accessibility_unread_messages" = "%d pesan belum dibaca";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "Tidak ada percakapan";
+"empty_messages" = "Tidak ada pesan";
+"empty_search_results" = "Tidak ada hasil";
+"empty_users" = "Pengguna tidak ditemukan";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "Pesan baru";
+"notification_new_message_from" = "Pesan baru dari %@";
+"notification_photo" = "%@ mengirim foto";
+"notification_file" = "%@ mengirim file";
+"notification_gif" = "%@ mengirim GIF";

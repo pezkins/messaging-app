@@ -1,0 +1,269 @@
+/*
+ * Localizable.strings (Portuguese - Português)
+ * Intok
+ */
+
+// ============================================
+// MARK: - Common / General
+// ============================================
+"common_ok" = "OK";
+"common_cancel" = "Cancelar";
+"common_done" = "Concluído";
+"common_save" = "Salvar";
+"common_delete" = "Excluir";
+"common_edit" = "Editar";
+"common_close" = "Fechar";
+"common_back" = "Voltar";
+"common_next" = "Próximo";
+"common_continue" = "Continuar";
+"common_skip" = "Pular";
+"common_finish" = "Finalizar";
+"common_loading" = "Carregando...";
+"common_error" = "Erro";
+"common_success" = "Sucesso";
+"common_retry" = "Tentar novamente";
+"common_try_again" = "Tentar novamente";
+"common_search" = "Pesquisar";
+"common_or" = "ou";
+"common_yes" = "Sim";
+"common_no" = "Não";
+"common_unknown" = "Desconhecido";
+"common_not_set" = "Não definido";
+
+// ============================================
+// MARK: - App General
+// ============================================
+"app_name" = "Intok";
+"app_tagline" = "Conecte-se globalmente, comunique-se naturalmente";
+
+// ============================================
+// MARK: - Login Screen
+// ============================================
+"login_continue_apple" = "Continuar com Apple";
+"login_continue_google" = "Continuar com Google";
+"login_continue_email" = "Continuar com email";
+"login_terms_notice" = "Ao continuar, você concorda com nossos Termos de Serviço e Política de Privacidade";
+"login_sign_in_apple" = "Entrar com Apple";
+
+// ============================================
+// MARK: - Email Auth Screen
+// ============================================
+"email_auth_title" = "Continuar com email";
+"email_auth_welcome_back" = "Bem-vindo de volta";
+"email_auth_create_account" = "Criar conta";
+"email_auth_whats_your_email" = "Qual é o seu email?";
+"email_auth_check_account" = "Vamos verificar se você tem uma conta";
+"email_auth_email_label" = "Email";
+"email_auth_email_placeholder" = "Digite seu email";
+"email_auth_enter_password" = "Digite sua senha";
+"email_auth_password_label" = "Senha";
+"email_auth_sign_in" = "Entrar";
+"email_auth_forgot_password" = "Esqueceu a senha?";
+"email_auth_create_your_account" = "Crie sua conta";
+"email_auth_display_name_label" = "Nome de exibição";
+"email_auth_confirm_password_label" = "Confirmar senha";
+"email_auth_password_hint" = "Pelo menos 6 caracteres";
+"email_auth_passwords_dont_match" = "As senhas não coincidem";
+"email_auth_preferred_language" = "Idioma preferido";
+"email_auth_country" = "País";
+"email_auth_create_account_button" = "Criar conta";
+"email_auth_check_email_error" = "Falha ao verificar email. Tente novamente.";
+
+// ============================================
+// MARK: - Setup / Onboarding
+// ============================================
+"setup_choose_display_name" = "Escolha um nome de exibição";
+"setup_how_others_see_you" = "É assim que os outros verão você";
+"setup_enter_name_placeholder" = "Digite seu nome";
+"setup_select_language" = "Selecione seu idioma";
+"setup_messages_translated" = "As mensagens serão traduzidas para este idioma";
+"setup_search_languages" = "Pesquisar idiomas...";
+"setup_select_country" = "Selecione seu país";
+"setup_country_optional" = "Opcional - ajuda a conectar com usuários próximos";
+"setup_search_countries" = "Pesquisar países...";
+"setup_select_region" = "Selecione sua região";
+"setup_region_accuracy" = "Isso ajuda na precisão da tradução";
+
+// ============================================
+// MARK: - Conversations List
+// ============================================
+"conversations_title" = "Mensagens";
+"conversations_search_placeholder" = "Pesquisar conversas...";
+"conversations_loading" = "Carregando conversas...";
+"conversations_empty_title" = "Nenhuma conversa ainda";
+"conversations_empty_subtitle" = "Inicie uma conversa tocando no botão de criar";
+"conversations_start_new" = "Iniciar novo chat";
+"conversations_error_title" = "Algo deu errado";
+"conversations_group_chat" = "Chat em grupo";
+"conversations_no_messages" = "Nenhuma mensagem ainda";
+"conversations_yesterday" = "Ontem";
+"conversations_delete_title" = "Excluir conversa";
+"conversations_delete_message" = "Excluir esta conversa? Isso não pode ser desfeito.";
+"conversations_delete_button" = "Excluir conversa";
+"conversations_deleting" = "Excluindo...";
+"conversations_preview_photo" = "📷 Foto";
+"conversations_preview_voice" = "🎤 Mensagem de voz";
+"conversations_preview_file" = "📎 Arquivo";
+"conversations_preview_gif" = "GIF";
+
+// ============================================
+// MARK: - New Chat
+// ============================================
+"new_chat_title" = "Nova mensagem";
+"new_chat_direct" = "Direto";
+"new_chat_group" = "Grupo";
+"new_chat_search_users" = "Pesquisar usuários...";
+"new_chat_no_results" = "Nenhum usuário encontrado";
+"new_chat_create_group" = "Criar grupo";
+"new_chat_group_name_placeholder" = "Nome do grupo (opcional)";
+"new_chat_selected_count" = "Criar grupo (%d membros)";
+
+// ============================================
+// MARK: - Chat Screen
+// ============================================
+"chat_message_placeholder" = "Digite uma mensagem...";
+"chat_send_button" = "Enviar";
+"chat_typing_indicator" = "digitando...";
+"chat_read_receipt" = "Lida";
+"chat_delivered" = "Entregue";
+"chat_sending" = "Enviando...";
+"chat_failed" = "Falha ao enviar";
+"chat_reply" = "Responder";
+"chat_copy" = "Copiar";
+"chat_delete" = "Excluir";
+"chat_delete_for_me" = "Excluir para mim";
+"chat_delete_for_everyone" = "Excluir para todos";
+"chat_react" = "Reagir";
+"chat_save_photo" = "Salvar em Fotos";
+"chat_download_file" = "Baixar arquivo";
+"chat_delete_confirm" = "Esta ação não pode ser desfeita.";
+"chat_image_saved" = "Imagem salva nas Fotos";
+"chat_uploading" = "Enviando...";
+"chat_message_deleted" = "Esta mensagem foi excluída";
+"gif_try_different_search" = "Tente um termo de pesquisa diferente";
+"chat_show_original" = "Mostrar original";
+"chat_show_translation" = "Mostrar tradução";
+"chat_translated_from" = "Traduzido de %@";
+"chat_attach_photo" = "Foto";
+"chat_attach_camera" = "Câmera";
+"chat_attach_file" = "Arquivo";
+"chat_attach_gif" = "GIF";
+"chat_translate_document" = "Traduzir documento";
+"chat_group_info" = "Info do grupo";
+"chat_add_people" = "Adicionar pessoas";
+"chat_remove_people" = "Remover pessoas";
+"chat_leave_group" = "Sair do grupo";
+"chat_view_profile" = "Ver perfil";
+"chat_search" = "Buscar no chat";
+
+// ============================================
+// MARK: - Settings
+// ============================================
+"settings_title" = "Configurações";
+"settings_preferences" = "PREFERÊNCIAS";
+"settings_about" = "SOBRE";
+"settings_language" = "Idioma";
+"settings_country" = "País";
+"settings_region" = "Região";
+"settings_app_language" = "Idioma do app";
+"settings_app_language_auto" = "Automático (idioma do dispositivo)";
+"settings_whats_new" = "Novidades";
+"settings_version" = "Versão";
+"settings_privacy_policy" = "Política de Privacidade";
+"settings_terms_of_service" = "Termos de Serviço";
+"settings_help_support" = "Ajuda e Suporte";
+"settings_sign_out" = "Sair";
+"settings_sign_out_confirm" = "Tem certeza que deseja sair?";
+"settings_delete_account" = "Excluir conta";
+"settings_edit_name" = "Editar nome";
+"settings_display_name" = "Nome de exibição";
+"settings_change_photo" = "Alterar foto de perfil";
+"settings_take_photo" = "Tirar foto";
+"settings_choose_library" = "Escolher da biblioteca";
+"settings_remove_photo" = "Remover foto";
+"settings_photo_error" = "Erro na foto";
+"settings_photo_error_message" = "Falha ao atualizar foto de perfil";
+
+// ============================================
+// MARK: - Group Management
+// ============================================
+"group_info_title" = "Info do grupo";
+"group_info_participants" = "%d Participantes";
+"group_info_participants_header" = "Participantes";
+"group_info_you" = "(Você)";
+"group_info_edit_name" = "Editar nome do grupo";
+"group_info_group_name" = "Nome do grupo";
+"group_add_participants_title" = "Adicionar participantes";
+"group_add_participants_search" = "Pesquisar usuários...";
+"group_add_participants_button" = "Adicionar ao grupo";
+"group_add_participants_empty" = "Nenhum usuário para adicionar";
+"group_remove_participants_title" = "Remover participantes";
+"group_remove_participants_confirm" = "Remover %@ do grupo?";
+"group_remove_button" = "Remover";
+
+// ============================================
+// MARK: - Language
+// ============================================
+"language_auto" = "Automático (idioma do dispositivo)";
+
+// ============================================
+// MARK: - Errors
+// ============================================
+"error_network" = "Erro de rede. Verifique sua conexão.";
+"error_server" = "Erro do servidor. Tente novamente mais tarde.";
+"error_unknown" = "Ocorreu um erro desconhecido.";
+"error_authentication" = "Falha na autenticação. Entre novamente.";
+"error_permission_denied" = "Permissão negada.";
+"error_not_found" = "Não encontrado.";
+"error_photo_access" = "É necessário acesso à biblioteca de fotos.";
+"error_camera_access" = "É necessário acesso à câmera.";
+"error_file_too_large" = "Arquivo muito grande. Tamanho máximo: %@";
+
+// ============================================
+// MARK: - Permissions
+// ============================================
+"permission_photos_title" = "Acesso às fotos";
+"permission_photos_message" = "Permita que o Intok acesse suas fotos.";
+"permission_camera_title" = "Acesso à câmera";
+"permission_camera_message" = "Permita que o Intok acesse sua câmera.";
+"permission_notifications_title" = "Notificações";
+"permission_notifications_message" = "Permita que o Intok envie notificações.";
+"permission_go_to_settings" = "Ir para Configurações";
+
+// ============================================
+// MARK: - Time / Date
+// ============================================
+"time_just_now" = "Agora mesmo";
+"time_minutes_ago" = "Há %d minutos";
+"time_hours_ago" = "Há %d horas";
+"time_yesterday" = "Ontem";
+"time_days_ago" = "Há %d dias";
+
+// ============================================
+// MARK: - Accessibility
+// ============================================
+"accessibility_back_button" = "Voltar";
+"accessibility_close_button" = "Fechar";
+"accessibility_send_message" = "Enviar mensagem";
+"accessibility_attach_media" = "Anexar mídia";
+"accessibility_take_photo" = "Tirar foto";
+"accessibility_select_emoji" = "Selecionar emoji";
+"accessibility_profile_picture" = "Foto de perfil";
+"accessibility_unread_messages" = "%d mensagens não lidas";
+
+// ============================================
+// MARK: - Empty States
+// ============================================
+"empty_conversations" = "Nenhuma conversa";
+"empty_messages" = "Nenhuma mensagem";
+"empty_search_results" = "Sem resultados";
+"empty_users" = "Nenhum usuário encontrado";
+
+// ============================================
+// MARK: - Push Notifications
+// ============================================
+"notification_new_message" = "Nova mensagem";
+"notification_new_message_from" = "Nova mensagem de %@";
+"notification_photo" = "%@ enviou uma foto";
+"notification_file" = "%@ enviou um arquivo";
+"notification_gif" = "%@ enviou um GIF";

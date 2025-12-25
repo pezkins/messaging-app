@@ -48,7 +48,7 @@ struct ConversationsView: View {
                     }
                 }
             }
-            .navigationTitle("Messages")
+            .navigationTitle("conversations_title".localized)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -116,27 +116,27 @@ struct ConversationsView: View {
                 await chatStore.loadConversations()
             }
             .confirmationDialog(
-                "Delete Conversation",
+                "conversations_delete_title".localized,
                 isPresented: $showDeleteConfirmation,
                 titleVisibility: .visible
             ) {
-                Button("Delete", role: .destructive) {
+                Button("common_delete".localized, role: .destructive) {
                     if let conversation = conversationToDelete {
                         Task { await deleteConversation(conversation) }
                     }
                 }
-                Button("Cancel", role: .cancel) {
+                Button("common_cancel".localized, role: .cancel) {
                     conversationToDelete = nil
                 }
             } message: {
-                Text("Delete this conversation? This cannot be undone.")
+                Text("conversations_delete_message".localized)
             }
             .overlay {
                 if isDeletingConversation {
                     Color.black.opacity(0.3)
                         .ignoresSafeArea()
                         .overlay {
-                            ProgressView("Deleting...")
+                            ProgressView("conversations_deleting".localized)
                                 .padding()
                                 .background(Color(hex: "2A2A2A"))
                                 .cornerRadius(12)
@@ -167,7 +167,7 @@ struct ConversationsView: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.gray)
             
-            TextField("Search conversations...", text: $searchText)
+            TextField("conversations_search_placeholder".localized, text: $searchText)
                 .textFieldStyle(.plain)
                 .foregroundColor(.white)
         }
@@ -184,7 +184,7 @@ struct ConversationsView: View {
             ProgressView()
                 .progressViewStyle(CircularProgressViewStyle(tint: Color(hex: "8B5CF6")))
                 .scaleEffect(1.5)
-            Text("Loading conversations...")
+            Text("conversations_loading".localized)
                 .foregroundColor(.gray)
                 .padding(.top)
             Spacer()
@@ -200,7 +200,7 @@ struct ConversationsView: View {
                 .font(.system(size: 60))
                 .foregroundColor(.orange.opacity(0.7))
             
-            Text("Something went wrong")
+            Text("conversations_error_title".localized)
                 .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
@@ -216,7 +216,7 @@ struct ConversationsView: View {
                     await chatStore.loadConversations()
                 }
             }) {
-                Text("Try Again")
+                Text("common_try_again".localized)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .padding(.horizontal, 24)
@@ -239,19 +239,19 @@ struct ConversationsView: View {
                 .font(.system(size: 60))
                 .foregroundColor(Color(hex: "8B5CF6").opacity(0.5))
             
-            Text("No conversations yet")
+            Text("conversations_empty_title".localized)
                 .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.white)
             
-            Text("Start a conversation by tapping the compose button")
+            Text("conversations_empty_subtitle".localized)
                 .font(.subheadline)
                 .foregroundColor(.gray)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
             
             Button(action: { showingNewChat = true }) {
-                Text("Start New Chat")
+                Text("conversations_start_new".localized)
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
                     .padding(.horizontal, 24)
@@ -279,7 +279,7 @@ struct ConversationsView: View {
                             conversationToDelete = conversation
                             showDeleteConfirmation = true
                         } label: {
-                            Label("Delete Conversation", systemImage: "trash")
+                            Label("conversations_delete_button".localized, systemImage: "trash")
                         }
                     }
                     .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -287,7 +287,7 @@ struct ConversationsView: View {
                             conversationToDelete = conversation
                             showDeleteConfirmation = true
                         } label: {
-                            Label("Delete", systemImage: "trash")
+                            Label("common_delete".localized, systemImage: "trash")
                         }
                     }
 
@@ -307,10 +307,12 @@ struct ConversationRow: View {
     
     var displayName: String {
         if conversation.type == "group" {
+            // Don't translate user-defined group names - use English fallback
             return conversation.name ?? "Group Chat"
         }
         
         // For direct messages, show the other participant
+        // Don't translate usernames - they are user-defined
         if let otherUser = conversation.participants.first(where: { $0.id != authManager.currentUser?.id }) {
             return otherUser.username
         }
@@ -328,18 +330,18 @@ struct ConversationRow: View {
     
     var lastMessagePreview: String {
         guard let message = conversation.lastMessage else {
-            return "No messages yet"
+            return "conversations_no_messages".localized
         }
         
         switch message.type {
         case .image:
-            return "📷 Photo"
+            return "conversations_preview_photo".localized
         case .voice:
-            return "🎤 Voice message"
+            return "conversations_preview_voice".localized
         case .file:
-            return "📎 File"
+            return "conversations_preview_file".localized
         case .gif:
-            return "GIF"
+            return "conversations_preview_gif".localized
         default:
             return message.translatedContent ?? message.originalContent
         }
@@ -371,7 +373,7 @@ struct ConversationRow: View {
             formatter.dateFormat = "h:mm a"
             return formatter.string(from: date)
         } else if calendar.isDateInYesterday(date) {
-            return "Yesterday"
+            return "conversations_yesterday".localized
         } else {
             let formatter = DateFormatter()
             formatter.dateFormat = "MMM d"

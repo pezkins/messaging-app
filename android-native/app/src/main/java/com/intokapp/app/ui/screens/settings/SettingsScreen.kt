@@ -26,12 +26,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import com.intokapp.app.data.repository.localizedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.intokapp.app.R
 import com.intokapp.app.data.constants.*
 import com.intokapp.app.ui.theme.*
 import java.io.File
@@ -48,6 +51,7 @@ fun SettingsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     
     var showLanguagePicker by remember { mutableStateOf(false) }
+    var showAppLanguagePicker by remember { mutableStateOf(false) }
     var showCountryPicker by remember { mutableStateOf(false) }
     var showRegionPicker by remember { mutableStateOf(false) }
     var showWhatsNew by remember { mutableStateOf(false) }
@@ -116,7 +120,7 @@ fun SettingsScreen(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { Text("Settings", color = White) },
+                title = { Text(localizedString(R.string.settings_title, "settings.settings_title"), color = White) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.Default.ArrowBack, null, tint = White)
@@ -155,11 +159,21 @@ fun SettingsScreen(
                 )
                 
                 // Preferences Section
-                SettingsSection(title = "PREFERENCES") {
+                SettingsSection(title = localizedString(R.string.settings_preferences, "settings.settings_language_section")) {
                     SettingsRow(
-                        icon = Icons.Default.Public,
+                        icon = Icons.Default.Language,
+                        iconColor = Blue500,
+                        title = localizedString(R.string.settings_app_language, "settings.settings_app_language"),
+                        value = viewModel.localizationManager.getDisplayName(),
+                        onClick = { showAppLanguagePicker = true }
+                    )
+                    
+                    Divider(color = Surface700)
+                    
+                    SettingsRow(
+                        icon = Icons.Default.Translate,
                         iconColor = Purple500,
-                        title = "Language",
+                        title = localizedString(R.string.settings_message_language, "settings.settings_message_language"),
                         value = getLanguageByCode(uiState.user?.preferredLanguage ?: "en")?.name ?: "English",
                         onClick = { showLanguagePicker = true }
                     )
@@ -169,8 +183,8 @@ fun SettingsScreen(
                     SettingsRow(
                         icon = Icons.Default.Map,
                         iconColor = Green500,
-                        title = "Country",
-                        value = uiState.user?.preferredCountry?.let { getCountryByCode(it)?.name } ?: "Not set",
+                        title = localizedString(R.string.settings_country, "settings.settings_country"),
+                        value = uiState.user?.preferredCountry?.let { getCountryByCode(it)?.name } ?: localizedString(R.string.not_set, "common.none"),
                         onClick = { showCountryPicker = true }
                     )
                     
@@ -182,10 +196,10 @@ fun SettingsScreen(
                             SettingsRow(
                                 icon = Icons.Default.LocationOn,
                                 iconColor = Accent500,
-                                title = "Region",
+                                title = localizedString(R.string.settings_region, "settings.settings_region"),
                                 value = uiState.user?.preferredRegion?.let { regionCode ->
                                     getRegionByCode(countryCode, regionCode)?.name
-                                } ?: "Not set",
+                                } ?: localizedString(R.string.not_set, "common.none"),
                                 onClick = { showRegionPicker = true }
                             )
                         }
@@ -193,11 +207,11 @@ fun SettingsScreen(
                 }
                 
                 // About Section
-                SettingsSection(title = "ABOUT") {
+                SettingsSection(title = localizedString(R.string.settings_about, "settings.settings_about_section")) {
                     SettingsRow(
                         icon = Icons.Default.AutoAwesome,
                         iconColor = Yellow500,
-                        title = "What's New",
+                        title = localizedString(R.string.settings_whats_new, "settings.settings_whats_new"),
                         onClick = { showWhatsNew = true }
                     )
                     
@@ -217,7 +231,7 @@ fun SettingsScreen(
                         )
                         
                         Text(
-                            text = "Version",
+                            text = localizedString(R.string.settings_version, "settings.settings_version"),
                             color = White,
                             modifier = Modifier
                                 .weight(1f)
@@ -248,7 +262,7 @@ fun SettingsScreen(
                         tint = Red500
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Sign Out", color = Red500, fontWeight = FontWeight.SemiBold)
+                    Text(localizedString(R.string.sign_out, "settings.settings_logout"), color = Red500, fontWeight = FontWeight.SemiBold)
                 }
             }
             
@@ -264,7 +278,7 @@ fun SettingsScreen(
                         CircularProgressIndicator(color = Purple500)
                         Spacer(modifier = Modifier.height(16.dp))
                         Text(
-                            text = "Uploading photo...",
+                            text = localizedString(R.string.uploading_photo, "common.loading"),
                             color = White,
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -296,10 +310,27 @@ fun SettingsScreen(
     
     if (showLanguagePicker) {
         LanguagePickerDialog(
+            title = localizedString(R.string.settings_message_language, "settings.settings_message_language"),
             onDismiss = { showLanguagePicker = false },
             onSelect = { language ->
                 viewModel.updateLanguage(language.code)
                 showLanguagePicker = false
+            }
+        )
+    }
+    
+    if (showAppLanguagePicker) {
+        AppLanguagePickerDialog(
+            currentLanguageCode = viewModel.localizationManager.getLanguagePreference(),
+            isAuto = viewModel.localizationManager.isAutoLanguage(),
+            onDismiss = { showAppLanguagePicker = false },
+            onSelectAuto = {
+                viewModel.updateAppLanguage("auto")
+                showAppLanguagePicker = false
+            },
+            onSelectLanguage = { language ->
+                viewModel.updateAppLanguage(language.code)
+                showAppLanguagePicker = false
             }
         )
     }
@@ -337,7 +368,7 @@ fun SettingsScreen(
     if (showEditName) {
         AlertDialog(
             onDismissRequest = { showEditName = false },
-            title = { Text("Edit Display Name") },
+            title = { Text(localizedString(R.string.edit_display_name, "profile.profile_change_username")) },
             text = {
                 OutlinedTextField(
                     value = editingName,
@@ -353,12 +384,12 @@ fun SettingsScreen(
                     },
                     enabled = editingName.length >= 2
                 ) {
-                    Text("Save")
+                    Text(localizedString(R.string.save, "common.save"))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showEditName = false }) {
-                    Text("Cancel")
+                    Text(localizedString(R.string.cancel, "common.cancel"))
                 }
             }
         )
@@ -367,8 +398,8 @@ fun SettingsScreen(
     if (showSignOutConfirm) {
         AlertDialog(
             onDismissRequest = { showSignOutConfirm = false },
-            title = { Text("Sign Out") },
-            text = { Text("Are you sure you want to sign out?") },
+            title = { Text(localizedString(R.string.sign_out, "settings.settings_logout_confirm_title")) },
+            text = { Text(localizedString(R.string.sign_out_confirm, "settings.settings_logout_confirm_message")) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -376,12 +407,12 @@ fun SettingsScreen(
                         showSignOutConfirm = false
                     }
                 ) {
-                    Text("Sign Out", color = Red500)
+                    Text(localizedString(R.string.sign_out, "settings.settings_logout"), color = Red500)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showSignOutConfirm = false }) {
-                    Text("Cancel")
+                    Text(localizedString(R.string.cancel, "common.cancel"))
                 }
             }
         )
@@ -516,7 +547,7 @@ private fun ImagePickerDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Change Profile Photo") },
+        title = { Text(localizedString(R.string.change_profile_photo, "profile.profile_edit_photo")) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 // Take Photo
@@ -537,7 +568,7 @@ private fun ImagePickerDialog(
                             tint = Purple500
                         )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Take Photo", color = White)
+                        Text(localizedString(R.string.take_photo, "profile.profile_take_photo"), color = White)
                     }
                 }
                 
@@ -559,7 +590,7 @@ private fun ImagePickerDialog(
                             tint = Purple500
                         )
                         Spacer(modifier = Modifier.width(12.dp))
-                        Text("Choose from Gallery", color = White)
+                        Text(localizedString(R.string.choose_from_gallery, "profile.profile_choose_from_library"), color = White)
                     }
                 }
                 
@@ -582,7 +613,7 @@ private fun ImagePickerDialog(
                                 tint = Red500
                             )
                             Spacer(modifier = Modifier.width(12.dp))
-                            Text("Remove Photo", color = Red500)
+                            Text(localizedString(R.string.remove_photo, "profile.profile_remove_photo"), color = Red500)
                         }
                     }
                 }
@@ -591,7 +622,7 @@ private fun ImagePickerDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(localizedString(R.string.cancel, "common.cancel"))
             }
         },
         containerColor = Surface800
@@ -669,6 +700,7 @@ private fun SettingsRow(
 
 @Composable
 private fun LanguagePickerDialog(
+    title: String = "Select Language",
     onDismiss: () -> Unit,
     onSelect: (Language) -> Unit
 ) {
@@ -683,7 +715,7 @@ private fun LanguagePickerDialog(
     
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Select Language") },
+        title = { Text(title) },
         text = {
             Column {
                 OutlinedTextField(
@@ -713,6 +745,143 @@ private fun LanguagePickerDialog(
                                     text = language.native,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+private fun AppLanguagePickerDialog(
+    currentLanguageCode: String,
+    isAuto: Boolean,
+    onDismiss: () -> Unit,
+    onSelectAuto: () -> Unit,
+    onSelectLanguage: (Language) -> Unit
+) {
+    var searchText by remember { mutableStateOf("") }
+    
+    // Tier 1 languages (bundled, instant)
+    val tier1Codes = setOf("en", "es", "fr", "de", "pt", "ja", "ko", "ar", "zh")
+    
+    val filteredLanguages = remember(searchText) {
+        if (searchText.isEmpty()) LANGUAGES
+        else LANGUAGES.filter {
+            it.name.contains(searchText, ignoreCase = true) ||
+            it.native.contains(searchText, ignoreCase = true)
+        }
+    }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("App Language") },
+        text = {
+            Column {
+                OutlinedTextField(
+                    value = searchText,
+                    onValueChange = { searchText = it },
+                    placeholder = { Text("Search 120+ languages...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyColumn(
+                    modifier = Modifier.height(350.dp)
+                ) {
+                    // Auto option (use device language)
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSelectAuto() }
+                                .background(
+                                    if (isAuto) Purple500.copy(alpha = 0.1f)
+                                    else androidx.compose.ui.graphics.Color.Transparent
+                                )
+                                .padding(vertical = 12.dp, horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PhoneAndroid,
+                                contentDescription = null,
+                                tint = if (isAuto) Purple500 else Surface400,
+                                modifier = Modifier.padding(end = 12.dp)
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    "Auto (Device Language)",
+                                    fontWeight = if (isAuto) FontWeight.Bold else FontWeight.Normal
+                                )
+                                Text(
+                                    text = "Currently using device settings",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            if (isAuto) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    tint = Purple500
+                                )
+                            }
+                        }
+
+                        Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    }
+
+                    // Language list
+                    items(filteredLanguages) { language ->
+                        val isSelected = !isAuto && language.code == currentLanguageCode
+                        val isTier1 = tier1Codes.contains(language.code)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSelectLanguage(language) }
+                                .background(
+                                    if (isSelected) Purple500.copy(alpha = 0.1f)
+                                    else androidx.compose.ui.graphics.Color.Transparent
+                                )
+                                .padding(vertical = 12.dp, horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(
+                                        language.name,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                    )
+                                    if (!isTier1) {
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            "☁️",
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                }
+                                Text(
+                                    text = language.native,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            if (isSelected) {
+                                Icon(
+                                    imageVector = Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    tint = Purple500
                                 )
                             }
                         }

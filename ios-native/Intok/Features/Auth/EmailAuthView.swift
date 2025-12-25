@@ -79,11 +79,11 @@ struct EmailAuthView: View {
     var headerTitle: String {
         switch step {
         case .enterEmail:
-            return "Continue with Email"
+            return "email_auth_title".localized
         case .enterPassword:
-            return "Welcome Back"
+            return "email_auth_welcome_back".localized
         case .createAccount:
-            return "Create Account"
+            return "email_auth_create_account".localized
         }
     }
     
@@ -91,12 +91,12 @@ struct EmailAuthView: View {
     var emailStepView: some View {
         VStack(spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("What's your email?")
+                Text("email_auth_whats_your_email".localized)
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
                 
-                Text("We'll check if you have an account")
+                Text("email_auth_check_account".localized)
                     .font(.subheadline)
                     .foregroundColor(.gray)
             }
@@ -104,7 +104,7 @@ struct EmailAuthView: View {
             
             // Email Input
             VStack(alignment: .leading, spacing: 8) {
-                Text("Email")
+                Text("email_auth_email_label".localized)
                     .font(.caption)
                     .foregroundColor(.gray)
                 
@@ -138,7 +138,7 @@ struct EmailAuthView: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Text("Continue")
+                        Text("common_continue".localized)
                     }
                 }
                 .fontWeight(.semibold)
@@ -158,7 +158,7 @@ struct EmailAuthView: View {
     var passwordStepView: some View {
         VStack(spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Enter your password")
+                Text("email_auth_enter_password".localized)
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -171,7 +171,7 @@ struct EmailAuthView: View {
             
             // Password Input
             VStack(alignment: .leading, spacing: 8) {
-                Text("Password")
+                Text("email_auth_password_label".localized)
                     .font(.caption)
                     .foregroundColor(.gray)
                 
@@ -217,7 +217,7 @@ struct EmailAuthView: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Text("Sign In")
+                        Text("email_auth_sign_in".localized)
                     }
                 }
                 .fontWeight(.semibold)
@@ -231,7 +231,7 @@ struct EmailAuthView: View {
             
             // Forgot Password
             Button(action: { /* TODO: Forgot password */ }) {
-                Text("Forgot password?")
+                Text("email_auth_forgot_password".localized)
                     .font(.subheadline)
                     .foregroundColor(Color(hex: "8B5CF6"))
             }
@@ -244,7 +244,7 @@ struct EmailAuthView: View {
     var createAccountStepView: some View {
         VStack(spacing: 24) {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Create your account")
+                Text("email_auth_create_your_account".localized)
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -257,7 +257,7 @@ struct EmailAuthView: View {
             
             // Display Name
             VStack(alignment: .leading, spacing: 8) {
-                Text("Display Name")
+                Text("email_auth_display_name_label".localized)
                     .font(.caption)
                     .foregroundColor(.gray)
                 
@@ -276,7 +276,7 @@ struct EmailAuthView: View {
             
             // Password
             VStack(alignment: .leading, spacing: 8) {
-                Text("Password")
+                Text("email_auth_password_label".localized)
                     .font(.caption)
                     .foregroundColor(.gray)
                 
@@ -304,14 +304,14 @@ struct EmailAuthView: View {
                         .stroke(Color.white.opacity(0.2), lineWidth: 1)
                 )
                 
-                Text("At least 6 characters")
+                Text("email_auth_password_hint".localized)
                     .font(.caption2)
                     .foregroundColor(.gray)
             }
             
             // Confirm Password
             VStack(alignment: .leading, spacing: 8) {
-                Text("Confirm Password")
+                Text("email_auth_confirm_password_label".localized)
                     .font(.caption)
                     .foregroundColor(.gray)
                 
@@ -327,7 +327,7 @@ struct EmailAuthView: View {
                     )
                 
                 if !confirmPassword.isEmpty && !passwordsMatch {
-                    Text("Passwords don't match")
+                    Text("email_auth_passwords_dont_match".localized)
                         .font(.caption2)
                         .foregroundColor(.red)
                 }
@@ -335,7 +335,7 @@ struct EmailAuthView: View {
             
             // Language Picker
             VStack(alignment: .leading, spacing: 8) {
-                Text("Preferred Language")
+                Text("email_auth_preferred_language".localized)
                     .font(.caption)
                     .foregroundColor(.gray)
                 
@@ -354,7 +354,7 @@ struct EmailAuthView: View {
             
             // Country Picker
             VStack(alignment: .leading, spacing: 8) {
-                Text("Country")
+                Text("email_auth_country".localized)
                     .font(.caption)
                     .foregroundColor(.gray)
                 
@@ -385,7 +385,7 @@ struct EmailAuthView: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Text("Create Account")
+                        Text("email_auth_create_account_button".localized)
                     }
                 }
                 .fontWeight(.semibold)
@@ -455,7 +455,7 @@ struct EmailAuthView: View {
             } catch {
                 await MainActor.run {
                     isCheckingEmail = false
-                    errorMessage = "Failed to check email. Please try again."
+                    errorMessage = "email_auth_check_email_error".localized
                 }
             }
         }

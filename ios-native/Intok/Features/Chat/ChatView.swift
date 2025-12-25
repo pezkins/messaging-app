@@ -128,25 +128,25 @@ struct ChatView: View {
                     if conversation.type == "group" {
                         // Group chat options
                         Button(action: { showAddParticipants = true }) {
-                            Label("Add People", systemImage: "person.badge.plus")
+                            Label("chat_add_people".localized, systemImage: "person.badge.plus")
                         }
                         Button(action: { showRemoveParticipants = true }) {
-                            Label("Remove People", systemImage: "person.badge.minus")
+                            Label("chat_remove_people".localized, systemImage: "person.badge.minus")
                         }
                         Button(action: { showGroupInfo = true }) {
-                            Label("Group Info", systemImage: "info.circle")
+                            Label("chat_group_info".localized, systemImage: "info.circle")
                         }
                     } else {
                         // Direct chat options
                         Button(action: {}) {
-                            Label("View Profile", systemImage: "person")
+                            Label("chat_view_profile".localized, systemImage: "person")
                         }
                     }
                     
                     Divider()
                     
                     Button(action: {}) {
-                        Label("Search in Chat", systemImage: "magnifyingglass")
+                        Label("chat_search".localized, systemImage: "magnifyingglass")
                     }
                 } label: {
                     Image(systemName: "ellipsis.circle")
@@ -222,30 +222,30 @@ struct ChatView: View {
             Text("Would you like to translate \"\(pendingDocumentAttachment?.fileName ?? "this document")\" for recipients who speak other languages?")
         }
         .confirmationDialog(
-            "Delete Message",
+            "chat_delete".localized,
             isPresented: $showDeleteConfirmation,
             titleVisibility: .visible
         ) {
             if let message = messageToDelete {
-                Button("Delete for Me", role: .destructive) {
+                Button("chat_delete_for_me".localized, role: .destructive) {
                     Task { await deleteMessage(message, forEveryone: false) }
                 }
                 
-                Button("Delete for Everyone", role: .destructive) {
+                Button("chat_delete_for_everyone".localized, role: .destructive) {
                     Task { await deleteMessage(message, forEveryone: true) }
                 }
                 
-                Button("Cancel", role: .cancel) {
+                Button("common_cancel".localized, role: .cancel) {
                     messageToDelete = nil
                 }
             }
         } message: {
-            Text("This action cannot be undone.")
+            Text("chat_delete_confirm".localized)
         }
-        .alert("Saved!", isPresented: $showSaveSuccess) {
-            Button("OK") { }
+        .alert("common_success".localized, isPresented: $showSaveSuccess) {
+            Button("common_ok".localized) { }
         } message: {
-            Text("Image saved to Photos")
+            Text("chat_image_saved".localized)
         }
         .alert("Error", isPresented: $showSaveError) {
             Button("OK") { }
@@ -360,7 +360,7 @@ struct ChatView: View {
     // MARK: - Typing Indicator
     var typingIndicator: some View {
         HStack {
-            Text("Someone is typing...")
+            Text("chat_typing_indicator".localized)
                 .font(.caption)
                 .foregroundColor(.gray)
                 .italic()
@@ -390,7 +390,7 @@ struct ChatView: View {
         HStack {
             ProgressView(value: uploadProgress)
                 .tint(Color(hex: "8B5CF6"))
-            Text("Uploading...")
+            Text("chat_uploading".localized)
                 .font(.caption)
                 .foregroundColor(.gray)
         }
@@ -856,7 +856,7 @@ struct MessageBubble: View {
                 HStack(spacing: 4) {
                     Image(systemName: "nosign")
                         .font(.caption)
-                    Text("This message was deleted")
+                    Text("chat_message_deleted".localized)
                         .italic()
                 }
                 .foregroundColor(.gray)
@@ -983,7 +983,7 @@ struct MessageBubble: View {
             Image(systemName: "photo")
                 .font(.title)
                 .foregroundColor(.gray)
-            Text("Failed to load")
+            Text("chat_failed".localized)
                 .font(.caption)
                 .foregroundColor(.gray)
         }
@@ -1189,12 +1189,12 @@ struct AttachmentImageView: View {
             Image(systemName: "photo")
                 .font(.title)
                 .foregroundColor(.gray)
-            Text("Failed to load")
+            Text("chat_failed".localized)
                 .font(.caption)
                 .foregroundColor(.gray)
             
             if loadError {
-                Button("Retry") {
+                Button("common_retry".localized) {
                     Task { await loadImageURL() }
                 }
                 .font(.caption)
